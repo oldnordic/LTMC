@@ -1,0 +1,32 @@
+---
+description: Building Local Code Agent
+globs: ["*.py", "*.ts", "*.js"]
+---
+
+# Local Agent Development Rules
+
+## Code Standards
+- Write production-ready, testable code
+- Include comprehensive error handling
+- Add detailed docstrings and comments
+- Use type hints for Python
+- Follow SOLID principles
+
+## Implementation Strategy
+- Build incrementally and test each piece
+- Create modular, loosely-coupled components
+- Include database schema validation
+- Add proper logging throughout
+- Make everything configurable
+
+## Testing Requirements
+- Write unit tests for each class
+- Test database operations thoroughly
+- Mock external dependencies (ollama, subprocess)
+- Test error conditions and edge cases
+
+## When implementing:
+1. Always ask for clarification before making assumptions
+2. Show me the interface/API before implementing
+3. Test each module independently
+4. Don't move to next module until current one works

@@ -1,0 +1,33 @@
+## API Rule
+Create: `.cursor/rules/api.mdc`
+
+```markdown
+---
+description: FastAPI endpoints for code generation
+globs: ["**/api.py", "**/main.py", "**/agent.py"]
+---
+
+# API Development Rules
+
+## FastAPI Patterns
+- Use Pydantic models for all request/response data
+- Include proper HTTP status codes for all scenarios
+- Add comprehensive error handling with try-catch
+- Implement request validation and sanitization
+
+## Endpoint Structure
+```python
+@app.post("/generate")
+async def generate_code(request: CodeRequest):
+    try:
+        # Validation
+        if not request.task.strip():
+            raise HTTPException(400, "Task cannot be empty")
+
+        # Processing
+        result = await processor.generate(request)
+
+        # Response
+        return {"success": True, "code": result}
+    except Exception as e:
+        raise HTTPException(500, f"Generation failed: {str(e)}")

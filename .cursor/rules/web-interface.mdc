@@ -1,0 +1,165 @@
+---
+description: Web interface development rules for monitoring and management
+tags: [web, react, dashboard, monitoring, api]
+version: "1.0"
+---
+
+# Web Interface Development Rules
+
+## Dashboard Architecture
+```typescript
+interface DashboardComponents {
+    statusMonitor: ServerStatusMonitor;
+    performanceMetrics: PerformanceMetrics;
+    memoryUsage: MemoryUsageChart;
+    apiMetrics: APIMetricsDisplay;
+    logViewer: LogViewer;
+    configManager: ConfigurationManager;
+}
+
+// Real-time updates using WebSocket
+class DashboardService {
+    private websocket: WebSocket;
+    private eventListeners: Map<string, Function[]> = new Map();
+    
+    connect(): void {
+        this.websocket = new WebSocket('ws://localhost:8000/ws');
+        this.websocket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            this.notifyListeners(data.type, data.payload);
+        };
+    }
+    
+    subscribeToMetrics(callback: (metrics: any) => void): void {
+        this.addEventListener('metrics', callback);
+    }
+}
+```
+
+## Performance Monitoring Components
+```typescript
+// Server Status Component
+interface ServerStatus {
+    status: 'healthy' | 'warning' | 'error';
+    uptime: number;
+    version: string;
+    lastUpdate: Date;
+    activeConnections: number;
+    queuedRequests: number;
+}
+
+// Memory Usage Component
+interface MemoryMetrics {
+    total: number;
+    used: number;
+    free: number;
+    gpuMemory?: {
+        total: number;
+        used: number;
+        temperature: number;
+    };
+    breakdown: {
+        models: number;
+        cache: number;
+        system: number;
+    };
+}
+
+// API Metrics Component
+interface APIMetrics {
+    totalRequests: number;
+    requestsPerMinute: number;
+    averageResponseTime: number;
+    errorRate: number;
+    endpoints: {
+        [endpoint: string]: {
+            count: number;
+            avgTime: number;
+            errors: number;
+        };
+    };
+}
+```
+
+## Chart and Visualization Rules
+```typescript
+// Use Chart.js for performance charts
+import { Chart, ChartConfiguration } from 'chart.js';
+
+class PerformanceChart {
+    private chart: Chart;
+    
+    createMemoryChart(canvas: HTMLCanvasElement): void {
+        const config: ChartConfiguration = {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Memory Usage (MB)',
+                    data: [],
+                    borderColor: '#007acc',
+                    backgroundColor: 'rgba(0, 122, 204, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        };
+        
+        this.chart = new Chart(canvas, config);
+    }
+    
+    updateData(timestamp: string, value: number): void {
+        this.chart.data.labels?.push(timestamp);
+        this.chart.data.datasets[0].data.push(value);
+        
+        // Keep only last 50 data points
+        if (this.chart.data.labels!.length > 50) {
+            this.chart.data.labels?.shift();
+            this.chart.data.datasets[0].data.shift();
+        }
+        
+        this.chart.update('none'); // No animation for real-time updates
+    }
+}
+```
+
+## API Integration Rules
+```typescript
+// Dashboard API client
+class DashboardAPIClient {
+    private baseURL = 'http://localhost:8000';
+    
+    async getServerStatus(): Promise {
+        const response = await fetch(`${this.baseURL}/api/status`);
+        if (!response.ok) {
+            throw new Error(`Status check failed: ${response.status}`);
+        }
+        return response.json();
+    }
+    
+    async getMemoryMetrics(): Promise {
+        const response = await fetch(`${this.baseURL}/api/metrics/memory`);
+        return response.json();
+    }
+    
+    async getAPIMetrics(): Promise {
+        const response = await fetch(`${this.baseURL}/api/metrics/api`);
+        return response.json();
+    }
+    
+    async getLogs(lines: number = 100): Promise {
+        const response = await fetch(`${this.baseURL}/api/logs?lines=${lines}`);
+        return response.json();
+    }
+}
+```
+```
+

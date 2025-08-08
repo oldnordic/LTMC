@@ -1,0 +1,119 @@
+# IntelliJ IDEA Plugin Development Rules
+
+## Plugin Architecture
+```kotlin
+@Service
+class FirstSpiritAgentService : Disposable {
+    private val agentClient = LocalAgentClient()
+
+    companion object {
+        fun getInstance(): FirstSpiritAgentService = service()
+    }
+
+    suspend fun getCompletions(context: CodeContext): List<CodeCompletion> {
+        return agentClient.requestCompletions(context)
+    }
+
+    override fun dispose() {
+        agentClient.close()
+    }
+}
+```
+
+## Completion Provider
+```kotlin
+class FirstSpiritCompletionContributor : CompletionContributor() {
+    init {
+        extend(
+            CompletionType.BASIC,
+            PlatformPatterns.psiElement(),
+            FirstSpiritCompletionProvider()
+        )
+    }
+}
+
+class FirstSpiritCompletionProvider : CompletionProvider() {
+    override fun addCompletions(
+        parameters: CompletionParameters,
+        context: ProcessingContext,
+        result: CompletionResultSet
+    ) {
+        val project = parameters.position.project
+        val codeContext = ContextAnalyzer.analyzeContext(project, parameters.position)
+
+        runBlocking {
+            val completions = FirstSpiritAgentService.getInstance()
+                .getCompletions(codeContext)
+
+            completions.forEach { completion ->
+                val lookupElement = LookupElementBuilder
+                    .create(completion.text)
+                    .withIcon(FirstSpiritIcons.COMPONENT)
+                    .withTypeText(completion.type)
+
+                result.addElement(lookupElement)
+            }
+        }
+    }
+}
+```
+
+## Tool Window for Chat
+```kotlin
+class FirstSpiritChatToolWindow(private val project: Project) {
+    private val jcefBrowser = JBCefBrowser()
+    val component: JComponent = jcefBrowser.component
+
+    init {
+        setupWebView()
+        loadChatInterface()
+    }
+
+    private fun setupWebView() {
+        // Handle messages from JavaScript
+        JBCefJSQuery.create(jcefBrowser).also { jsQuery ->
+            jsQuery.addHandler { request ->
+                handleChatMessage(request)
+                JBCefJSQuery.Response("success")
+            }
+        }
+    }
+
+    private fun handleChatMessage(message: String): String {
+        return runBlocking {
+            val chatRequest = JsonParser.parseString(message).asJsonObject
+            when (chatRequest.get("type").asString) {
+                "generateCode" -> handleCodeGeneration(chatRequest)
+                "explainCode" -> handleCodeExplanation(chatRequest)
+                else -> "Unknown message type"
+            }
+        }
+    }
+}
+```
+
+## Actions Implementation
+```kotlin
+class GenerateComponentAction : AnAction() {
+    override fun actionPerformed(e: AnActionEvent) {
+        val project = e.project ?: return
+        val editor = e.getData(CommonDataKeys.EDITOR) ?: return
+
+        ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Generating Component", true) {
+            override fun run(indicator: ProgressIndicator) {
+                val context = ContextAnalyzer.analyzeCurrentFile(editor, project)
+                val result = runBlocking {
+                    FirstSpiritAgentService.getInstance().generateCode("input component", context)
+                }
+
+                ApplicationManager.getApplication().invokeLater {
+                    WriteCommandAction.runWriteCommandAction(project) {
+                        editor.document.insertString(editor.caretModel.offset, result.code)
+                    }
+                }
+            }
+        })
+    }
+}
+```
+```

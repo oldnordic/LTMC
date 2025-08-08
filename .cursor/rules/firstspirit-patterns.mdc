@@ -1,0 +1,102 @@
+# FirstSpirit Development Patterns
+
+## Input Component Pattern
+```java
+public class ${ComponentName}InputComponent extends AbstractEditorValue implements PartialRendering {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(${ComponentName}InputComponent.class);
+
+    @Override
+    public Set<Aspect> aspects() {
+        return EnumSet.of(Aspect.CONTENT, Aspect.PREVIEW);
+    }
+
+    @Override
+    public void doEdit() {
+        try {
+            // Component-specific logic
+            ${EDIT_LOGIC}
+        } catch (Exception e) {
+            LOGGER.error("Error in component edit", e);
+            throw new RuntimeException("Edit operation failed", e);
+        }
+    }
+
+    @Override
+    public Object getValue() {
+        return ${VALUE_LOGIC};
+    }
+}
+```
+
+## Section Template Pattern
+```typescript
+interface ${SectionName}Data {
+    title: string;
+    content: string;
+    media?: MediaReference;
+}
+
+class ${SectionName}Template {
+    render(data: ${SectionName}Data, context: RenderContext): string {
+        return `
+
+                ${escapeHtml(data.title)}
+                ${data.content}
+
+        `;
+    }
+}
+```
+
+## Workflow Action Pattern
+```java
+public class ${ActionName}WorkflowAction implements WorkflowAction {
+
+    @Override
+    public void execute(WorkflowContext context) throws WorkflowException {
+        validateContext(context);
+
+        try {
+            ${ACTION_LOGIC}
+            context.setVariable("actionResult", "success");
+        } catch (Exception e) {
+            LOGGER.error("Workflow action failed", e);
+            context.setVariable("actionResult", "failed");
+            throw new WorkflowException("Action execution failed", e);
+        }
+    }
+}
+```
+
+## Code Generation Templates
+```python
+FIRSTSPIRIT_TEMPLATES = {
+    'input_component': '''
+public class {component_name}InputComponent extends AbstractEditorValue {{
+    // Generated FirstSpirit input component
+    {implementation}
+}}
+''',
+    'section_template': '''
+interface {section_name}Data {{
+    {fields}
+}}
+
+class {section_name}Template {{
+    render(data: {section_name}Data): string {{
+        return `{template}`;
+    }}
+}}
+''',
+    'workflow_action': '''
+public class {action_name}WorkflowAction implements WorkflowAction {{
+    @Override
+    public void execute(WorkflowContext context) throws WorkflowException {{
+        {logic}
+    }}
+}}
+'''
+}
+```
+```

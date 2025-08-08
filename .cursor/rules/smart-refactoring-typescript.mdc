@@ -1,0 +1,211 @@
+---
+description: TypeScript/JavaScript-specific smart refactoring rules
+tags: [typescript, javascript, refactoring, quality]
+globs: ["**/*.ts", "**/*.js", "**/*.tsx", "**/*.jsx"]
+---
+
+# Smart Refactoring Rules - TypeScript/JavaScript
+
+## TYPESCRIPT-SPECIFIC ANTI-PATTERNS TO AVOID
+
+### ❌ Never Use These TypeScript "Quick Fixes"
+```typescript
+// BAD: Using any to avoid type errors
+function processData(data: any): any {  // Defeats the purpose of TypeScript
+    return data.someProperty;
+}
+
+// BAD: ESLint disable comments
+const longFunctionName = veryLongChainOfMethodCalls().withManyParameters().andMoreMethods(); // eslint-disable-line
+
+// BAD: Type assertions without proper validation
+const user = data as User;  // Unsafe casting
+```
+
+## ✅ REQUIRED TYPESCRIPT REFACTORING PATTERNS
+
+### 1. Type Safety → Proper Interfaces and Validation
+```typescript
+// BEFORE: Using any types
+function processUserData(data: any): any {
+    return {
+        name: data.firstName + ' ' + data.lastName,
+        email: data.emailAddress,
+        age: data.age
+    };
+}
+
+// AFTER: Proper types and interfaces
+interface UserInput {
+    firstName: string;
+    lastName: string;
+    emailAddress: string;
+    age: number;
+}
+
+interface ProcessedUser {
+    name: string;
+    email: string;
+    age: number;
+}
+
+function processUserData(data: UserInput): ProcessedUser {
+    return {
+        name: `${data.firstName} ${data.lastName}`,
+        email: data.emailAddress,
+        age: data.age
+    };
+}
+```
+
+### 2. Long Method Chains → Extracted Functions
+```typescript
+// BEFORE: Long chain causing line length issues
+const result = data.filter(item => item.isActive).map(item => item.transform()).reduce((acc, curr) => acc + curr.value, 0);
+
+// AFTER: Extracted helper functions
+const result = calculateTotalFromActiveItems(data);
+
+function calculateTotalFromActiveItems(data: DataItem[]): number {
+    const activeItems = data.filter(isActiveItem);
+    const transformedItems = activeItems.map(transformItem);
+    return transformedItems.reduce(sumValues, 0);
+}
+
+function isActiveItem(item: DataItem): boolean {
+    return item.isActive;
+}
+
+function transformItem(item: DataItem): TransformedItem {
+    return item.transform();
+}
+
+function sumValues(acc: number, curr: TransformedItem): number {
+    return acc + curr.value;
+}
+```
+
+### 3. Complex React Components → Composition and Hooks
+```typescript
+// BEFORE: Large component with multiple responsibilities
+function UserDashboard({ userId }: { userId: string }) {
+    const [user, setUser] = useState(null);
+    const [posts, setPosts] = useState([]);
+    const [comments, setComments] = useState([]);
+    const [loading, setLoading] = useState(false);
+
+    // 100+ lines of mixed logic
+}
+
+// AFTER: Composed with custom hooks
+function UserDashboard({ userId }: { userId: string }) {
+    const user = useUser(userId);
+    const posts = useUserPosts(userId);
+    const comments = useUserComments(userId);
+
+    if (user.loading) return ;
+
+    return (
+
+
+
+
+
+    );
+}
+
+// Extracted custom hooks
+function useUser(userId: string) {
+    // User-specific logic
+}
+
+function useUserPosts(userId: string) {
+    // Posts-specific logic
+}
+```
+
+### 4. Error Handling → Proper Error Types
+```typescript
+// BEFORE: Generic error handling
+try {
+    await apiCall();
+} catch (error) {
+    console.log('Something went wrong');
+}
+
+// AFTER: Specific error handling with types
+interface ApiError {
+    code: string;
+    message: string;
+    statusCode: number;
+}
+
+try {
+    await apiCall();
+} catch (error) {
+    if (isApiError(error)) {
+        handleApiError(error);
+    } else {
+        handleUnexpectedError(error);
+    }
+}
+
+function isApiError(error: unknown): error is ApiError {
+    return typeof error === 'object' &&
+           error !== null &&
+           'code' in error &&
+           'message' in error &&
+           'statusCode' in error;
+}
+
+function handleApiError(error: ApiError): void {
+    logger.error(`API Error ${error.code}: ${error.message}`);
+    // Specific handling based on error.code
+}
+```
+
+### 5. Complex State Management → State Machines/Reducers
+```typescript
+// BEFORE: Complex boolean state
+const [isLoading, setIsLoading] = useState(false);
+const [isError, setIsError] = useState(false);
+const [isSuccess, setIsSuccess] = useState(false);
+const [data, setData] = useState(null);
+
+// AFTER: State machine approach
+type AsyncState =
+    | { status: 'idle' }
+    | { status: 'loading' }
+    | { status: 'success'; data: T }
+    | { status: 'error'; error: string };
+
+const [state, setState] = useState<AsyncState>({ status: 'idle' });
+
+// Or using useReducer for complex state logic
+function dataReducer(state: AsyncState, action: DataAction): AsyncState {
+    switch (action.type) {
+        case 'FETCH_START':
+            return { status: 'loading' };
+        case 'FETCH_SUCCESS':
+            return { status: 'success', data: action.payload };
+        case 'FETCH_ERROR':
+            return { status: 'error', error: action.error };
+        default:
+            return state;
+    }
+}
+```
+
+## TYPESCRIPT QUALITY RULES
+
+### Type Safety Rules
+- **Strict TypeScript**: Always use strict mode
+- **No any types**: Use proper interfaces and union types
+- **Explicit return types**: For all public functions
+- **Null safety**: Handle undefined/null cases explicitly
+
+### Function Rules
+- **Maximum parameters**: 3-4 (use objects for more)
+- **Single responsibility**: Each function should do one thing
+- **Pure functions**: Prefer functions without side effects
+- **Error handling**: Use Result types or proper try/catch

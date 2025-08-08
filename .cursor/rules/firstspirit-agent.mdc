@@ -1,0 +1,106 @@
+---
+description: FirstSpirit Local Code Agent Development
+globs: ["*.py", "*.js", "*.ts", "*.json"]
+alwaysApply: true
+---
+# FirstSpirit Local Agent Development Rules
+
+## Core Requirements
+- Building a local code agent using CodeLlama 13B for RX 7900 XT
+- Agent generates COMPLETE code (not completions) for FirstSpirit modules
+- Must include persistent memory system with SQLite
+- Optimized for 20GB VRAM RX 7900 XT graphics card with ROCm 6.3
+- Target languages: Java, TypeScript, JavaScript, Node.js
+
+## Code Standards
+- Write production-ready, testable code
+- Include comprehensive error handling and logging
+- Add detailed docstrings for all functions
+- Use type hints for Python functions
+- Follow PEP 8 for Python code
+- Keep functions focused and under 50 lines
+- Test each component independently before integration
+
+## Architecture Patterns
+- Modular design with clear separation of concerns
+- Database layer (SQLite) for pattern memory
+- API layer (FastAPI) for external communication
+- Code generation layer with Ollama integration
+- Memory/learning system for continuous improvement
+
+## FirstSpirit Specific Rules
+- Include FirstSpirit API patterns in generated code
+- Support input components, output channels, and workflows
+- Generate complete module structures with proper imports
+- Include FirstSpirit-specific error handling
+- Follow FirstSpirit naming conventions and patterns
+
+## RX 7900 XT Optimization Rules
+- Use CodeLlama 13B model for high-quality code generation
+- Set context window to 8192 tokens for comprehensive analysis
+- Limit generation to 4096 tokens for memory efficiency
+- Include GPU memory management and monitoring
+- Use 35 GPU layers for optimal performance
+- Add fallback to CPU if GPU memory insufficient
+
+## Implementation Guidelines
+1. **Start small and test each component**
+2. **Never implement multiple features simultaneously**
+3. **Always verify database operations work before proceeding**
+4. **Test Ollama integration before building API layer**
+5. **Include error handling for all external dependencies**
+6. **Log all operations for debugging**
+
+## When Working on Database Layer
+- Use SQLite with proper connection management
+- Include schema validation and migration support
+- Add indexes for performance on pattern queries
+- Implement proper transaction handling
+- Test with sample data before proceeding
+
+## When Working on API Layer
+- Use FastAPI with proper request/response models
+- Include comprehensive error handling with HTTP status codes
+- Add request validation and sanitization
+- Implement proper CORS for local development
+- Test all endpoints with curl before proceeding
+
+## When Working on Code Generation
+- Build context prompts with FirstSpirit knowledge
+- Include pattern examples from memory in prompts
+- Handle Ollama connection errors gracefully
+- Parse and validate generated code before returning
+- Store successful patterns for future learning
+
+## Quality Checks Before Each Commit
+- [ ] All functions have docstrings and type hints
+- [ ] Error handling implemented for all external calls
+- [ ] Database operations include proper connection management
+- [ ] API endpoints tested with sample requests
+- [ ] Code generation tested with FirstSpirit examples
+- [ ] Memory usage optimized for RX 7900 XT
+- [ ] Logging added for debugging
+
+## Avoid These Common Mistakes
+- Don't use placeholder code or TODO comments
+- Don't implement features without testing dependencies first
+- Don't skip error handling for "quick prototypes"
+- Don't exceed 20GB VRAM (RX 7900 XT limit)
+- Don't mix database and API logic in same functions
+- Don't generate incomplete code examples
+
+## FirstSpirit Code Patterns to Include
+```java
+// Input Component Pattern
+public class {Name}InputComponent extends AbstractInputComponent<{Type}> {
+    @Override
+    public void init(Context context) { /* implementation */ }
+    @Override
+    public {Type} getValue() { /* implementation */ }
+}
+
+// Output Channel Pattern
+public class {Name}OutputChannel extends AbstractOutputChannel {
+    @Override
+    public void generate(OutputContext context) throws GenerationException { /* implementation */ }
+}

@@ -1,0 +1,100 @@
+# FirstSpirit Content Scraper Rules
+
+## Scraping Ethics & Guidelines
+- Always respect robots.txt
+- Implement rate limiting (1-2 seconds between requests)
+- Use proper User-Agent headers
+- Handle 429 (Too Many Requests) gracefully
+- Implement exponential backoff for retries
+- Cache responses to avoid duplicate requests
+
+## Required Libraries
+```python
+import aiohttp
+import asyncio
+import sqlite3
+from bs4 import BeautifulSoup
+from urllib.parse import urljoin, urlparse
+from urllib.robotparser import RobotFileParser
+import hashlib
+from dataclasses import dataclass
+from typing import List, Dict, Optional, AsyncGenerator
+```
+
+## Scraper Architecture
+```python
+@dataclass
+class ScrapedContent:
+    url: str
+    title: str
+    content: str
+    content_type: str  # 'documentation', 'forum_post', 'api_reference'
+    category: str
+    timestamp: datetime
+    content_hash: str
+    metadata: Dict[str, Any]
+
+class BaseScraper:
+    def __init__(self, session: aiohttp.ClientSession, db_path: str):
+        self.session = session
+        self.db_path = db_path
+        self.rate_limiter = asyncio.Semaphore(3)  # Max 3 concurrent requests
+
+    async def scrape_url(self, url: str) -> Optional[ScrapedContent]:
+        async with self.rate_limiter:
+            await asyncio.sleep(1)  # Rate limiting
+            # Implementation here
+
+    async def store_content(self, content: ScrapedContent):
+        # Store in SQLite with deduplication
+        pass
+```
+
+## Content Processing Rules
+- Extract main content, ignore navigation/ads
+- Clean HTML using BeautifulSoup with allowlisted tags
+- Extract code snippets with language detection
+- Identify FirstSpirit-specific patterns and APIs
+- Store structured metadata (author, date, category, tags)
+
+## Forum Authentication
+```python
+class ForumScraper(BaseScraper):
+    async def login(self, username: str, password: str) -> bool:
+        # Handle CSRF tokens
+        # Store session cookies
+        # Verify login success
+        pass
+
+    async def scrape_forum_posts(self, max_pages: int = 100):
+        # Scrape forum threads and posts
+        # Extract code examples
+        # Identify Q&A patterns
+        pass
+```
+
+## Database Schema
+```sql
+CREATE TABLE scraped_content (
+    id INTEGER PRIMARY KEY,
+    url TEXT UNIQUE NOT NULL,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    content_type TEXT NOT NULL,
+    category TEXT NOT NULL,
+    timestamp DATETIME NOT NULL,
+    content_hash TEXT NOT NULL,
+    metadata JSON,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_content_type ON scraped_content(content_type);
+CREATE INDEX idx_category ON scraped_content(category);
+```
+
+## Implementation Priority
+1. Documentation scraper (public content)
+2. API reference scraper
+3. Forum scraper (with authentication)
+4. Content deduplication and cleaning
+5. Knowledge base building

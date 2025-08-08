@@ -1,0 +1,192 @@
+---
+description: Python-specific smart refactoring rules
+tags: [python, refactoring, quality, pep8]
+globs: ["**/*.py"]
+---
+
+# Smart Refactoring Rules - Python
+
+## PYTHON-SPECIFIC ANTI-PATTERNS TO AVOID
+
+### ❌ Never Use These Python "Quick Fixes"
+```python
+# BAD: Using # noqa to hide line length issues
+very_long_function_call_with_many_parameters(param1, param2, param3, param4)  # noqa: E501
+
+# BAD: Artificial line breaks that hurt readability
+very_long_function_call_with_many_parameters(param1, param2,
+param3, param4)  # Poor formatting
+
+# BAD: Catching all exceptions to hide errors
+try:
+    risky_operation()
+except:  # Catches everything, hides real issues
+    pass
+
+# BAD: Using global variables to avoid proper parameter passing
+global shared_data
+def process():
+    global shared_data  # Unused global declaration
+    return shared_data.value
+```
+
+## ✅ REQUIRED PYTHON REFACTORING PATTERNS
+
+### 1. Line Length Issues → Proper Formatting + Method Extraction
+```python
+# BEFORE: Line too long
+result = self.service.process_complex_operation_with_many_parameters(param1, param2, param3, param4, param5)
+
+# AFTER: Proper formatting
+result = self.service.process_complex_operation_with_many_parameters(
+    param1=param1,
+    param2=param2,
+    param3=param3,
+    param4=param4,
+    param5=param5
+)
+
+# EVEN BETTER: Extract to focused method
+result = self._process_operation_with_params(param1, param2, param3, param4, param5)
+
+def _process_operation_with_params(self, param1, param2, param3, param4, param5):
+    """Process operation with properly managed parameters."""
+    return self.service.process_complex_operation_with_many_parameters(
+        param1=param1,
+        param2=param2,
+        param3=param3,
+        param4=param4,
+        param5=param5
+    )
+```
+
+### 2. Deep Nesting → Guard Clauses + Method Extraction
+```python
+# BEFORE: Deep nesting
+def process_data(self, data):
+    if data:
+        if data.is_valid():
+            if data.has_required_fields():
+                try:
+                    result = self.complex_processing(data)
+                    if result.success:
+                        return result.value
+                    else:
+                        return None
+                except Exception as e:
+                    logger.error(f"Processing failed: {e}")
+                    return None
+            else:
+                return None
+        else:
+            return None
+    else:
+        return None
+
+# AFTER: Guard clauses + method extraction
+def process_data(self, data):
+    """Process data with proper validation and error handling."""
+    if not data:
+        return None
+
+    if not data.is_valid():
+        return None
+
+    if not data.has_required_fields():
+        return None
+
+    return self._perform_complex_processing(data)
+
+def _perform_complex_processing(self, data):
+    """Perform the complex processing logic."""
+    try:
+        result = self.complex_processing(data)
+        return result.value if result.success else None
+    except Exception as e:
+        logger.error(f"Processing failed: {e}")
+        return None
+```
+
+### 3. Unused Variables → Proper Usage or Removal
+```python
+# BEFORE: Unused variable (F841 error)
+def calculate_result(self):
+    intermediate = self.expensive_computation()  # F841: unused
+    return "done"
+
+# AFTER: Use the variable properly
+def calculate_result(self):
+    intermediate = self.expensive_computation()
+    return f"Computed: {intermediate}"
+
+# OR: Remove if truly unnecessary
+def calculate_result(self):
+    self.expensive_computation()  # Side effects only
+    return "done"
+
+# OR: Use underscore for intentionally unused
+def calculate_result(self):
+    _ = self.expensive_computation()  # Explicit ignore
+    return "done"
+```
+
+### 4. Import Organization → Proper Structure
+```python
+# BEFORE: Disorganized imports
+from .local_module import something
+import sys
+from third_party import library
+import os
+
+# AFTER: Properly organized (isort compliant)
+import os
+import sys
+
+from third_party import library
+
+from .local_module import something
+```
+
+### 5. Exception Handling → Specific and Actionable
+```python
+# BEFORE: Poor exception handling
+try:
+    risky_operation()
+except:
+    return None
+
+# AFTER: Specific exception handling
+try:
+    return risky_operation()
+except ConnectionError as e:
+    logger.error(f"Connection failed: {e}")
+    raise
+except ValueError as e:
+    logger.warning(f"Invalid input: {e}")
+    return None
+except Exception as e:
+    logger.error(f"Unexpected error in risky_operation: {e}")
+    raise
+```
+
+## PYTHON CODE QUALITY RULES
+
+### Function/Method Rules
+- **Maximum lines per function**: 20-30 lines
+- **Maximum parameters**: 5 (use dataclasses/TypedDict for more)
+- **Maximum nesting depth**: 3 levels
+- **Docstrings**: Required for all public methods
+- **Type hints**: Required for all function signatures
+
+### Class Rules
+- **Single responsibility**: Each class should have one clear purpose
+- **Maximum methods**: 15-20 public methods
+- **Private methods**: Use `_method_name` for internal logic
+- **Properties**: Use `@property` for computed attributes
+
+### Module Rules
+- **Maximum lines per module**: 500 lines
+- **Clear organization**: Related functions grouped together
+- **Imports at top**: Following PEP 8 organization
+- **Module docstring**: Explaining the module's purpose
+```

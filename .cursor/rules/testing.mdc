@@ -1,0 +1,74 @@
+# Testing Framework Rules
+
+## Python Testing (pytest)
+```python
+@pytest.fixture
+async def agent_service():
+    service = LocalAgentService()
+    await service.initialize()
+    yield service
+    await service.cleanup()
+
+@pytest.mark.asyncio
+async def test_code_generation(agent_service):
+    request = GenerateRequest(
+        task="Create input component",
+        language="java",
+        context={"type": "firstspirit"}
+    )
+
+    result = await agent_service.generate_code(request)
+
+    assert result.success is True
+    assert "class" in result.code
+    assert "InputComponent" in result.code
+```
+
+## VSCode Extension Testing (Jest)
+```typescript
+describe('FirstSpirit Extension', () => {
+    let extension: FirstSpiritExtension;
+
+    beforeEach(() => {
+        extension = new FirstSpiritExtension();
+    });
+
+    test('should provide completions', async () => {
+        const document = createMockDocument();
+        const position = new vscode.Position(0, 0);
+
+        const completions = await extension.completionProvider
+            .provideInlineCompletionItems(document, position, {} as any);
+
+        expect(completions).toBeDefined();
+        expect(completions.length).toBeGreaterThan(0);
+    });
+});
+```
+
+## IntelliJ Plugin Testing (JUnit/Kotlin)
+```kotlin
+class FirstSpiritPluginTest : BasePlatformTestCase() {
+
+    fun testCompletionProvider() {
+        val file = myFixture.configureByText("Test.java", "public class ")
+
+        myFixture.completeBasic()
+
+        val lookupStrings = myFixture.lookupElementStrings
+        assertContainsElements(lookupStrings, "InputComponent")
+    }
+
+    fun testCodeGeneration() {
+        val action = GenerateComponentAction()
+        val event = createMockActionEvent()
+
+        action.actionPerformed(event)
+
+        // Verify code was generated
+        val document = editor.document
+        assertTrue(document.text.contains("InputComponent"))
+    }
+}
+```
+```

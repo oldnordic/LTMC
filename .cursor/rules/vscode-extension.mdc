@@ -1,0 +1,99 @@
+# VSCode Extension Development Rules
+
+## Extension Architecture
+```typescript
+interface ExtensionComponents {
+    completionProvider: FirstSpiritCompletionProvider;
+    chatProvider: FirstSpiritChatProvider;
+    codeActionProvider: FirstSpiritCodeActionProvider;
+    agentClient: LocalAgentClient;
+}
+
+class FirstSpiritExtension {
+    private components: ExtensionComponents;
+
+    activate(context: vscode.ExtensionContext): void {
+        this.initializeComponents();
+        this.registerProviders();
+        this.setupCommands();
+    }
+}
+```
+
+## Real-time Completion Provider
+```typescript
+class FirstSpiritCompletionProvider implements vscode.InlineCompletionItemProvider {
+    async provideInlineCompletionItems(
+        document: vscode.TextDocument,
+        position: vscode.Position,
+        context: vscode.InlineCompletionContext
+    ): Promise {
+
+        const codeContext = this.analyzeContext(document, position);
+        const completions = await this.agentClient.getCompletions(codeContext);
+
+        return completions.map(completion => ({
+            insertText: completion.code,
+            range: completion.range,
+            command: {
+                command: 'firstspirit.acceptCompletion',
+                arguments: [completion.metadata]
+            }
+        }));
+    }
+}
+```
+
+## Chat Interface Implementation
+```typescript
+class FirstSpiritChatProvider {
+    private panel: vscode.WebviewPanel | undefined;
+
+    createChatPanel(): void {
+        this.panel = vscode.window.createWebviewPanel(
+            'firstspiritChat',
+            'FirstSpirit AI Assistant',
+            vscode.ViewColumn.Beside,
+            {
+                enableScripts: true,
+                retainContextWhenHidden: true
+            }
+        );
+
+        this.panel.webview.html = this.getChatHTML();
+        this.setupMessageHandling();
+    }
+
+    private async handleCodeGeneration(message: any): Promise {
+        const result = await this.agentClient.generateCode(message.prompt);
+        this.panel?.webview.postMessage({
+            type: 'codeGenerated',
+            code: result.code,
+            explanation: result.explanation
+        });
+    }
+}
+```
+
+## Commands and Keybindings
+```json
+{
+  "commands": [
+    {
+      "command": "firstspirit.generateComponent",
+      "title": "Generate FirstSpirit Component"
+    },
+    {
+      "command": "firstspirit.openChat",
+      "title": "Open AI Chat"
+    }
+  ],
+  "keybindings": [
+    {
+      "command": "firstspirit.generateComponent",
+      "key": "ctrl+shift+g"
+    }
+  ]
+}
+```
+```
