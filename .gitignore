@@ -140,6 +140,9 @@ cython_debug/
 # Claude Code internal files (NEVER commit these)
 .claude/
 
+# Cursor IDE files (NEVER commit these)
+.cursor/
+
 # LTMC specific
 ltmc.db
 ltmc_chat_log.db
