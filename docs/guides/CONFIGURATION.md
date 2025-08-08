@@ -13,6 +13,10 @@ Complete configuration guide for the LTMC (Long-Term Memory and Context) MCP ser
 | `LOG_LEVEL` | `INFO` | Logging level (DEBUG/INFO/WARNING/ERROR) |
 | `HTTP_HOST` | `localhost` | HTTP server host |
 | `HTTP_PORT` | `5050` | HTTP server port |
+| `ORCHESTRATION_MODE` | `basic` | Redis Orchestration mode (basic/full/debug) |
+| `AGENT_REGISTRY_ENABLED` | `true` | Enable Agent Registry Service |
+| `CONTEXT_COORDINATION_ENABLED` | `true` | Enable Context Coordination Service |
+| `MEMORY_LOCKING_STRATEGY` | `optimistic` | Memory locking strategy (optimistic/pessimistic) |
 
 ### Redis Configuration
 
@@ -58,6 +62,12 @@ REDIS_HOST=localhost
 REDIS_PORT=6381
 REDIS_PASSWORD=ltmc_cache_2025
 REDIS_DB=0
+
+# Orchestration Configuration
+ORCHESTRATION_MODE=full
+AGENT_REGISTRY_ENABLED=true
+CONTEXT_COORDINATION_ENABLED=true
+MEMORY_LOCKING_STRATEGY=optimistic
 
 # Neo4j Configuration
 NEO4J_URI=bolt://localhost:7687
@@ -127,7 +137,34 @@ index = faiss.IndexIVFFlat(quantizer, 384, ncentroids)
 
 ## Service Dependencies
 
-### Redis Server Configuration
+### Redis Orchestration Configuration
+
+### Orchestration Modes
+
+| Mode | Description | Typical Use Case |
+|------|-------------|-----------------|
+| `basic` | Minimal service coordination | Lightweight deployments |
+| `full` | Complete service integration | Complex multi-agent scenarios |
+| `debug` | Enhanced logging and tracing | Development and troubleshooting |
+
+### Orchestration Service Configuration
+
+| Service | Variable | Default | Description |
+|---------|----------|---------|-------------|
+| Agent Registry | `AGENT_REGISTRY_ENABLED` | `true` | Enable/disable agent tracking |
+| Context Coordination | `CONTEXT_COORDINATION_ENABLED` | `true` | Enable/disable context sharing |
+| Memory Locking | `MEMORY_LOCKING_STRATEGY` | `optimistic` | Concurrency control strategy |
+
+**Service Activation Example:**
+```bash
+# Configure orchestration mode and services
+export ORCHESTRATION_MODE=full
+export AGENT_REGISTRY_ENABLED=true
+export CONTEXT_COORDINATION_ENABLED=true
+export MEMORY_LOCKING_STRATEGY=optimistic
+```
+
+## Redis Server Configuration
 
 **Installation & Setup:**
 ```bash
