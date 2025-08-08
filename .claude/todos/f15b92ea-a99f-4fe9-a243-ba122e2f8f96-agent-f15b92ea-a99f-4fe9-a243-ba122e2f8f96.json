@@ -1,8 +1,0 @@
-[
-  {
-    "content": "Fix real agent consolidation - prevent duplicate calls for same task",
-    "status": "completed",
-    "priority": "high",
-    "id": "1"
-  }
-]

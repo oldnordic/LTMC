@@ -137,6 +137,9 @@ cython_debug/
 # VS Code
 .vscode/
 
+# Claude Code internal files (NEVER commit these)
+.claude/
+
 # LTMC specific
 ltmc.db
 ltmc_chat_log.db
@@ -170,6 +173,8 @@ Thumbs.db
 *.bak
 *.backup
 *.old
+*_backup.*
+*_new.*
 
 # Test coverage
 .coverage
