@@ -53,21 +53,39 @@ if ! python -c "import fastapi" 2>/dev/null; then
     pip install -r requirements.txt
 fi
 
-# Check Redis connection
+# Check Redis connection (required for orchestration)
 echo -e "${YELLOW}Checking LTMC Redis connection (port 6381)...${NC}"
 if ! python -c "import redis; r=redis.Redis(host='localhost', port=6381, decode_responses=True, password='ltmc_cache_2025'); r.ping()" 2>/dev/null; then
     echo -e "${YELLOW}Warning: LTMC Redis not available on port 6381. Starting Redis service...${NC}"
     ./redis_control.sh start
+    
+    # Wait for Redis to start and verify
+    sleep 3
+    if python -c "import redis; r=redis.Redis(host='localhost', port=6381, decode_responses=True, password='ltmc_cache_2025'); r.ping()" 2>/dev/null; then
+        echo -e "${GREEN}✓ LTMC Redis started successfully${NC}"
+    else
+        echo -e "${YELLOW}Warning: Redis failed to start. Orchestration will be disabled.${NC}"
+    fi
 else
     echo -e "${GREEN}✓ LTMC Redis connection successful${NC}"
 fi
 
-# Set environment variables
+# Set environment variables for LTMC
 export DB_PATH="${DB_PATH:-ltmc.db}"
 export FAISS_INDEX_PATH="${FAISS_INDEX_PATH:-faiss_index}"
 export LOG_LEVEL="${LOG_LEVEL:-INFO}"
 export HTTP_HOST="${HTTP_HOST:-localhost}"
 export HTTP_PORT="$HTTP_PORT"
+
+# Set orchestration environment variables
+export ORCHESTRATION_MODE="${ORCHESTRATION_MODE:-basic}"
+export REDIS_ENABLED="${REDIS_ENABLED:-true}"
+export REDIS_HOST="${REDIS_HOST:-localhost}"
+export REDIS_PORT="${REDIS_PORT:-6381}"
+export REDIS_PASSWORD="${REDIS_PASSWORD:-ltmc_cache_2025}"
+export CACHE_ENABLED="${CACHE_ENABLED:-true}"
+export BUFFER_ENABLED="${BUFFER_ENABLED:-true}"
+export SESSION_STATE_ENABLED="${SESSION_STATE_ENABLED:-true}"
 
 echo -e "${YELLOW}Environment variables:${NC}"
 echo -e "  DB_PATH: $DB_PATH"
@@ -75,6 +93,9 @@ echo -e "  FAISS_INDEX_PATH: $FAISS_INDEX_PATH"
 echo -e "  LOG_LEVEL: $LOG_LEVEL"
 echo -e "  HTTP_HOST: $HTTP_HOST"
 echo -e "  HTTP_PORT: $HTTP_PORT"
+echo -e "  ORCHESTRATION_MODE: $ORCHESTRATION_MODE"
+echo -e "  REDIS_ENABLED: $REDIS_ENABLED"
+echo -e "  REDIS_PORT: $REDIS_PORT"
 
 # Start the HTTP transport server
 echo -e "${YELLOW}Starting HTTP transport server...${NC}"
@@ -140,6 +161,8 @@ echo -e "${BLUE}Transport Details:${NC}"
 echo -e "  ${GREEN}✓ HTTP Transport:${NC} http://$HTTP_HOST:$HTTP_PORT"
 echo -e "  ${GREEN}✓ Stdio Transport:${NC} Available for MCP clients"
 echo -e "  ${GREEN}✓ Health Check:${NC} http://$HTTP_HOST:$HTTP_PORT/health"
+echo -e "  ${GREEN}✓ Orchestration Health:${NC} http://$HTTP_HOST:$HTTP_PORT/orchestration/health"
 echo -e "  ${GREEN}✓ Tools List:${NC} http://$HTTP_HOST:$HTTP_PORT/tools"
 echo -e "${YELLOW}To test HTTP: curl http://$HTTP_HOST:$HTTP_PORT/health${NC}"
+echo -e "${YELLOW}To test orchestration: curl http://$HTTP_HOST:$HTTP_PORT/orchestration/health${NC}"
 echo -e "${YELLOW}To test stdio: mcp dev ltmc_mcp_server.py${NC}"

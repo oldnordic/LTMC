@@ -70,6 +70,55 @@ def create_tables(conn: sqlite3.Connection) -> None:
         )
     """)
     
+    # Create Todos table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS Todos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            description TEXT NOT NULL,
+            priority TEXT DEFAULT 'medium',
+            completed BOOLEAN DEFAULT 0,
+            created_at TEXT NOT NULL,
+            completed_at TEXT
+        )
+    """)
+    
+    # Create CodePatterns table for code pattern learning
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS CodePatterns (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            input_prompt TEXT NOT NULL,
+            generated_code TEXT NOT NULL,
+            result TEXT NOT NULL,
+            language TEXT,
+            execution_time REAL,
+            error_message TEXT,
+            created_at TEXT NOT NULL
+        )
+    """)
+    
+    # Create CodePatternContext table for additional context
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS CodePatternContext (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            pattern_id INTEGER,
+            context_type TEXT NOT NULL,
+            context_data TEXT NOT NULL,
+            FOREIGN KEY (pattern_id) REFERENCES CodePatterns (id)
+        )
+    """)
+    
+    # Create VectorIdSequence table for managing vector IDs
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS VectorIdSequence (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            last_vector_id INTEGER DEFAULT 0
+        )
+    """)
+    
+    # Initialize vector ID sequence if empty
+    cursor.execute("INSERT OR IGNORE INTO VectorIdSequence (id, last_vector_id) VALUES (1, 0)")
+
     # Add source_tool column to existing ChatHistory tables (migration)
     try:
         cursor.execute("ALTER TABLE ChatHistory ADD COLUMN source_tool TEXT")

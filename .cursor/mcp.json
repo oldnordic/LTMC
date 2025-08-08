@@ -14,13 +14,6 @@
                 "@upstash/context7-mcp@latest"
             ]
         },
-        "memory": {
-            "command": "npx",
-            "args": [
-                "-y",
-                "@itseasy21/mcp-knowledge-graph"
-            ]
-        },
         "ltmc": {
             "command": "python",
             "args": ["ltmc_mcp_server.py"],

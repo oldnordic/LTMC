@@ -10,18 +10,25 @@
 - **Disk Space**: 10GB free
 
 ### Required Services
-1. **Redis Server**
+1. **Redis Server** (Required for Orchestration)
    - Version: 7.0+
-   - Port: 6381
+   - Port: 6381 (dedicated LTMC Redis instance)
    - Installation:
      ```bash
      sudo apt update
      sudo apt install redis-server
-     sudo systemctl start redis-server
-     sudo systemctl enable redis-server
+     
+     # Configure LTMC Redis instance
+     sudo cp /etc/redis/redis.conf /etc/redis/redis-ltmc.conf
+     sudo sed -i 's/port 6379/port 6381/' /etc/redis/redis-ltmc.conf
+     sudo sed -i 's/# requirepass foobared/requirepass ltmc_cache_2025/' /etc/redis/redis-ltmc.conf
+     
+     # Start LTMC Redis instance
+     sudo systemctl start redis-server@ltmc
+     sudo systemctl enable redis-server@ltmc
      ```
 
-2. **Neo4j Server**
+2. **Neo4j Server** (Optional - for advanced graph operations)
    - Version: 5.x Community Edition
    - Port: 7687 (Bolt)
    - Installation:
@@ -71,6 +78,33 @@ poetry run python -c "from ltms.database.schema import create_tables; create_tab
 ./start_server.sh
 ```
 
+## Orchestration Configuration
+
+### Enable Redis Orchestration
+Create environment configuration for orchestration:
+
+```bash
+# Copy example configuration
+cp ltmc_config.env.example ltmc_config.env
+
+# Configure orchestration mode
+echo "ORCHESTRATION_MODE=basic" >> ltmc_config.env
+echo "REDIS_ENABLED=true" >> ltmc_config.env
+echo "REDIS_PORT=6381" >> ltmc_config.env
+```
+
+### Start with Orchestration
+```bash
+# Start LTMC with orchestration enabled
+ORCHESTRATION_MODE=basic ./start_server.sh
+```
+
+### Orchestration Modes
+- `disabled`: No orchestration (original LTMC behavior)
+- `basic`: Core coordination services (recommended)
+- `full`: All orchestration features with advanced analytics
+- `debug`: Full mode with detailed logging
+
 ## Post-Installation Verification
 
 ### Check Server Status
@@ -80,7 +114,11 @@ poetry run python -c "from ltms.database.schema import create_tables; create_tab
 
 ### Run Health Check
 ```bash
+# Main health check (includes orchestration status)
 curl http://localhost:5050/health
+
+# Orchestration-specific health check
+curl http://localhost:5050/orchestration/health
 ```
 
 ### Test MCP Tools
@@ -99,6 +137,15 @@ curl -X POST http://localhost:5050/jsonrpc \
     },
     "id": 1
   }'
+```
+
+### Test Orchestration Features
+```bash
+# Run orchestration demonstration
+python simple_orchestration_demo.py
+
+# Run integration tests
+python tests/orchestration/run_integration_tests.py
 ```
 
 ## Troubleshooting

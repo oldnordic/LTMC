@@ -62,13 +62,52 @@ class JSONRPCResponse(BaseModel):
 @app.get("/health")
 async def health():
     """Health check endpoint."""
-    return {
+    health_info = {
         "status": "healthy",
         "transport": "http",
         "port": int(os.environ.get("HTTP_PORT", 5050)),
         "tools_available": len(ALL_TOOLS),
         "architecture": "modularized_fastmcp"
     }
+    
+    # Add orchestration health status
+    try:
+        from ltms.mcp_orchestration_integration import get_orchestration_health
+        orchestration_health = await get_orchestration_health()
+        health_info["orchestration"] = orchestration_health
+    except Exception as e:
+        health_info["orchestration"] = {
+            "enabled": False,
+            "error": str(e),
+            "message": "Orchestration health check failed"
+        }
+    
+    return health_info
+
+@app.get("/orchestration/health")
+async def orchestration_health():
+    """Orchestration-specific health check endpoint."""
+    try:
+        from ltms.mcp_orchestration_integration import (
+            get_orchestration_health,
+            is_orchestration_enabled,
+            create_orchestration_config
+        )
+        
+        orchestration_health = await get_orchestration_health()
+        orchestration_config = create_orchestration_config()
+        
+        return {
+            "orchestration_enabled": is_orchestration_enabled(),
+            "health": orchestration_health,
+            "config": orchestration_config
+        }
+    except Exception as e:
+        return {
+            "orchestration_enabled": False,
+            "error": str(e),
+            "message": "Failed to get orchestration health status"
+        }
 
 @app.get("/tools")
 async def list_tools():
@@ -185,6 +224,26 @@ async def startup():
                 logger.info(f"Redis connected: {redis_manager.host}:{redis_manager.port}")
         except Exception as redis_error:
             logger.warning(f"Redis initialization failed: {redis_error}")
+        
+        # Initialize orchestration integration (optional)
+        try:
+            from ltms.mcp_orchestration_integration import (
+                initialize_orchestration_integration,
+                get_orchestration_mode_from_env,
+                create_orchestration_config
+            )
+            
+            orchestration_config = create_orchestration_config()
+            orchestration_mode = orchestration_config['orchestration_mode']
+            
+            if orchestration_mode.value != 'disabled':
+                await initialize_orchestration_integration(orchestration_mode)
+                logger.info(f"Orchestration integration initialized: {orchestration_mode}")
+            else:
+                logger.info("Orchestration disabled via configuration")
+                
+        except Exception as orchestration_error:
+            logger.warning(f"Orchestration integration failed (will use fallback mode): {orchestration_error}")
             
         logger.info(f"LTMC HTTP Server started with {len(ALL_TOOLS)} tools")
         
@@ -196,9 +255,19 @@ async def startup():
 async def shutdown():
     """Clean up on shutdown."""
     try:
+        # Shutdown orchestration integration first
+        try:
+            from ltms.mcp_orchestration_integration import shutdown_orchestration_integration
+            await shutdown_orchestration_integration()
+            logger.info("Orchestration integration shutdown complete")
+        except Exception as orch_error:
+            logger.warning(f"Orchestration shutdown error: {orch_error}")
+        
+        # Shutdown Redis
         from ltms.services.redis_service import cleanup_redis
         await cleanup_redis()
         logger.info("LTMC HTTP Server shutdown complete")
+        
     except Exception as e:
         logger.error(f"Shutdown error: {e}")
 
