@@ -1,0 +1,13 @@
+{
+  "cleanupPeriodDays": 30,
+  "env": {
+    "CLAUDE_CODE_ENABLE_TELEMETRY": "0"
+  },
+  "includeCoAuthoredBy": true,
+  "enableAllProjectMcpServers": true,
+  "model": "sonnet",
+  "permissions": {
+    "allow": ["Bash(curl -s http://localhost:5050/jsonrpc:*)"],
+    "deny": []
+  }
+}

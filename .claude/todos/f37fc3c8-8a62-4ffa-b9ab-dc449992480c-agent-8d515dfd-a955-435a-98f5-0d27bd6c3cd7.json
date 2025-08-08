@@ -1,0 +1,38 @@
+[
+  {
+    "content": "Analyze overall project structure to understand active vs legacy code paths",
+    "status": "completed",
+    "priority": "high",
+    "id": "analyze_project_structure"
+  },
+  {
+    "content": "Examine src/backend/services/ for agent implementations and hardcoded vs AI reasoning",
+    "status": "completed",
+    "priority": "high",
+    "id": "examine_backend_services"
+  },
+  {
+    "content": "Verify and categorize critical syntax errors that prevent startup",
+    "status": "completed",
+    "priority": "high",
+    "id": "check_syntax_errors"
+  },
+  {
+    "content": "Analyze AI integration patterns: real ollama calls vs placeholder stubs",
+    "status": "completed",
+    "priority": "high",
+    "id": "check_ai_integration"
+  },
+  {
+    "content": "Scan configuration files and templates for hardcoded heuristics",
+    "status": "completed",
+    "priority": "medium",
+    "id": "scan_configuration"
+  },
+  {
+    "content": "Categorize all findings into ALIGNED/PARTIAL/LEGACY/BROKEN categories",
+    "status": "completed",
+    "priority": "medium",
+    "id": "categorize_findings"
+  }
+]

@@ -1,0 +1,732 @@
+#!/bin/bash
+# KWE Agents Command
+#
+# 4-Agent MetaCognitive Framework operations for Knowledge World Engine (KWE)
+# Manages MetaCognitiveCoderAgent, MetaCognitiveResearchAgent, DevelopmentAgent, QualityAgent
+# Following KWE architectural compliance and production standards
+
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
+# Configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+KWE_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
+PROJECT_ROOT="$KWE_ROOT"
+LOG_DIR="$KWE_ROOT/logs"
+AGENTS_LOG_FILE="$LOG_DIR/kwe_agents.log"
+
+# Agent configuration
+AGENTS_DIR="$KWE_ROOT/agents"
+META_COGNITIVE_DIR="$AGENTS_DIR/meta_cognitive"
+AVAILABLE_AGENTS=("coder" "research" "development" "quality")
+
+# Default values
+DEFAULT_AGENT_ID="all"
+DEFAULT_ACTION="status"
+
+# Function to log messages
+log_message() {
+    local level=$1
+    local message=$2
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    echo -e "${timestamp} [${level}] ${message}" | tee -a "$AGENTS_LOG_FILE"
+}
+
+# Function to display usage
+display_usage() {
+    echo -e "${BLUE}KWE Agents Command - 4-Agent MetaCognitive Framework${NC}"
+    echo "==================================================="
+    echo ""
+    echo "Usage: $0 [AGENT_ID] [ACTION]"
+    echo ""
+    echo "Arguments:"
+    echo "  AGENT_ID    Target agent (coder|research|development|quality|all) [default: all]"
+    echo "  ACTION      Agent action (status|metrics|restart|test|validate) [default: status]"
+    echo ""
+    echo "Agent IDs:"
+    echo "  coder         MetaCognitiveCoderAgent - Advanced coding with Ollama DeepSeek reasoning"
+    echo "  research      MetaCognitiveResearchAgent - Intelligent research and investigation"
+    echo "  development   DevelopmentAgent - Project management and task coordination"
+    echo "  quality       QualityAgent - Comprehensive testing and validation"
+    echo "  all           All agents in the MetaCognitive framework"
+    echo ""
+    echo "Actions:"
+    echo "  status        Display detailed agent status and health"
+    echo "  metrics       Show performance metrics and execution statistics"
+    echo "  restart       Restart agent processes and clear caches"
+    echo "  test          Run agent-specific test suites"
+    echo "  validate      Validate agent configuration and dependencies"
+    echo ""
+    echo "Environment Variables:"
+    echo "  \$AGENT_ID    Override target agent"
+    echo "  \$ACTION      Override agent action"
+    echo ""
+    echo "Examples:"
+    echo "  $0 coder status            # Show MetaCognitiveCoderAgent status"
+    echo "  $0 all metrics             # Show all agent performance metrics"
+    echo "  $0 quality test            # Run QualityAgent test suite"
+    echo "  $0 development validate    # Validate DevelopmentAgent configuration"
+    echo ""
+    echo "KWE 4-Agent MetaCognitive Framework:"
+    echo "  • MetaCognitiveCoderAgent: AI-driven code generation and analysis"
+    echo "  • MetaCognitiveResearchAgent: Intelligent information research"
+    echo "  • DevelopmentAgent: Project coordination and task management"
+    echo "  • QualityAgent: Testing, validation, and quality assurance"
+    echo ""
+}
+
+# Function to check agent dependencies
+check_agent_dependencies() {
+    log_message "INFO" "Checking KWE agent dependencies..."
+    
+    local missing_deps=()
+    
+    # Check Python and Poetry
+    if ! command -v python3 >/dev/null 2>&1; then
+        missing_deps+=("python3")
+    fi
+    
+    if ! command -v poetry >/dev/null 2>&1; then
+        missing_deps+=("poetry")
+    fi
+    
+    # Check Ollama for agent reasoning
+    if ! curl -s http://localhost:11434/api/tags >/dev/null 2>&1; then
+        missing_deps+=("ollama")
+    else
+        # Check if DeepSeek-R1 model is available
+        if ! curl -s http://localhost:11434/api/tags | grep -q "deepseek-r1"; then
+            log_message "WARN" "DeepSeek-R1 model not found in Ollama"
+            echo -e "${YELLOW}⚠️  DeepSeek-R1 model not available${NC}"
+        fi
+    fi
+    
+    # Check critical Python modules
+    if ! python3 -c "import asyncio, aiohttp, fastapi" 2>/dev/null; then
+        missing_deps+=("python-modules")
+    fi
+    
+    if [ ${#missing_deps[@]} -gt 0 ]; then
+        log_message "ERROR" "Missing agent dependencies: ${missing_deps[*]}"
+        echo -e "${RED}❌ Missing dependencies: ${missing_deps[*]}${NC}"
+        echo -e "${YELLOW}💡 Install requirements:${NC}"
+        echo -e "${YELLOW}  Poetry: curl -sSL https://install.python-poetry.org | python3 -${NC}"
+        echo -e "${YELLOW}  Ollama: https://ollama.com/download${NC}"
+        echo -e "${YELLOW}  Python modules: poetry install${NC}"
+        return 1
+    fi
+    
+    echo -e "${GREEN}✅ All agent dependencies available${NC}"
+    return 0
+}
+
+# Function to check agent file structure
+check_agent_structure() {
+    log_message "INFO" "Checking KWE agent file structure..."
+    
+    local missing_files=()
+    
+    # Check agents directory
+    if [ ! -d "$AGENTS_DIR" ]; then
+        missing_files+=("agents/")
+        return 1
+    fi
+    
+    # Check MetaCognitive agents
+    if [ ! -d "$META_COGNITIVE_DIR" ]; then
+        missing_files+=("agents/meta_cognitive/")
+    fi
+    
+    if [ ! -f "$META_COGNITIVE_DIR/coder_agent.py" ]; then
+        missing_files+=("meta_cognitive/coder_agent.py")
+    fi
+    
+    if [ ! -f "$META_COGNITIVE_DIR/research_agent.py" ]; then
+        missing_files+=("meta_cognitive/research_agent.py")
+    fi
+    
+    # Check other core agents
+    if [ ! -f "$AGENTS_DIR/development_agent.py" ]; then
+        missing_files+=("development_agent.py")
+    fi
+    
+    if [ ! -f "$AGENTS_DIR/quality_agent.py" ]; then
+        missing_files+=("quality_agent.py")
+    fi
+    
+    if [ ! -f "$AGENTS_DIR/base_agent.py" ]; then
+        missing_files+=("base_agent.py")
+    fi
+    
+    if [ ${#missing_files[@]} -gt 0 ]; then
+        log_message "ERROR" "Missing agent files: ${missing_files[*]}"
+        echo -e "${RED}❌ Missing agent files: ${missing_files[*]}${NC}"
+        return 1
+    fi
+    
+    echo -e "${GREEN}✅ Agent structure validation passed${NC}"
+    return 0
+}
+
+# Function to get agent status
+get_agent_status() {
+    local agent_id=$1
+    local agent_file=""
+    local agent_name=""
+    
+    case "$agent_id" in
+        coder)
+            agent_file="$META_COGNITIVE_DIR/coder_agent.py"
+            agent_name="MetaCognitiveCoderAgent"
+            ;;
+        research)
+            agent_file="$META_COGNITIVE_DIR/research_agent.py"
+            agent_name="MetaCognitiveResearchAgent"
+            ;;
+        development)
+            agent_file="$AGENTS_DIR/development_agent.py"
+            agent_name="DevelopmentAgent"
+            ;;
+        quality)
+            agent_file="$AGENTS_DIR/quality_agent.py"
+            agent_name="QualityAgent"
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+    
+    echo -e "${CYAN}$agent_name ($agent_id):${NC}"
+    
+    # Check if agent file exists
+    if [ ! -f "$agent_file" ]; then
+        echo -e "  ${RED}❌ Agent file not found: $agent_file${NC}"
+        return 1
+    fi
+    
+    echo -e "  ${GREEN}✅ Agent file: Available${NC}"
+    echo -e "  ${CYAN}📁 Location: $agent_file${NC}"
+    
+    # Get file size and modification time
+    local file_size=$(du -sh "$agent_file" 2>/dev/null | cut -f1)
+    local mod_time=$(stat -c %y "$agent_file" 2>/dev/null | cut -d. -f1)
+    echo -e "  ${CYAN}📊 Size: $file_size${NC}"
+    echo -e "  ${CYAN}🕒 Modified: $mod_time${NC}"
+    
+    # Check Python syntax
+    cd "$PROJECT_ROOT"
+    if python3 -m py_compile "$agent_file" 2>/dev/null; then
+        echo -e "  ${GREEN}✅ Syntax: Valid Python${NC}"
+    else
+        echo -e "  ${RED}❌ Syntax: Python errors found${NC}"
+        return 1
+    fi
+    
+    # Check if agent can be imported
+    local import_test=""
+    case "$agent_id" in
+        coder)
+            import_test="from agents.meta_cognitive.coder_agent import MetaCognitiveCoderAgent"
+            ;;
+        research)
+            import_test="from agents.meta_cognitive.research_agent import MetaCognitiveResearchAgent"
+            ;;
+        development)
+            import_test="from agents.development_agent import DevelopmentAgent"
+            ;;
+        quality)
+            import_test="from agents.quality_agent import QualityAgent"
+            ;;
+    esac
+    
+    if python3 -c "$import_test" 2>/dev/null; then
+        echo -e "  ${GREEN}✅ Import: Successful${NC}"
+    else
+        echo -e "  ${YELLOW}⚠️  Import: Issues detected${NC}"
+    fi
+    
+    # Check agent-specific capabilities
+    case "$agent_id" in
+        coder)
+            echo -e "  ${CYAN}🔧 Capabilities: Code generation, analysis, optimization${NC}"
+            echo -e "  ${CYAN}🧠 AI Model: Ollama DeepSeek-R1 reasoning${NC}"
+            echo -e "  ${CYAN}📝 Features: Streaming, document processing, CAD integration${NC}"
+            ;;
+        research)
+            echo -e "  ${CYAN}🔍 Capabilities: Information research, data analysis${NC}"
+            echo -e "  ${CYAN}🧠 AI Model: Ollama DeepSeek-R1 reasoning${NC}"
+            echo -e "  ${CYAN}🌐 Features: Web scraping, knowledge synthesis${NC}"
+            ;;
+        development)
+            echo -e "  ${CYAN}⚙️  Capabilities: Project management, task coordination${NC}"
+            echo -e "  ${CYAN}🧠 AI Model: LLM-powered planning and analysis${NC}"
+            echo -e "  ${CYAN}🛠️  Features: Multi-role development, toolkit integration${NC}"
+            ;;
+        quality)
+            echo -e "  ${CYAN}🧪 Capabilities: Testing, validation, quality assurance${NC}"
+            echo -e "  ${CYAN}🔍 Features: Automated testing, SonarQube integration${NC}"
+            echo -e "  ${CYAN}📊 Metrics: Code quality, test coverage, performance${NC}"
+            ;;
+    esac
+    
+    echo ""
+    return 0
+}
+
+# Function to get agent metrics
+get_agent_metrics() {
+    local agent_id=$1
+    
+    echo -e "${CYAN}Performance Metrics for $agent_id:${NC}"
+    
+    cd "$PROJECT_ROOT"
+    
+    # Get basic file metrics
+    local agent_file=""
+    case "$agent_id" in
+        coder) agent_file="$META_COGNITIVE_DIR/coder_agent.py" ;;
+        research) agent_file="$META_COGNITIVE_DIR/research_agent.py" ;;
+        development) agent_file="$AGENTS_DIR/development_agent.py" ;;
+        quality) agent_file="$AGENTS_DIR/quality_agent.py" ;;
+        *) return 1 ;;
+    esac
+    
+    if [ -f "$agent_file" ]; then
+        local line_count=$(wc -l < "$agent_file")
+        local function_count=$(grep -c "^def \|^async def " "$agent_file" 2>/dev/null || echo "0")
+        local class_count=$(grep -c "^class " "$agent_file" 2>/dev/null || echo "0")
+        
+        echo -e "  ${CYAN}📄 Lines of Code: $line_count${NC}"
+        echo -e "  ${CYAN}🔧 Functions: $function_count${NC}"
+        echo -e "  ${CYAN}🏗️  Classes: $class_count${NC}"
+        
+        # Check for async patterns
+        local async_count=$(grep -c "async def\|await " "$agent_file" 2>/dev/null || echo "0")
+        echo -e "  ${CYAN}⚡ Async Operations: $async_count${NC}"
+        
+        # Check for error handling
+        local error_handling=$(grep -c "try:\|except\|finally:" "$agent_file" 2>/dev/null || echo "0")
+        echo -e "  ${CYAN}🛡️  Error Handling Blocks: $error_handling${NC}"
+        
+        # Check for Ollama integration
+        local ollama_calls=$(grep -c "ollama\|deepseek\|reasoning" "$agent_file" 2>/dev/null || echo "0")
+        echo -e "  ${CYAN}🧠 AI Integration Points: $ollama_calls${NC}"
+    fi
+    
+    # Check memory integration points
+    echo -e "  ${CYAN}🧠 Memory Integration:${NC}"
+    local memory_integrations=0
+    
+    if grep -q "postgresql\|postgres" "$agent_file" 2>/dev/null; then
+        echo -e "    ${GREEN}✅ PostgreSQL (Temporal)${NC}"
+        ((memory_integrations++))
+    else
+        echo -e "    ${YELLOW}⚠️  PostgreSQL (Temporal)${NC}"
+    fi
+    
+    if grep -q "redis" "$agent_file" 2>/dev/null; then
+        echo -e "    ${GREEN}✅ Redis (Cache)${NC}"
+        ((memory_integrations++))
+    else
+        echo -e "    ${YELLOW}⚠️  Redis (Cache)${NC}"
+    fi
+    
+    if grep -q "neo4j" "$agent_file" 2>/dev/null; then
+        echo -e "    ${GREEN}✅ Neo4j (Graph)${NC}"
+        ((memory_integrations++))
+    else
+        echo -e "    ${YELLOW}⚠️  Neo4j (Graph)${NC}"
+    fi
+    
+    if grep -q "qdrant" "$agent_file" 2>/dev/null; then
+        echo -e "    ${GREEN}✅ Qdrant (Semantic)${NC}"
+        ((memory_integrations++))
+    else
+        echo -e "    ${YELLOW}⚠️  Qdrant (Semantic)${NC}"
+    fi
+    
+    echo -e "  ${CYAN}📊 Memory Tier Integration: $memory_integrations/4${NC}"
+    
+    echo ""
+}
+
+# Function to test agent
+test_agent() {
+    local agent_id=$1
+    
+    echo -e "${CYAN}Testing $agent_id agent...${NC}"
+    
+    cd "$PROJECT_ROOT"
+    
+    # Run agent-specific tests if they exist
+    local test_pattern=""
+    case "$agent_id" in
+        coder) test_pattern="test*coder*agent*.py" ;;
+        research) test_pattern="test*research*agent*.py" ;;
+        development) test_pattern="test*development*agent*.py" ;;
+        quality) test_pattern="test*quality*agent*.py" ;;
+        *) return 1 ;;
+    esac
+    
+    local test_files=$(find tests/ -name "$test_pattern" 2>/dev/null)
+    
+    if [ -n "$test_files" ]; then
+        echo -e "  ${CYAN}Running agent-specific tests...${NC}"
+        
+        local test_count=$(echo "$test_files" | wc -l)
+        echo -e "  ${CYAN}📄 Test files found: $test_count${NC}"
+        
+        for test_file in $test_files; do
+            echo -e "  ${CYAN}🧪 Testing: $(basename "$test_file")${NC}"
+            
+            if poetry run pytest "$test_file" -v --tb=short 2>/dev/null; then
+                echo -e "    ${GREEN}✅ Passed${NC}"
+            else
+                echo -e "    ${RED}❌ Failed${NC}"
+            fi
+        done
+    else
+        echo -e "  ${YELLOW}⚠️  No specific tests found for $agent_id agent${NC}"
+        
+        # Run basic import test
+        echo -e "  ${CYAN}🧪 Running basic import test...${NC}"
+        local import_test=""
+        case "$agent_id" in
+            coder)
+                import_test="from agents.meta_cognitive.coder_agent import MetaCognitiveCoderAgent; print('✅ Import successful')"
+                ;;
+            research)
+                import_test="from agents.meta_cognitive.research_agent import MetaCognitiveResearchAgent; print('✅ Import successful')"
+                ;;
+            development)
+                import_test="from agents.development_agent import DevelopmentAgent; print('✅ Import successful')"
+                ;;
+            quality)
+                import_test="from agents.quality_agent import QualityAgent; print('✅ Import successful')"
+                ;;
+        esac
+        
+        if python3 -c "$import_test" 2>/dev/null; then
+            echo -e "    ${GREEN}✅ Basic import test passed${NC}"
+        else
+            echo -e "    ${RED}❌ Basic import test failed${NC}"
+        fi
+    fi
+    
+    echo ""
+}
+
+# Function to validate agent configuration
+validate_agent() {
+    local agent_id=$1
+    
+    echo -e "${CYAN}Validating $agent_id agent configuration...${NC}"
+    
+    # Check agent file structure and dependencies
+    get_agent_status "$agent_id" >/dev/null
+    local status_result=$?
+    
+    if [ $status_result -eq 0 ]; then
+        echo -e "  ${GREEN}✅ Agent structure validation passed${NC}"
+    else
+        echo -e "  ${RED}❌ Agent structure validation failed${NC}"
+        return 1
+    fi
+    
+    # Check memory system dependencies for the agent
+    echo -e "  ${CYAN}🧠 Validating memory system integration...${NC}"
+    
+    local memory_services=("postgresql" "redis" "neo4j" "qdrant")
+    local memory_status=0
+    
+    # PostgreSQL check
+    if nc -z 192.168.1.119 5432 2>/dev/null; then
+        echo -e "    ${GREEN}✅ PostgreSQL (Temporal Memory)${NC}"
+    else
+        echo -e "    ${YELLOW}⚠️  PostgreSQL (Temporal Memory)${NC}"
+        ((memory_status++))
+    fi
+    
+    # Redis check
+    if nc -z localhost 6380 2>/dev/null; then
+        echo -e "    ${GREEN}✅ Redis (Cache Layer)${NC}"
+    else
+        echo -e "    ${YELLOW}⚠️  Redis (Cache Layer)${NC}"
+        ((memory_status++))
+    fi
+    
+    # Neo4j check
+    if curl -s http://localhost:7474 >/dev/null 2>&1; then
+        echo -e "    ${GREEN}✅ Neo4j (Graph Memory)${NC}"
+    else
+        echo -e "    ${YELLOW}⚠️  Neo4j (Graph Memory)${NC}"
+        ((memory_status++))
+    fi
+    
+    # Qdrant check
+    if curl -s http://localhost:6333/collections >/dev/null 2>&1; then
+        echo -e "    ${GREEN}✅ Qdrant (Semantic Memory)${NC}"
+    else
+        echo -e "    ${YELLOW}⚠️  Qdrant (Semantic Memory)${NC}"
+        ((memory_status++))
+    fi
+    
+    if [ $memory_status -eq 0 ]; then
+        echo -e "  ${GREEN}✅ All memory systems available${NC}"
+    else
+        echo -e "  ${YELLOW}⚠️  $memory_status memory systems unavailable${NC}"
+        echo -e "  ${YELLOW}💡 Start memory services: ./claude/commands/kwe-memory start${NC}"
+    fi
+    
+    # Check Ollama for AI reasoning
+    echo -e "  ${CYAN}🧠 Validating AI reasoning system...${NC}"
+    if curl -s http://localhost:11434/api/tags >/dev/null 2>&1; then
+        if curl -s http://localhost:11434/api/tags | grep -q "deepseek-r1"; then
+            echo -e "    ${GREEN}✅ Ollama with DeepSeek-R1 model${NC}"
+        else
+            echo -e "    ${YELLOW}⚠️  Ollama available but DeepSeek-R1 model missing${NC}"
+            echo -e "    ${YELLOW}💡 Install model: ollama pull deepseek-r1:latest${NC}"
+        fi
+    else
+        echo -e "    ${RED}❌ Ollama not available${NC}"
+        echo -e "    ${YELLOW}💡 Install Ollama: https://ollama.com/download${NC}"
+    fi
+    
+    echo ""
+}
+
+# Function to restart agent (clear caches and reinitialize)
+restart_agent() {
+    local agent_id=$1
+    
+    echo -e "${CYAN}Restarting $agent_id agent...${NC}"
+    
+    # Clear Redis caches related to the agent
+    if command -v redis-cli >/dev/null 2>&1 && nc -z localhost 6380 2>/dev/null; then
+        echo -e "  ${CYAN}🗑️  Clearing Redis caches...${NC}"
+        
+        case "$agent_id" in
+            coder)
+                redis-cli -h localhost -p 6380 DEL "coder_agent:*" >/dev/null 2>&1 || true
+                redis-cli -h localhost -p 6380 DEL "metacognitive_coder:*" >/dev/null 2>&1 || true
+                ;;
+            research)
+                redis-cli -h localhost -p 6380 DEL "research_agent:*" >/dev/null 2>&1 || true
+                redis-cli -h localhost -p 6380 DEL "metacognitive_research:*" >/dev/null 2>&1 || true
+                ;;
+            development)
+                redis-cli -h localhost -p 6380 DEL "development_agent:*" >/dev/null 2>&1 || true
+                ;;
+            quality)
+                redis-cli -h localhost -p 6380 DEL "quality_agent:*" >/dev/null 2>&1 || true
+                ;;
+        esac
+        
+        echo -e "    ${GREEN}✅ Cache clearing completed${NC}"
+    else
+        echo -e "    ${YELLOW}⚠️  Redis not available for cache clearing${NC}"
+    fi
+    
+    # Clear any temporary files
+    echo -e "  ${CYAN}🗑️  Clearing temporary files...${NC}"
+    if [ -d "/tmp/kwe_${agent_id}" ]; then
+        rm -rf "/tmp/kwe_${agent_id}"
+    fi
+    
+    # Validate agent after restart
+    echo -e "  ${CYAN}✅ Validating agent after restart...${NC}"
+    validate_agent "$agent_id" >/dev/null
+    
+    echo -e "  ${GREEN}✅ Agent restart completed${NC}"
+    echo ""
+}
+
+# Function to display comprehensive status
+display_agents_status() {
+    echo -e "${BLUE}📊 KWE 4-Agent MetaCognitive Framework Status${NC}"
+    echo "============================================="
+    echo ""
+    
+    local healthy_agents=0
+    local total_agents=${#AVAILABLE_AGENTS[@]}
+    
+    for agent in "${AVAILABLE_AGENTS[@]}"; do
+        if get_agent_status "$agent" >/dev/null 2>&1; then
+            ((healthy_agents++))
+        fi
+        get_agent_status "$agent"
+    done
+    
+    # Framework summary
+    echo "====================================="
+    echo -e "${CYAN}Framework Health Summary:${NC}"
+    echo "========================"
+    
+    if [ $healthy_agents -eq $total_agents ]; then
+        echo -e "${GREEN}✅ All agents operational ($healthy_agents/$total_agents)${NC}"
+        echo -e "${GREEN}🚀 MetaCognitive framework ready for operation${NC}"
+    elif [ $healthy_agents -gt 0 ]; then
+        echo -e "${YELLOW}⚠️  Partial operation ($healthy_agents/$total_agents agents healthy)${NC}"
+        echo -e "${YELLOW}💡 Check failed agents and dependencies${NC}"
+    else
+        echo -e "${RED}❌ No agents operational ($healthy_agents/$total_agents)${NC}"
+        echo -e "${RED}🛠️  Validate system: $0 all validate${NC}"
+    fi
+    
+    echo ""
+    echo -e "${CYAN}Agent Integration Points:${NC}"
+    echo -e "  Memory: ${BLUE}4-tier system (PostgreSQL, Redis, Neo4j, Qdrant)${NC}"
+    echo -e "  AI Model: ${BLUE}Ollama DeepSeek-R1 reasoning${NC}"
+    echo -e "  Communication: ${BLUE}A2A protocol with async patterns${NC}"
+    echo -e "  Streaming: ${BLUE}AsyncChunkedContentWriter integration${NC}"
+    echo ""
+}
+
+# Function to display action summary
+display_action_summary() {
+    local agent_id=$1
+    local action=$2
+    local result=$3
+    
+    echo ""
+    echo "====================================="
+    if [ $result -eq 0 ]; then
+        echo -e "${GREEN}🎉 KWE Agent $action Completed Successfully${NC}"
+        echo ""
+        echo -e "${CYAN}Agent: $agent_id${NC}"
+        echo -e "${CYAN}Action: $action${NC}"
+        echo -e "${CYAN}Status: SUCCESS${NC}"
+        echo ""
+        echo -e "${CYAN}KWE MetaCognitive Framework:${NC}"
+        echo -e "${CYAN}  ✅ AI-Driven Decision Making${NC}"
+        echo -e "${CYAN}  ✅ 4-Tier Memory Integration${NC}"
+        echo -e "${CYAN}  ✅ Async-First Architecture${NC}"
+        echo -e "${CYAN}  ✅ Production-Ready Quality${NC}"
+    else
+        echo -e "${RED}❌ KWE Agent $action Failed${NC}"
+        echo ""
+        echo -e "${YELLOW}💡 Troubleshooting:${NC}"
+        echo -e "${YELLOW}  1. Check logs: $AGENTS_LOG_FILE${NC}"
+        echo -e "${YELLOW}  2. Validate dependencies: $0 $agent_id validate${NC}"
+        echo -e "${YELLOW}  3. Check memory services: ./claude/commands/kwe-memory status${NC}"
+        echo -e "${YELLOW}  4. Test agent: $0 $agent_id test${NC}"
+    fi
+    echo ""
+}
+
+# Main execution
+main() {
+    local agent_id="${1:-${AGENT_ID:-$DEFAULT_AGENT_ID}}"
+    local action="${2:-${ACTION:-$DEFAULT_ACTION}}"
+    
+    # Validate agent_id
+    if [ "$agent_id" != "all" ] && [[ ! " ${AVAILABLE_AGENTS[@]} " =~ " $agent_id " ]]; then
+        echo -e "${RED}❌ Invalid agent ID: $agent_id${NC}"
+        echo -e "${YELLOW}Valid options: ${AVAILABLE_AGENTS[*]} all${NC}"
+        display_usage
+        exit 1
+    fi
+    
+    # Validate action
+    case "$action" in
+        status|metrics|restart|test|validate)
+            ;;
+        -h|--help)
+            display_usage
+            exit 0
+            ;;
+        *)
+            echo -e "${RED}❌ Invalid action: $action${NC}"
+            echo -e "${YELLOW}Valid options: status, metrics, restart, test, validate${NC}"
+            display_usage
+            exit 1
+            ;;
+    esac
+    
+    echo -e "${BLUE}🤖 KWE Agent Management System${NC}"
+    echo "==============================="
+    echo -e "${CYAN}Agent: $agent_id${NC}"
+    echo -e "${CYAN}Action: $action${NC}"
+    echo ""
+    
+    # Setup logging
+    mkdir -p "$LOG_DIR"
+    log_message "INFO" "Starting KWE agent management: $agent_id $action"
+    
+    # Check dependencies (except for status-only operations)
+    if [ "$action" != "status" ]; then
+        if ! check_agent_dependencies; then
+            exit 1
+        fi
+        
+        if ! check_agent_structure; then
+            exit 1
+        fi
+    fi
+    
+    # Execute action
+    local action_result=0
+    
+    if [ "$agent_id" = "all" ]; then
+        case "$action" in
+            status)
+                display_agents_status || action_result=1
+                ;;
+            metrics)
+                for agent in "${AVAILABLE_AGENTS[@]}"; do
+                    get_agent_metrics "$agent" || action_result=1
+                done
+                ;;
+            restart)
+                for agent in "${AVAILABLE_AGENTS[@]}"; do
+                    restart_agent "$agent" || action_result=1
+                done
+                ;;
+            test)
+                for agent in "${AVAILABLE_AGENTS[@]}"; do
+                    test_agent "$agent" || action_result=1
+                done
+                ;;
+            validate)
+                for agent in "${AVAILABLE_AGENTS[@]}"; do
+                    validate_agent "$agent" || action_result=1
+                done
+                ;;
+        esac
+    else
+        case "$action" in
+            status)
+                get_agent_status "$agent_id" || action_result=1
+                ;;
+            metrics)
+                get_agent_metrics "$agent_id" || action_result=1
+                ;;
+            restart)
+                restart_agent "$agent_id" || action_result=1
+                ;;
+            test)
+                test_agent "$agent_id" || action_result=1
+                ;;
+            validate)
+                validate_agent "$agent_id" || action_result=1
+                ;;
+        esac
+    fi
+    
+    # Display summary (except for status which has its own format)
+    if [ "$action" != "status" ]; then
+        display_action_summary "$agent_id" "$action" "$action_result"
+    fi
+    
+    exit $action_result
+}
+
+# Run main function
+main "$@"

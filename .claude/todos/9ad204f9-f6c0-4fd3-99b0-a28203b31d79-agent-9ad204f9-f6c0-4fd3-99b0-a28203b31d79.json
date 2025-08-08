@@ -1,0 +1,38 @@
+[
+  {
+    "content": "Examine backend_controller.py implementation",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Identify tabs using backend_controller",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Test backend_controller integration patterns",
+    "status": "completed",
+    "priority": "high",
+    "id": "3"
+  },
+  {
+    "content": "Analyze API communication flows",
+    "status": "completed",
+    "priority": "high",
+    "id": "4"
+  },
+  {
+    "content": "Create integration test suite",
+    "status": "completed",
+    "priority": "high",
+    "id": "5"
+  },
+  {
+    "content": "Generate broken communication report",
+    "status": "completed",
+    "priority": "high",
+    "id": "6"
+  }
+]

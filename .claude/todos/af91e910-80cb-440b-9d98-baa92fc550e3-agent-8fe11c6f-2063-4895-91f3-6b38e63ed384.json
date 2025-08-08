@@ -1,0 +1,38 @@
+[
+  {
+    "content": "Analyze consolidated_agents.py for heuristic algorithms that need AI replacement",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Examine intelligent_delta_scanner.py pattern detection methods",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Check issue_detection_engine.py for rule-based systems",
+    "status": "completed",
+    "priority": "high",
+    "id": "3"
+  },
+  {
+    "content": "Review pattern_analysis.py and quality_analysis.py stub implementations",
+    "status": "completed",
+    "priority": "medium",
+    "id": "4"
+  },
+  {
+    "content": "Search for language detection and file extension heuristics",
+    "status": "completed",
+    "priority": "medium",
+    "id": "5"
+  },
+  {
+    "content": "Compile comprehensive report with AI replacement recommendations",
+    "status": "completed",
+    "priority": "high",
+    "id": "6"
+  }
+]

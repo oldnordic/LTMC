@@ -1,0 +1,56 @@
+[
+  {
+    "content": "Investigate 500 error in MCP server memory storage endpoint",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Check unified_mcp_server.py memory storage implementation",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Examine error handling in store_memory endpoint",
+    "status": "completed",
+    "priority": "high",
+    "id": "3"
+  },
+  {
+    "content": "Find root cause of 'Key and value are required' error",
+    "status": "completed",
+    "priority": "high",
+    "id": "4"
+  },
+  {
+    "content": "Check MCP server status and logs",
+    "status": "completed",
+    "priority": "high",
+    "id": "5"
+  },
+  {
+    "content": "Fix HTTPException handling in store_memory endpoint",
+    "status": "completed",
+    "priority": "high",
+    "id": "6"
+  },
+  {
+    "content": "Fix HTTPException handling in other endpoints",
+    "status": "completed",
+    "priority": "high",
+    "id": "7"
+  },
+  {
+    "content": "Test the fix by running the server",
+    "status": "completed",
+    "priority": "high",
+    "id": "8"
+  },
+  {
+    "content": "Create documentation of the fix",
+    "status": "pending",
+    "priority": "medium",
+    "id": "9"
+  }
+]

@@ -1,0 +1,32 @@
+[
+  {
+    "content": "Compare monolithic vs modular implementations to identify missing functionality",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Identify all files that import from enhanced_consolidated_agents.py",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Properly move ALL agent code including MetaCognitiveCoderAgent and MetaCognitiveResearchAgent",
+    "status": "completed",
+    "priority": "high",
+    "id": "3"
+  },
+  {
+    "content": "Update all imports to use new modular versions",
+    "status": "completed",
+    "priority": "high",
+    "id": "4"
+  },
+  {
+    "content": "Add deprecation warning to enhanced_consolidated_agents.py",
+    "status": "completed",
+    "priority": "medium",
+    "id": "5"
+  }
+]

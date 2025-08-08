@@ -1,0 +1,26 @@
+[
+  {
+    "content": "Verify Cursor MCP config file name",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Update Claude user config to match Cursor servers",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Update Claude project config to match Cursor servers",
+    "status": "completed",
+    "priority": "high",
+    "id": "3"
+  },
+  {
+    "content": "Update CLAUDE.md to reflect unified server list",
+    "status": "completed",
+    "priority": "medium",
+    "id": "4"
+  }
+]

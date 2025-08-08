@@ -1,0 +1,34 @@
+{
+  "mcpServers": {
+    "sequential-thinking": {
+      "command": "curl",
+      "args": [
+        "-s",
+        "-X", "POST",
+        "http://localhost:8001/invoke",
+        "-H", "Content-Type: application/json",
+        "-d", "{}"
+      ]
+    },
+    "memory": {
+      "command": "curl",
+      "args": [
+        "-s",
+        "-X", "POST",
+        "http://localhost:8002/invoke",
+        "-H", "Content-Type: application/json",
+        "-d", "{}"
+      ]
+    },
+    "context7": {
+      "command": "curl",
+      "args": [
+        "-s",
+        "-X", "POST",
+        "http://localhost:8003/invoke",
+        "-H", "Content-Type: application/json",
+        "-d", "{}"
+      ]
+    }
+  }
+}

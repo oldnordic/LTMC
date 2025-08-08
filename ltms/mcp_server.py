@@ -31,6 +31,14 @@ from ltms.services.code_pattern_service import (
     analyze_code_patterns
 )
 
+# Import Redis caching service
+from ltms.services.redis_service import (
+    get_redis_manager,
+    get_cache_service,
+    cleanup_redis,
+    redis_context
+)
+
 # Import tools for additional functionality
 from tools.ask import ask_with_context as ask_with_context_tool
 from tools.router import route_query as route_query_tool
@@ -148,8 +156,21 @@ def log_chat(
     content: str,
     agent_name: str | None = None,
     metadata: Dict[str, Any] | None = None,
+    source_tool: str | None = None,
 ) -> Dict[str, Any]:
-    """Log chat message in LTMC."""
+    """Log chat message in LTMC with source tool tracking.
+    
+    Args:
+        conversation_id: ID of the conversation
+        role: Role of the message sender ('user', 'ai', 'tool', 'system')
+        content: Message content
+        agent_name: Name of the agent if applicable
+        metadata: Optional metadata dictionary
+        source_tool: Tool that generated this message (claude-code, cursor, vscode, etc.)
+        
+    Returns:
+        Dictionary with success status and message ID
+    """
     try:
         # Validate input
         if not conversation_id or not role or not content:
@@ -168,6 +189,7 @@ def log_chat(
             content,
             agent_name=agent_name,
             metadata=metadata,
+            source_tool=source_tool,
         )
         
         # Close database connection
@@ -716,6 +738,329 @@ def analyze_code_patterns_tool(
         
         return result_data
         
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@mcp.tool()
+def get_chats_by_tool(source_tool: str, limit: int = 100, conversation_id: str | None = None) -> Dict[str, Any]:
+    """Get chat messages by source tool with optional conversation filtering.
+    
+    Args:
+        source_tool: Tool identifier (claude-code, cursor, vscode, etc.)
+        limit: Maximum number of messages to retrieve
+        conversation_id: Optional conversation ID filter
+        
+    Returns:
+        Dictionary with chat messages from specified source tool
+    """
+    try:
+        # Validate input
+        if not source_tool:
+            return {"success": False, "error": "source_tool is required"}
+        
+        if limit <= 0 or limit > 1000:
+            return {"success": False, "error": "limit must be between 1 and 1000"}
+        
+        # Get database connection
+        db_path = os.getenv("DB_PATH", DEFAULT_DB_PATH)
+        conn = get_db_connection(db_path)
+        create_tables(conn)
+        
+        # Build query
+        cursor = conn.cursor()
+        query = "SELECT id, conversation_id, role, content, timestamp, agent_name, metadata, source_tool FROM ChatHistory WHERE source_tool = ?"
+        params = [source_tool]
+        
+        if conversation_id:
+            query += " AND conversation_id = ?"
+            params.append(conversation_id)
+        
+        query += " ORDER BY timestamp DESC LIMIT ?"
+        params.append(limit)
+        
+        cursor.execute(query, params)
+        rows = cursor.fetchall()
+        
+        messages = []
+        for row in rows:
+            messages.append({
+                "id": row[0],
+                "conversation_id": row[1],
+                "role": row[2],
+                "content": row[3],
+                "timestamp": row[4],
+                "agent_name": row[5],
+                "metadata": row[6],
+                "source_tool": row[7]
+            })
+        
+        # Close database connection
+        close_db_connection(conn)
+        
+        return {
+            "success": True,
+            "messages": messages,
+            "count": len(messages),
+            "source_tool": source_tool
+        }
+        
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@mcp.tool()
+def list_tool_identifiers() -> Dict[str, Any]:
+    """List all known tool identifiers and their usage statistics.
+    
+    Returns:
+        Dictionary with tool identifiers and usage counts
+    """
+    try:
+        # Get database connection
+        db_path = os.getenv("DB_PATH", DEFAULT_DB_PATH)
+        conn = get_db_connection(db_path)
+        create_tables(conn)
+        
+        # Query tool usage statistics
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT 
+                source_tool, 
+                COUNT(*) as message_count,
+                COUNT(DISTINCT conversation_id) as conversation_count,
+                MIN(timestamp) as first_used,
+                MAX(timestamp) as last_used
+            FROM ChatHistory 
+            WHERE source_tool IS NOT NULL 
+            GROUP BY source_tool 
+            ORDER BY message_count DESC
+        """)
+        rows = cursor.fetchall()
+        
+        tools = []
+        total_messages = 0
+        for row in rows:
+            tool_info = {
+                "identifier": row[0],
+                "message_count": row[1],
+                "conversation_count": row[2], 
+                "first_used": row[3],
+                "last_used": row[4],
+                "status": "active" if row[1] > 0 else "inactive"
+            }
+            tools.append(tool_info)
+            total_messages += row[1]
+        
+        # Standard tool identifiers (for validation)
+        standard_tools = [
+            "claude-code", "cursor", "vscode", "pycharm", "jupyter", 
+            "vim", "emacs", "sublime", "atom", "nova", "zed", "copilot"
+        ]
+        
+        # Close database connection
+        close_db_connection(conn)
+        
+        return {
+            "success": True,
+            "tools": tools,
+            "total_tools": len(tools),
+            "total_messages": total_messages,
+            "standard_identifiers": standard_tools
+        }
+        
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@mcp.tool()
+def get_tool_conversations(source_tool: str, limit: int = 50) -> Dict[str, Any]:
+    """Get unique conversations for a specific tool.
+    
+    Args:
+        source_tool: Tool identifier
+        limit: Maximum number of conversations to retrieve
+        
+    Returns:
+        Dictionary with conversation summaries for the tool
+    """
+    try:
+        # Validate input
+        if not source_tool:
+            return {"success": False, "error": "source_tool is required"}
+        
+        if limit <= 0 or limit > 200:
+            return {"success": False, "error": "limit must be between 1 and 200"}
+        
+        # Get database connection
+        db_path = os.getenv("DB_PATH", DEFAULT_DB_PATH)
+        conn = get_db_connection(db_path)
+        create_tables(conn)
+        
+        # Query conversations for the tool
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT 
+                conversation_id,
+                COUNT(*) as message_count,
+                MIN(timestamp) as started_at,
+                MAX(timestamp) as last_activity,
+                GROUP_CONCAT(DISTINCT role) as roles
+            FROM ChatHistory 
+            WHERE source_tool = ?
+            GROUP BY conversation_id
+            ORDER BY last_activity DESC
+            LIMIT ?
+        """, (source_tool, limit))
+        rows = cursor.fetchall()
+        
+        conversations = []
+        for row in rows:
+            conversations.append({
+                "conversation_id": row[0],
+                "message_count": row[1],
+                "started_at": row[2],
+                "last_activity": row[3],
+                "roles": row[4].split(",") if row[4] else []
+            })
+        
+        # Close database connection  
+        close_db_connection(conn)
+        
+        return {
+            "success": True,
+            "conversations": conversations,
+            "count": len(conversations),
+            "source_tool": source_tool
+        }
+        
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@mcp.tool()
+def redis_cache_stats() -> Dict[str, Any]:
+    """Get Redis cache statistics and health status.
+    
+    Returns:
+        Dictionary with Redis cache statistics and connection health
+    """
+    import asyncio
+    
+    async def get_stats():
+        try:
+            cache_service = await get_cache_service()
+            return await cache_service.get_cache_stats()
+        except Exception as e:
+            return {"connected": False, "error": str(e)}
+    
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            # If event loop is running, create a task
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(asyncio.run, get_stats())
+                return {"success": True, "stats": future.result()}
+        else:
+            # If no loop running, run directly
+            return {"success": True, "stats": asyncio.run(get_stats())}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@mcp.tool()
+def redis_flush_cache(cache_type: str = "all") -> Dict[str, Any]:
+    """Flush Redis cache entries.
+    
+    Args:
+        cache_type: Type of cache to flush ("all", "embeddings", "queries")
+        
+    Returns:
+        Dictionary with flush results
+    """
+    import asyncio
+    
+    async def flush_cache():
+        try:
+            cache_service = await get_cache_service()
+            
+            if cache_type == "all":
+                # Flush all LTMC cache entries
+                embedding_count = await cache_service.invalidate_cache("ltmc:embedding:*")
+                query_count = await cache_service.invalidate_cache("ltmc:query:*")
+                chunk_count = await cache_service.invalidate_cache("ltmc:chunk:*")
+                resource_count = await cache_service.invalidate_cache("ltmc:resource:*")
+                
+                return {
+                    "flushed_embeddings": embedding_count,
+                    "flushed_queries": query_count,
+                    "flushed_chunks": chunk_count,
+                    "flushed_resources": resource_count,
+                    "total_flushed": embedding_count + query_count + chunk_count + resource_count
+                }
+            elif cache_type == "embeddings":
+                count = await cache_service.invalidate_cache("ltmc:embedding:*")
+                return {"flushed_embeddings": count}
+            elif cache_type == "queries":
+                count = await cache_service.invalidate_cache("ltmc:query:*")
+                return {"flushed_queries": count}
+            else:
+                return {"error": f"Unknown cache_type: {cache_type}"}
+                
+        except Exception as e:
+            return {"error": str(e)}
+    
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(asyncio.run, flush_cache())
+                return {"success": True, "result": future.result()}
+        else:
+            return {"success": True, "result": asyncio.run(flush_cache())}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@mcp.tool()
+def redis_health_check() -> Dict[str, Any]:
+    """Check Redis connection health and connectivity.
+    
+    Returns:
+        Dictionary with health check results
+    """
+    import asyncio
+    
+    async def check_health():
+        try:
+            redis_manager = await get_redis_manager()
+            is_healthy = await redis_manager.health_check()
+            
+            return {
+                "healthy": is_healthy,
+                "connected": redis_manager.is_connected,
+                "host": redis_manager.host,
+                "port": redis_manager.port,
+                "db": redis_manager.db
+            }
+        except Exception as e:
+            return {
+                "healthy": False,
+                "connected": False,
+                "error": str(e)
+            }
+    
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(asyncio.run, check_health())
+                return {"success": True, "health": future.result()}
+        else:
+            return {"success": True, "health": asyncio.run(check_health())}
     except Exception as e:
         return {"success": False, "error": str(e)}
 

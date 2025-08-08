@@ -1,0 +1,25 @@
+{
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"]
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+    },
+    "git": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-git"]
+    },
+    "ltmc": {
+      "transport": "http",
+      "url": "http://localhost:5050/jsonrpc",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "timeout": 30000,
+      "retries": 3
+    }
+  }
+}

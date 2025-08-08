@@ -1,0 +1,26 @@
+[
+  {
+    "content": "Enhance director agents with language model integration for natural conversation",
+    "status": "completed",
+    "priority": "high",
+    "id": "enhance_director_conversation"
+  },
+  {
+    "content": "Add natural language processing to agent task parsing",
+    "status": "completed",
+    "priority": "medium",
+    "id": "add_nlp_task_parsing"
+  },
+  {
+    "content": "Implement conversational interface for multi-turn dialogue",
+    "status": "completed",
+    "priority": "medium",
+    "id": "implement_conversational_interface"
+  },
+  {
+    "content": "Test enhanced conversational capabilities",
+    "status": "completed",
+    "priority": "high",
+    "id": "test_conversational_capabilities"
+  }
+]

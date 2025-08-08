@@ -1,0 +1,26 @@
+[
+  {
+    "content": "Examine the problematic exception handling at lines 294 and 304 in memory.py",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Fix exception handling at line 294 with specific exception types",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Fix exception handling at line 304 with specific exception types",
+    "status": "completed",
+    "priority": "high",
+    "id": "3"
+  },
+  {
+    "content": "Verify the fixes and test the error handling improvements",
+    "status": "completed",
+    "priority": "medium",
+    "id": "4"
+  }
+]

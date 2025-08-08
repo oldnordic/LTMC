@@ -1,0 +1,26 @@
+[
+  {
+    "content": "Fix federated agents execution bug: 'list' object has no attribute 'get' error",
+    "status": "completed",
+    "priority": "high",
+    "id": "fix_federated_agents_bug"
+  },
+  {
+    "content": "Fix remaining 'list' object bug in individual agent execution steps",
+    "status": "completed",
+    "priority": "high",
+    "id": "fix_agent_step_execution"
+  },
+  {
+    "content": "Fix Qdrant vector dimension mismatch: expected 1536, got 384",
+    "status": "completed",
+    "priority": "high",
+    "id": "fix_vector_dimension_mismatch"
+  },
+  {
+    "content": "Test complete system after all fixes",
+    "status": "completed",
+    "priority": "medium",
+    "id": "test_complete_system"
+  }
+]

@@ -109,6 +109,7 @@ def log_chat_message(
     content: str,
     agent_name: str | None = None,
     metadata: dict | None = None,
+    source_tool: str | None = None,
 ) -> int:
     """Log a chat message in the database.
     
@@ -117,6 +118,9 @@ def log_chat_message(
         conversation_id: ID of the conversation
         role: Role of the message sender ('user' or 'ai')
         content: Message content
+        agent_name: Name of the agent if applicable
+        metadata: Optional metadata dictionary
+        source_tool: Tool that generated this message (claude-code, cursor, etc.)
         
     Returns:
         ID of the created message
@@ -135,9 +139,9 @@ def log_chat_message(
     cursor.execute(
         (
             "INSERT INTO ChatHistory (conversation_id, role, content, timestamp, "
-            "agent_name, metadata) VALUES (?, ?, ?, ?, ?, ?)"
+            "agent_name, metadata, source_tool) VALUES (?, ?, ?, ?, ?, ?, ?)"
         ),
-        (conversation_id, role, content, timestamp, agent_name, meta_json),
+        (conversation_id, role, content, timestamp, agent_name, meta_json, source_tool),
     )
     conn.commit()
     

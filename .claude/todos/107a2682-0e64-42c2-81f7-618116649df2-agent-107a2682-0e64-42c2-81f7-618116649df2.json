@@ -1,0 +1,80 @@
+[
+  {
+    "content": "Analyze existing codebase architecture and AI integration patterns",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Design sequential thinking service architecture",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Implement core sequential thinking logic engine",
+    "status": "completed",
+    "priority": "high",
+    "id": "3"
+  },
+  {
+    "content": "Create local model integration layer",
+    "status": "completed",
+    "priority": "high",
+    "id": "4"
+  },
+  {
+    "content": "Build problem decomposition and step-by-step reasoning",
+    "status": "completed",
+    "priority": "high",
+    "id": "5"
+  },
+  {
+    "content": "Integrate with existing backend services",
+    "status": "completed",
+    "priority": "medium",
+    "id": "6"
+  },
+  {
+    "content": "Create API endpoints for sequential thinking",
+    "status": "completed",
+    "priority": "medium",
+    "id": "7"
+  },
+  {
+    "content": "Add frontend UI components for sequential thinking",
+    "status": "pending",
+    "priority": "low",
+    "id": "8"
+  },
+  {
+    "content": "Implement debugging and logging capabilities",
+    "status": "completed",
+    "priority": "low",
+    "id": "9"
+  },
+  {
+    "content": "Add comprehensive tests and documentation",
+    "status": "completed",
+    "priority": "low",
+    "id": "10"
+  },
+  {
+    "content": "Update local model integration to use llama.cpp and llama-cpp-python",
+    "status": "completed",
+    "priority": "high",
+    "id": "11"
+  },
+  {
+    "content": "Configure AMD GPU support with HIP_VISIBLE_DEVICES=0",
+    "status": "completed",
+    "priority": "high",
+    "id": "12"
+  },
+  {
+    "content": "Update model discovery to use models folder",
+    "status": "completed",
+    "priority": "high",
+    "id": "13"
+  }
+]

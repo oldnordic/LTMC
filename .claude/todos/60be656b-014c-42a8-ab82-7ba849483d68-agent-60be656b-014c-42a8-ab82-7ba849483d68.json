@@ -1,0 +1,146 @@
+[
+  {
+    "content": "Test existing 4-agent KWE system with complex project request",
+    "status": "completed",
+    "priority": "high",
+    "id": "12"
+  },
+  {
+    "content": "Verify DevelopmentAgent can coordinate project creation through existing agents",
+    "status": "completed",
+    "priority": "high",
+    "id": "13"
+  },
+  {
+    "content": "Test MetaCognitiveCoderAgent with multi-file generation via DevelopmentAgent",
+    "status": "pending",
+    "priority": "medium",
+    "id": "14"
+  },
+  {
+    "content": "Remove unnecessary ProjectGeneratorAgent that violates KWE 4-agent structure",
+    "status": "completed",
+    "priority": "medium",
+    "id": "15"
+  },
+  {
+    "content": "Fix missing dependencies in kwe_server.py to enable testing",
+    "status": "completed",
+    "priority": "high",
+    "id": "16"
+  },
+  {
+    "content": "Test real Ollama reasoning integration with DevelopmentAgent",
+    "status": "completed",
+    "priority": "high",
+    "id": "17"
+  },
+  {
+    "content": "Verify memory system services are running (Redis, PostgreSQL, Neo4j, Qdrant)",
+    "status": "completed",
+    "priority": "high",
+    "id": "18"
+  },
+  {
+    "content": "Fix agent initialization parameter mismatch in MetaCognitive agents",
+    "status": "completed",
+    "priority": "medium",
+    "id": "19"
+  },
+  {
+    "content": "Test complete task execution through properly initialized agents",
+    "status": "completed",
+    "priority": "high",
+    "id": "20"
+  },
+  {
+    "content": "Achieve 100% KWE rule compliance by removing hardcoded heuristics",
+    "status": "completed",
+    "priority": "high",
+    "id": "21"
+  },
+  {
+    "content": "Implement proper PromptEngineeringService integration for agent selection",
+    "status": "completed",
+    "priority": "high",
+    "id": "22"
+  },
+  {
+    "content": "Test end-to-end KWE system with real Ollama reasoning and agent coordination",
+    "status": "completed",
+    "priority": "high",
+    "id": "23"
+  },
+  {
+    "content": "Fix execute_task interface mismatch between KWE system and DevelopmentAgent/QualityAgent",
+    "status": "completed",
+    "priority": "high",
+    "id": "24"
+  },
+  {
+    "content": "Create proper TaskContext objects in KWE server for BaseAgent interface",
+    "status": "completed",
+    "priority": "high",
+    "id": "25"
+  },
+  {
+    "content": "Fix deprecated pydantic GenericModel import warning",
+    "status": "completed",
+    "priority": "medium",
+    "id": "26"
+  },
+  {
+    "content": "Test complete KWE system with all 4 agents using proper BaseAgent interface",
+    "status": "completed",
+    "priority": "high",
+    "id": "27"
+  },
+  {
+    "content": "Identify memory system connection issues and correct credentials",
+    "status": "completed",
+    "priority": "high",
+    "id": "28"
+  },
+  {
+    "content": "Update memory system configuration with correct database and authentication credentials",
+    "status": "completed",
+    "priority": "high",
+    "id": "29"
+  },
+  {
+    "content": "Update start and stop scripts with correct credentials for Neo4j and PostgreSQL",
+    "status": "completed",
+    "priority": "high",
+    "id": "30"
+  },
+  {
+    "content": "Test updated memory services scripts with correct credentials and service configuration",
+    "status": "completed",
+    "priority": "high",
+    "id": "31"
+  },
+  {
+    "content": "Complete comprehensive testing to identify all KWE system problems and gaps without coding",
+    "status": "completed",
+    "priority": "high",
+    "id": "32"
+  },
+  {
+    "content": "Fix KWE server import issues and remove dependency on legacy unified_mcp_server",
+    "status": "completed",
+    "priority": "high",
+    "id": "33"
+  },
+  {
+    "content": "Fix TaskResult constructor missing metadata parameter in MetaCognitive agents",
+    "status": "pending",
+    "priority": "high",
+    "id": "34"
+  },
+  {
+    "content": "Fix ollama_client string placeholder issue in agent initialization",
+    "status": "pending",
+    "priority": "high",
+    "id": "35"
+  }
+]

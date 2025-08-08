@@ -1,0 +1,26 @@
+[
+  {
+    "content": "Analyze root folder structure and identify files to organize",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Clean up temporary/generated files from root folder",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Update .gitignore with appropriate patterns",
+    "status": "completed",
+    "priority": "medium",
+    "id": "3"
+  },
+  {
+    "content": "Move files to appropriate directories or remove unnecessary ones",
+    "status": "completed",
+    "priority": "medium",
+    "id": "4"
+  }
+]

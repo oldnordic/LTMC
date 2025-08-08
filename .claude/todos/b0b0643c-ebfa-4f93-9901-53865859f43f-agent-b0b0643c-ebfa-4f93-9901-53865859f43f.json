@@ -1,0 +1,56 @@
+[
+  {
+    "content": "Phase H1: Analyze current Director final_plan structure to identify where decisions should be made",
+    "status": "completed",
+    "priority": "high",
+    "id": "analyze_director_planning_h1"
+  },
+  {
+    "content": "Phase H2: Design enhanced Director planning with specific implementation decisions",
+    "status": "completed",
+    "priority": "high",
+    "id": "design_director_enhancement_h2"
+  },
+  {
+    "content": "Phase H3: Locate Director's chunked reasoning final_plan generation code",
+    "status": "completed",
+    "priority": "high",
+    "id": "locate_director_planning_h3"
+  },
+  {
+    "content": "Phase H4: Implement Director enhancement for specific decision-making in final_plan",
+    "status": "completed",
+    "priority": "high",
+    "id": "implement_director_enhancement_h4"
+  },
+  {
+    "content": "Phase H5: Design new 'heads-down' Coder Agent prompt with no decision-making",
+    "status": "completed",
+    "priority": "high",
+    "id": "design_heads_down_coder_h5"
+  },
+  {
+    "content": "Phase H6: Replace current Coder Agent prompt with strict implementation-only version",
+    "status": "completed",
+    "priority": "high",
+    "id": "implement_heads_down_coder_h6"
+  },
+  {
+    "content": "Phase H7: Test the strict role enforcement with physics simulator",
+    "status": "completed",
+    "priority": "medium",
+    "id": "test_strict_roles_h7"
+  },
+  {
+    "content": "Phase H8: Verify files are created without analysis paralysis",
+    "status": "completed",
+    "priority": "medium",
+    "id": "verify_no_paralysis_h8"
+  },
+  {
+    "content": "Phase H9: Document architectural changes and clean up outdated prompt patterns",
+    "status": "completed",
+    "priority": "low",
+    "id": "document_role_enforcement_h9"
+  }
+]

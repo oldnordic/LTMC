@@ -1,0 +1,62 @@
+[
+  {
+    "content": "Research Devika and Kimi K2 architectural patterns using Context7",
+    "status": "completed",
+    "priority": "high",
+    "id": "70"
+  },
+  {
+    "content": "Apply hierarchical task decomposition to all 8 KWE agents",
+    "status": "in_progress",
+    "priority": "high",
+    "id": "71"
+  },
+  {
+    "content": "Implement structured task decomposition for Memory Agent",
+    "status": "in_progress",
+    "priority": "high",
+    "id": "72"
+  },
+  {
+    "content": "Implement structured task decomposition for Coder Agent",
+    "status": "pending",
+    "priority": "high",
+    "id": "73"
+  },
+  {
+    "content": "Implement structured task decomposition for Analyst Agent",
+    "status": "pending",
+    "priority": "high",
+    "id": "74"
+  },
+  {
+    "content": "Implement structured task decomposition for Quality Agent",
+    "status": "pending",
+    "priority": "high",
+    "id": "75"
+  },
+  {
+    "content": "Implement structured task decomposition for Insight Agent",
+    "status": "pending",
+    "priority": "high",
+    "id": "76"
+  },
+  {
+    "content": "Implement structured task decomposition for Documenter Agent",
+    "status": "pending",
+    "priority": "high",
+    "id": "77"
+  },
+  {
+    "content": "Implement structured task decomposition for Research Agent",
+    "status": "pending",
+    "priority": "high",
+    "id": "78"
+  },
+  {
+    "content": "Test all agents with hierarchical decomposition capabilities",
+    "status": "pending",
+    "priority": "medium",
+    "id": "79"
+  }
+]

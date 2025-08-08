@@ -1,0 +1,26 @@
+[
+  {
+    "content": "Update SpecialistAgent.query_knowledge MCP URL",
+    "status": "pending",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Update SpecialistAgent.query_knowledge Qdrant URL",
+    "status": "pending",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Update CoderAgent._store_file_content_pattern Qdrant connection",
+    "status": "pending",
+    "priority": "high",
+    "id": "3"
+  },
+  {
+    "content": "Update _get_agent_model to use config model mappings",
+    "status": "pending",
+    "priority": "high",
+    "id": "4"
+  }
+]

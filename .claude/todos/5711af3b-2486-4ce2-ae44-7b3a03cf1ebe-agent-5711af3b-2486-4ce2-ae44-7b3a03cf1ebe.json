@@ -1,0 +1,26 @@
+[
+  {
+    "content": "Trace complete execution chain from API to RestoreAgent to identify failure point",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Add _create_isolated_test_environment method to RestorerAgent class",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Fix 'argument of type NoneType is not iterable' error in restoration workflow",
+    "status": "completed",
+    "priority": "high",
+    "id": "3"
+  },
+  {
+    "content": "Verify isolated test environment integration is working end-to-end",
+    "status": "completed",
+    "priority": "high",
+    "id": "4"
+  }
+]

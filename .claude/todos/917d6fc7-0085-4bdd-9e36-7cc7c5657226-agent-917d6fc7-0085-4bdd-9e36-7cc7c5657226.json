@@ -1,0 +1,32 @@
+[
+  {
+    "content": "Update database modules to use centralized config",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Update agent modules to use centralized config",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Update model integration code to use centralized config",
+    "status": "completed",
+    "priority": "high",
+    "id": "3"
+  },
+  {
+    "content": "Update service initialization code to use centralized config",
+    "status": "completed",
+    "priority": "high",
+    "id": "4"
+  },
+  {
+    "content": "Add config documentation to mcp_server/docs",
+    "status": "completed",
+    "priority": "high",
+    "id": "5"
+  }
+]

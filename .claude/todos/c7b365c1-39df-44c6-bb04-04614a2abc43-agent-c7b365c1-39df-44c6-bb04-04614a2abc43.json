@@ -1,0 +1,26 @@
+[
+  {
+    "content": "Fix low SonarQube coverage (32.7% improved from 9.3%)",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Accept 7.5% duplications (1170 lines in 8 blocks)",
+    "status": "completed",
+    "priority": "medium",
+    "id": "2"
+  },
+  {
+    "content": "Run more comprehensive tests for better coverage",
+    "status": "completed",
+    "priority": "high",
+    "id": "3"
+  },
+  {
+    "content": "Security issues resolved (0 vulnerabilities, 0 hotspots)",
+    "status": "completed",
+    "priority": "high",
+    "id": "4"
+  }
+]

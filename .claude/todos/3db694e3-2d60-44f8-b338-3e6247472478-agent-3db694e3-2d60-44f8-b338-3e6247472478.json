@@ -1,0 +1,26 @@
+[
+  {
+    "content": "Create centralized config.py",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Create .env file for sensitive info",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Update memory system files to use new config",
+    "status": "completed",
+    "priority": "high",
+    "id": "3"
+  },
+  {
+    "content": "Run integration tests",
+    "status": "completed",
+    "priority": "high",
+    "id": "4"
+  }
+]

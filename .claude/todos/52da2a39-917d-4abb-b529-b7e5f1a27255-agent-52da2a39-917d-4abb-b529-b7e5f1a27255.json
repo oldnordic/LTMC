@@ -1,0 +1,32 @@
+[
+  {
+    "content": "Fix ALL agents to use only deepseek-r1:latest on gpu_0 - no model switching",
+    "status": "completed",
+    "priority": "high",
+    "id": "92"
+  },
+  {
+    "content": "Consolidate duplicate agents - remove 7 duplicate classes, keep only 5 core agents",
+    "status": "completed",
+    "priority": "high",
+    "id": "93"
+  },
+  {
+    "content": "Analyze which files in mcp_server are active vs legacy - identify cleanup targets",
+    "status": "completed",
+    "priority": "high",
+    "id": "94"
+  },
+  {
+    "content": "Cleanup mcp_server directory - remove unused Python files, keep only actively used ones",
+    "status": "completed",
+    "priority": "high",
+    "id": "95"
+  },
+  {
+    "content": "Remove worthless TaskDecompositionMixin - just keyword matching heuristics",
+    "status": "completed",
+    "priority": "medium",
+    "id": "96"
+  }
+]

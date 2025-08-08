@@ -1,0 +1,86 @@
+[
+  {
+    "content": "✅ CRITICAL: Implement CoderAgent _extract_methods function (currently stub)",
+    "status": "completed",
+    "priority": "high",
+    "id": "coder-extract-methods"
+  },
+  {
+    "content": "✅ CRITICAL: Implement CoderAgent _improve_variable_names function (currently stub)",
+    "status": "completed",
+    "priority": "high",
+    "id": "coder-variable-names"
+  },
+  {
+    "content": "✅ CRITICAL: Implement CoderAgent _reduce_complexity function (currently stub)",
+    "status": "completed",
+    "priority": "high",
+    "id": "coder-reduce-complexity"
+  },
+  {
+    "content": "✅ CRITICAL: Implement CoderAgent _optimize_for_speed function (currently stub)",
+    "status": "completed",
+    "priority": "high",
+    "id": "coder-speed-optimization"
+  },
+  {
+    "content": "✅ CRITICAL: Implement CoderAgent _optimize_for_memory function (currently stub)",
+    "status": "completed",
+    "priority": "high",
+    "id": "coder-memory-optimization"
+  },
+  {
+    "content": "✅ CRITICAL: Audit KWE system for hardcoded language implementations",
+    "status": "completed",
+    "priority": "high",
+    "id": "audit-hardcoded-languages"
+  },
+  {
+    "content": "✅ CRITICAL: Replace _reduce_complexity hardcoded language switch with AI-powered analysis",
+    "status": "completed",
+    "priority": "high",
+    "id": "replace-reduce-complexity-hardcoded"
+  },
+  {
+    "content": "✅ CRITICAL: Scan and replace heuristic algorithms with Ollama model calls",
+    "status": "completed",
+    "priority": "high",
+    "id": "replace-heuristics-with-ai"
+  },
+  {
+    "content": "✅ CRITICAL: Implement tool/dependency request system via DirectorAgent",
+    "status": "completed",
+    "priority": "high",
+    "id": "implement-tool-request-system"
+  },
+  {
+    "content": "✅ CORE PRINCIPLE: KWE is multi-domain agnostic for development AND domain research (not just coding)",
+    "status": "completed",
+    "priority": "high",
+    "id": "remember-kwe-multi-domain-principle"
+  },
+  {
+    "content": "✅ CRITICAL: Replace template generation hardcoded language logic with AI-powered dynamic templates",
+    "status": "completed",
+    "priority": "high",
+    "id": "replace-template-hardcoded"
+  },
+  {
+    "content": "🚨 CRITICAL: Replace style_guide hardcoded language defaults with dynamic AI analysis",
+    "status": "in_progress",
+    "priority": "high",
+    "id": "replace-style-guide-hardcoded"
+  },
+  {
+    "content": "🚨 CRITICAL: Replace test generation hardcoded language patterns with AI-powered test creation",
+    "status": "pending",
+    "priority": "high",
+    "id": "replace-test-generation-hardcoded"
+  },
+  {
+    "content": "🚨 CRITICAL: Complete SimulationEngine execution logic (currently incomplete)",
+    "status": "pending",
+    "priority": "high",
+    "id": "simulation-execution"
+  }
+]

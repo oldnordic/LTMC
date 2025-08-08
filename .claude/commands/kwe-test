@@ -1,0 +1,373 @@
+#!/bin/bash
+# KWE Test Command
+#
+# Comprehensive testing workflows for Knowledge World Engine (KWE)
+# Supports unit tests, integration tests, and full test suite execution
+# Following KWE architectural compliance and TDD principles
+
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
+# Configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+KWE_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
+PROJECT_ROOT="$KWE_ROOT"
+LOG_DIR="$KWE_ROOT/logs"
+TEST_LOG_FILE="$LOG_DIR/kwe_test.log"
+
+# Default values
+DEFAULT_TEST_TYPE="unit"
+DEFAULT_COVERAGE_THRESHOLD="90"
+
+# Function to log messages
+log_message() {
+    local level=$1
+    local message=$2
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    echo -e "${timestamp} [${level}] ${message}" | tee -a "$TEST_LOG_FILE"
+}
+
+# Function to display usage
+display_usage() {
+    echo -e "${BLUE}KWE Test Command - Comprehensive Testing Workflows${NC}"
+    echo "=================================================="
+    echo ""
+    echo "Usage: $0 [TEST_TYPE] [COVERAGE_THRESHOLD]"
+    echo ""
+    echo "Arguments:"
+    echo "  TEST_TYPE           Test type to run (unit|integration|full) [default: unit]"
+    echo "  COVERAGE_THRESHOLD  Minimum coverage percentage required [default: 90]"
+    echo ""
+    echo "Test Types:"
+    echo "  unit         Run unit tests only (fast, isolated tests)"
+    echo "  integration  Run integration tests (requires memory services)"
+    echo "  full         Run complete test suite with coverage report"
+    echo ""
+    echo "Environment Variables:"
+    echo "  \$TEST_TYPE            Override test type"
+    echo "  \$COVERAGE_THRESHOLD   Override coverage threshold"
+    echo ""
+    echo "Examples:"
+    echo "  $0 unit 85             # Run unit tests with 85% coverage threshold"
+    echo "  $0 integration         # Run integration tests with default threshold"
+    echo "  $0 full                # Run full test suite with coverage"
+    echo ""
+    echo "KWE Testing Architecture:"
+    echo "  • TDD-First Development (no stubs, no TODOs)"
+    echo "  • Async-First Testing (pytest-asyncio)"
+    echo "  • 4-Tier Memory Integration Testing"
+    echo "  • 4-Agent Framework Validation"
+    echo "  • Production-Ready Quality Standards"
+    echo ""
+}
+
+# Function to check testing dependencies
+check_test_dependencies() {
+    log_message "INFO" "Checking KWE test dependencies..."
+    
+    local missing_deps=()
+    
+    # Check Python and Poetry
+    if ! command -v python3 >/dev/null 2>&1; then
+        missing_deps+=("python3")
+    fi
+    
+    if ! command -v poetry >/dev/null 2>&1; then
+        missing_deps+=("poetry")
+    fi
+    
+    # Check pytest and dependencies
+    if ! python3 -c "import pytest" 2>/dev/null; then
+        missing_deps+=("pytest")
+    fi
+    
+    if ! python3 -c "import pytest_asyncio" 2>/dev/null; then
+        missing_deps+=("pytest-asyncio")
+    fi
+    
+    if ! python3 -c "import pytest_cov" 2>/dev/null; then
+        missing_deps+=("pytest-cov")
+    fi
+    
+    if [ ${#missing_deps[@]} -gt 0 ]; then
+        log_message "ERROR" "Missing test dependencies: ${missing_deps[*]}"
+        echo -e "${RED}❌ Missing dependencies: ${missing_deps[*]}${NC}"
+        echo -e "${YELLOW}💡 Install with: poetry install --with dev${NC}"
+        return 1
+    fi
+    
+    echo -e "${GREEN}✅ All test dependencies available${NC}"
+    return 0
+}
+
+# Function to check memory services for integration tests
+check_memory_services() {
+    log_message "INFO" "Checking KWE memory services for integration tests..."
+    
+    local failed_services=()
+    
+    # PostgreSQL (Temporal Memory) - External
+    if ! nc -z 192.168.1.119 5432 2>/dev/null; then
+        failed_services+=("PostgreSQL (192.168.1.119:5432)")
+    fi
+    
+    # Redis (Cache Layer) - Local
+    if ! nc -z localhost 6380 2>/dev/null; then
+        failed_services+=("Redis (localhost:6380)")
+    fi
+    
+    # Neo4j (Graph Memory) - Local
+    if ! curl -s http://localhost:7474 > /dev/null 2>&1; then
+        failed_services+=("Neo4j (localhost:7474)")
+    fi
+    
+    # Qdrant (Semantic Memory) - Local
+    if ! curl -s http://localhost:6333/collections > /dev/null 2>&1; then
+        failed_services+=("Qdrant (localhost:6333)")
+    fi
+    
+    if [ ${#failed_services[@]} -gt 0 ]; then
+        log_message "WARN" "Memory services not available for integration tests: ${failed_services[*]}"
+        echo -e "${YELLOW}⚠️  Memory services not available: ${failed_services[*]}${NC}"
+        echo -e "${YELLOW}💡 Start services with: ./scripts/start_memory_services.sh${NC}"
+        return 1
+    fi
+    
+    echo -e "${GREEN}✅ All memory services available for integration tests${NC}"
+    return 0
+}
+
+# Function to run unit tests
+run_unit_tests() {
+    local coverage_threshold=$1
+    
+    log_message "INFO" "Running KWE unit tests with coverage threshold: ${coverage_threshold}%"
+    echo -e "${BLUE}🧪 Running KWE Unit Tests${NC}"
+    echo "=========================="
+    
+    cd "$PROJECT_ROOT"
+    
+    # Run unit tests with coverage
+    local test_cmd="poetry run pytest -m 'unit' --cov=src --cov=api --cov-report=term-missing --cov-report=html --cov-fail-under=${coverage_threshold} -v"
+    
+    log_message "INFO" "Executing: $test_cmd"
+    echo -e "${CYAN}Command: $test_cmd${NC}"
+    
+    if eval "$test_cmd"; then
+        log_message "INFO" "Unit tests passed with coverage >= ${coverage_threshold}%"
+        echo -e "${GREEN}✅ Unit tests passed${NC}"
+        
+        # Display coverage report location
+        if [ -d "htmlcov" ]; then
+            echo -e "${CYAN}📊 Coverage report: $(pwd)/htmlcov/index.html${NC}"
+        fi
+        
+        return 0
+    else
+        log_message "ERROR" "Unit tests failed or coverage below ${coverage_threshold}%"
+        echo -e "${RED}❌ Unit tests failed${NC}"
+        return 1
+    fi
+}
+
+# Function to run integration tests
+run_integration_tests() {
+    local coverage_threshold=$1
+    
+    log_message "INFO" "Running KWE integration tests with coverage threshold: ${coverage_threshold}%"
+    echo -e "${BLUE}🔗 Running KWE Integration Tests${NC}"
+    echo "================================="
+    
+    # Check memory services first
+    if ! check_memory_services; then
+        log_message "ERROR" "Memory services not available for integration tests"
+        echo -e "${RED}❌ Cannot run integration tests without memory services${NC}"
+        return 1
+    fi
+    
+    cd "$PROJECT_ROOT"
+    
+    # Run integration tests with coverage
+    local test_cmd="poetry run pytest -m 'integration' --cov=src --cov=api --cov-report=term-missing --cov-report=html --cov-fail-under=${coverage_threshold} -v --timeout=300"
+    
+    log_message "INFO" "Executing: $test_cmd"
+    echo -e "${CYAN}Command: $test_cmd${NC}"
+    
+    if eval "$test_cmd"; then
+        log_message "INFO" "Integration tests passed with coverage >= ${coverage_threshold}%"
+        echo -e "${GREEN}✅ Integration tests passed${NC}"
+        
+        # Display coverage report location
+        if [ -d "htmlcov" ]; then
+            echo -e "${CYAN}📊 Coverage report: $(pwd)/htmlcov/index.html${NC}"
+        fi
+        
+        return 0
+    else
+        log_message "ERROR" "Integration tests failed or coverage below ${coverage_threshold}%"
+        echo -e "${RED}❌ Integration tests failed${NC}"
+        return 1
+    fi
+}
+
+# Function to run full test suite
+run_full_tests() {
+    local coverage_threshold=$1
+    
+    log_message "INFO" "Running KWE full test suite with coverage threshold: ${coverage_threshold}%"
+    echo -e "${BLUE}🚀 Running KWE Full Test Suite${NC}"
+    echo "==============================="
+    
+    cd "$PROJECT_ROOT"
+    
+    # Run full test suite with comprehensive coverage
+    local test_cmd="poetry run pytest --cov=src --cov=api --cov-report=term-missing --cov-report=html --cov-report=xml --cov-fail-under=${coverage_threshold} -v --timeout=300"
+    
+    log_message "INFO" "Executing: $test_cmd"
+    echo -e "${CYAN}Command: $test_cmd${NC}"
+    
+    if eval "$test_cmd"; then
+        log_message "INFO" "Full test suite passed with coverage >= ${coverage_threshold}%"
+        echo -e "${GREEN}✅ Full test suite passed${NC}"
+        
+        # Display comprehensive test results
+        echo ""
+        echo -e "${CYAN}📊 Test Coverage Reports:${NC}"
+        if [ -d "htmlcov" ]; then
+            echo -e "${CYAN}  HTML: $(pwd)/htmlcov/index.html${NC}"
+        fi
+        if [ -f "coverage.xml" ]; then
+            echo -e "${CYAN}  XML: $(pwd)/coverage.xml${NC}"
+        fi
+        
+        # Run additional quality checks
+        echo ""
+        echo -e "${BLUE}🔍 Running Additional Quality Checks${NC}"
+        
+        # Type checking
+        if poetry run mypy src/ api/ 2>/dev/null; then
+            echo -e "${GREEN}✅ Type checking passed${NC}"
+        else
+            echo -e "${YELLOW}⚠️  Type checking issues found${NC}"
+        fi
+        
+        # Security scanning
+        if poetry run bandit -r src/ -f json -o bandit-report.json 2>/dev/null; then
+            echo -e "${GREEN}✅ Security scan clean${NC}"
+        else
+            echo -e "${YELLOW}⚠️  Security issues found (check bandit-report.json)${NC}"
+        fi
+        
+        return 0
+    else
+        log_message "ERROR" "Full test suite failed or coverage below ${coverage_threshold}%"
+        echo -e "${RED}❌ Full test suite failed${NC}"
+        return 1
+    fi
+}
+
+# Function to display test results summary
+display_test_summary() {
+    local test_type=$1
+    local result=$2
+    local coverage_threshold=$3
+    
+    echo ""
+    echo "====================================="
+    if [ $result -eq 0 ]; then
+        echo -e "${GREEN}🎉 KWE $test_type Tests Completed Successfully${NC}"
+        echo ""
+        echo -e "${CYAN}Test Results:${NC}"
+        echo -e "${CYAN}  Test Type: $test_type${NC}"
+        echo -e "${CYAN}  Coverage Threshold: ${coverage_threshold}%${NC}"
+        echo -e "${CYAN}  Status: PASSED${NC}"
+        echo ""
+        echo -e "${CYAN}KWE Quality Standards:${NC}"
+        echo -e "${CYAN}  ✅ TDD-First Development${NC}"
+        echo -e "${CYAN}  ✅ Async-First Testing${NC}"
+        echo -e "${CYAN}  ✅ Production-Ready Quality${NC}"
+        echo -e "${CYAN}  ✅ Comprehensive Coverage${NC}"
+    else
+        echo -e "${RED}❌ KWE $test_type Tests Failed${NC}"
+        echo ""
+        echo -e "${YELLOW}💡 Troubleshooting:${NC}"
+        echo -e "${YELLOW}  1. Check test logs: $TEST_LOG_FILE${NC}"
+        echo -e "${YELLOW}  2. Ensure dependencies: poetry install --with dev${NC}"
+        echo -e "${YELLOW}  3. Start memory services: ./scripts/start_memory_services.sh${NC}"
+        echo -e "${YELLOW}  4. Run specific test: poetry run pytest tests/test_specific.py -v${NC}"
+    fi
+    echo ""
+}
+
+# Main execution
+main() {
+    local test_type="${1:-${TEST_TYPE:-$DEFAULT_TEST_TYPE}}"
+    local coverage_threshold="${2:-${COVERAGE_THRESHOLD:-$DEFAULT_COVERAGE_THRESHOLD}}"
+    
+    # Validate arguments
+    case "$test_type" in
+        unit|integration|full)
+            ;;
+        -h|--help)
+            display_usage
+            exit 0
+            ;;
+        *)
+            echo -e "${RED}❌ Invalid test type: $test_type${NC}"
+            echo -e "${YELLOW}Valid options: unit, integration, full${NC}"
+            display_usage
+            exit 1
+            ;;
+    esac
+    
+    # Validate coverage threshold
+    if ! [[ "$coverage_threshold" =~ ^[0-9]+$ ]] || [ "$coverage_threshold" -lt 0 ] || [ "$coverage_threshold" -gt 100 ]; then
+        echo -e "${RED}❌ Invalid coverage threshold: $coverage_threshold${NC}"
+        echo -e "${YELLOW}Must be a number between 0 and 100${NC}"
+        exit 1
+    fi
+    
+    echo -e "${BLUE}🧪 KWE Testing Framework${NC}"
+    echo "========================="
+    echo -e "${CYAN}Test Type: $test_type${NC}"
+    echo -e "${CYAN}Coverage Threshold: ${coverage_threshold}%${NC}"
+    echo ""
+    
+    # Setup logging
+    mkdir -p "$LOG_DIR"
+    log_message "INFO" "Starting KWE test execution: $test_type (coverage: ${coverage_threshold}%)"
+    
+    # Check dependencies
+    if ! check_test_dependencies; then
+        exit 1
+    fi
+    
+    # Run tests based on type
+    local test_result=0
+    case "$test_type" in
+        unit)
+            run_unit_tests "$coverage_threshold" || test_result=1
+            ;;
+        integration)
+            run_integration_tests "$coverage_threshold" || test_result=1
+            ;;
+        full)
+            run_full_tests "$coverage_threshold" || test_result=1
+            ;;
+    esac
+    
+    # Display summary
+    display_test_summary "$test_type" "$test_result" "$coverage_threshold"
+    
+    exit $test_result
+}
+
+# Run main function
+main "$@"

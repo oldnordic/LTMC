@@ -1,0 +1,32 @@
+[
+  {
+    "content": "Analyze unified_mcp_server.py import dependencies and trace all 157 interdependent files",
+    "status": "completed",
+    "priority": "high",
+    "id": "dep_analysis_1"
+  },
+  {
+    "content": "Identify missing vs existing modules from import statements",
+    "status": "completed",
+    "priority": "high",
+    "id": "dep_analysis_2"
+  },
+  {
+    "content": "Map actual startup sequence and initialization order",
+    "status": "completed",
+    "priority": "high",
+    "id": "dep_analysis_3"
+  },
+  {
+    "content": "Create comprehensive dependency map with critical failure points",
+    "status": "in_progress",
+    "priority": "high",
+    "id": "dep_analysis_4"
+  },
+  {
+    "content": "Document circular dependencies and startup issues",
+    "status": "in_progress",
+    "priority": "medium",
+    "id": "dep_analysis_5"
+  }
+]

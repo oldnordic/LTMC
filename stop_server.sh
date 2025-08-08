@@ -108,4 +108,14 @@ stop_server "$HTTP_PID_FILE" "HTTP transport server"
 echo -e "${BLUE}Stopping stdio transport server...${NC}"
 stop_server "$PID_FILE" "stdio transport server"
 
+# Check LTMC Redis service status
+echo -e "${BLUE}LTMC Redis Service Status:${NC}"
+if python -c "import redis; r=redis.Redis(host='localhost', port=6381, decode_responses=True, password='ltmc_cache_2025'); r.ping()" 2>/dev/null; then
+    echo -e "${YELLOW}LTMC Redis is still running on port 6381${NC}"
+    echo -e "${YELLOW}Note: Redis is left running as it may be used by other services${NC}"
+    echo -e "${YELLOW}To stop LTMC Redis: ./redis_control.sh stop${NC}"
+else
+    echo -e "${GREEN}✓ LTMC Redis is not running on port 6381${NC}"
+fi
+
 echo -e "${GREEN}✓ LTMC MCP Server stopped successfully${NC}"

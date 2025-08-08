@@ -1,0 +1,116 @@
+[
+  {
+    "content": "Add proper error logging to file understanding cache system",
+    "status": "completed",
+    "priority": "high",
+    "id": "add_error_logging"
+  },
+  {
+    "content": "Implement chunked task approach for local model processing",
+    "status": "completed",
+    "priority": "high",
+    "id": "implement_chunked_processing"
+  },
+  {
+    "content": "Add hierarchical task decomposition capability to Director agent",
+    "status": "completed",
+    "priority": "high",
+    "id": "add_hierarchical_decomposition"
+  },
+  {
+    "content": "Enhance EnhancedDirectorAgent with Claude-like task decomposition using local model analysis",
+    "status": "completed",
+    "priority": "high",
+    "id": "implement_director_enhancement"
+  },
+  {
+    "content": "Test Director agent with complex multi-step tasks",
+    "status": "completed",
+    "priority": "high",
+    "id": "test_director_capabilities"
+  },
+  {
+    "content": "Fix timeout issues in chunked task processing with local models",
+    "status": "completed",
+    "priority": "high",
+    "id": "fix_chunked_timeouts"
+  },
+  {
+    "content": "Update Director Agent to use DeepSeek-R1 for sophisticated reasoning",
+    "status": "completed",
+    "priority": "high",
+    "id": "director_deepseek_upgrade"
+  },
+  {
+    "content": "Implement MetaCognitiveAgent base class with recursive intelligence framework",
+    "status": "completed",
+    "priority": "high",
+    "id": "implement_metacognitive_base"
+  },
+  {
+    "content": "Create pattern storage and retrieval system in tri-memory for agent learning",
+    "status": "completed",
+    "priority": "high",
+    "id": "implement_pattern_storage"
+  },
+  {
+    "content": "Transform CoderAgent with meta-cognitive capabilities (test-driven iteration, pattern learning)",
+    "status": "in_progress",
+    "priority": "high",
+    "id": "enhance_coder_metacognitive"
+  },
+  {
+    "content": "Implement recursive task decomposition framework",
+    "status": "pending",
+    "priority": "high",
+    "id": "implement_recursive_decomposition"
+  },
+  {
+    "content": "Transform AnalystAgent with recursive requirement analysis and assumption validation",
+    "status": "pending",
+    "priority": "medium",
+    "id": "enhance_analyst_metacognitive"
+  },
+  {
+    "content": "Transform QualityAgent with multi-pass analysis and continuous improvement loops",
+    "status": "pending",
+    "priority": "medium",
+    "id": "enhance_quality_metacognitive"
+  },
+  {
+    "content": "Transform ResearchAgent with adaptive research strategies and knowledge synthesis",
+    "status": "pending",
+    "priority": "medium",
+    "id": "enhance_research_metacognitive"
+  },
+  {
+    "content": "Implement file exploration pattern with recursive understanding",
+    "status": "pending",
+    "priority": "medium",
+    "id": "implement_file_exploration"
+  },
+  {
+    "content": "Create meta-cognitive orchestration layer for multi-agent collaboration",
+    "status": "pending",
+    "priority": "medium",
+    "id": "create_metacognitive_orchestrator"
+  },
+  {
+    "content": "Add issue detection engine to all agents",
+    "status": "pending",
+    "priority": "low",
+    "id": "add_issue_detection"
+  },
+  {
+    "content": "Implement timestamp/hash-based cache invalidation",
+    "status": "pending",
+    "priority": "low",
+    "id": "implement_cache_invalidation"
+  },
+  {
+    "content": "Update Neo4j schema for file relationships and understanding layers",
+    "status": "pending",
+    "priority": "low",
+    "id": "update_neo4j_schema"
+  }
+]

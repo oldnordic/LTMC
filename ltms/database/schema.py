@@ -41,7 +41,8 @@ def create_tables(conn: sqlite3.Connection) -> None:
             content TEXT NOT NULL,
             timestamp TEXT NOT NULL,
             agent_name TEXT,
-            metadata TEXT
+            metadata TEXT,
+            source_tool TEXT
         )
     """)
     
@@ -68,5 +69,15 @@ def create_tables(conn: sqlite3.Connection) -> None:
             FOREIGN KEY (resource_id) REFERENCES Resources (id)
         )
     """)
+    
+    # Add source_tool column to existing ChatHistory tables (migration)
+    try:
+        cursor.execute("ALTER TABLE ChatHistory ADD COLUMN source_tool TEXT")
+        conn.commit()
+    except sqlite3.OperationalError as e:
+        if "duplicate column name" not in str(e).lower():
+            # Re-raise if it's not a duplicate column error
+            raise
+        # Column already exists, continue
     
     conn.commit()

@@ -53,6 +53,15 @@ if ! python -c "import fastapi" 2>/dev/null; then
     pip install -r requirements.txt
 fi
 
+# Check Redis connection
+echo -e "${YELLOW}Checking LTMC Redis connection (port 6381)...${NC}"
+if ! python -c "import redis; r=redis.Redis(host='localhost', port=6381, decode_responses=True, password='ltmc_cache_2025'); r.ping()" 2>/dev/null; then
+    echo -e "${YELLOW}Warning: LTMC Redis not available on port 6381. Starting Redis service...${NC}"
+    ./redis_control.sh start
+else
+    echo -e "${GREEN}✓ LTMC Redis connection successful${NC}"
+fi
+
 # Set environment variables
 export DB_PATH="${DB_PATH:-ltmc.db}"
 export FAISS_INDEX_PATH="${FAISS_INDEX_PATH:-faiss_index}"

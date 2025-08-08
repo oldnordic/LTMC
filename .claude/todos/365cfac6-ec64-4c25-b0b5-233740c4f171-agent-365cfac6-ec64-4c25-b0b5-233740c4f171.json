@@ -1,0 +1,26 @@
+[
+  {
+    "content": "Update dual_gpu_config.json to use CPU+Gemma for director",
+    "status": "completed",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Update dual_gpu_director_agent.py for CPU operation",
+    "status": "completed",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Update dual_gpu_device_manager.py for CPU director config",
+    "status": "completed",
+    "priority": "medium",
+    "id": "3"
+  },
+  {
+    "content": "Verify configuration changes",
+    "status": "completed",
+    "priority": "medium",
+    "id": "4"
+  }
+]

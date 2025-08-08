@@ -1,0 +1,26 @@
+[
+  {
+    "content": "Check CLAUDE.md and .claude directory configuration",
+    "status": "completed",
+    "priority": "high",
+    "id": "check-claude-config"
+  },
+  {
+    "content": "Correct paths in configuration files",
+    "status": "completed",
+    "priority": "high",
+    "id": "correct-paths"
+  },
+  {
+    "content": "Check missing files from old project folder",
+    "status": "completed",
+    "priority": "medium",
+    "id": "check-missing-files"
+  },
+  {
+    "content": "Copy necessary files from old folder if needed",
+    "status": "completed",
+    "priority": "medium",
+    "id": "copy-necessary-files"
+  }
+]

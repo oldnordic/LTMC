@@ -1,1 +1,185 @@
-System Architecture: LTMC1. Architectural ModelThe system will be implemented as a Layered Monolithic Application. This model provides a clear separation of concerns, making it easy to develop, test, and maintain, while avoiding the complexity of a microservices architecture at this stage.The application is divided into four distinct layers:1.1. API Layer (Presentation)Responsibility: Handles all incoming HTTP requests and outgoing responses. This is the sole entry point for external clients.Components: FastAPI routers, Pydantic models for request/response validation and serialization.Rules: This layer contains no business logic. Its only job is to validate data, call the appropriate service layer function, and format the response.1.2. Service Layer (Business Logic)Responsibility: The brain of the application. It orchestrates all core processes, such as chunking text, generating embeddings, and linking resources to chats.Components: Service classes or modules (e.g., ResourceService, ContextService).Rules: It coordinates calls between the Data Access Layer and the Vector DB Abstraction to fulfill a use case. It is unaware of HTTP; it deals in pure data objects.1.3. Data Access Layer (Persistence)Responsibility: Manages all interactions with the persistent storage systems. It abstracts the underlying databases from the rest of the application.Components:Relational DAL: A module containing functions for all CRUD (Create, Read, Update, Delete) operations on the SQLite database.Vector DB Abstraction: A class-based wrapper around the FAISS library for all vector operations (add, search, save, load).Rules: This layer contains only the logic required to talk to the databases. It does not know why it's being asked to fetch or store data.1.4. Core / Config LayerResponsibility: Manages application-wide concerns.Components:Configuration: A module to load settings from environment variables.Lifecycle Management: Functions to handle application startup (e.g., loading the embedding model, initializing the FAISS index) and shutdown (e.g., saving the index to disk).Singleton Clients: Initializes and provides access to shared clients like the embedding model.
+# LTMC System Architecture
+
+## Overview
+
+LTMC (Long-Term Memory and Context) is a sophisticated, modular MCP (Model Context Protocol) server designed for persistent memory storage, retrieval, and context management.
+
+## 4-Tier Memory Architecture
+
+### 1. Temporal Storage: SQLite
+- **Role**: Persistent storage of resources, chunks, and metadata
+- **Key Tables**:
+  - `Resources`: Main resource storage
+  - `ResourceChunks`: Chunked content with vector IDs
+  - `VectorIdSequence`: Sequential vector ID management
+- **Characteristics**:
+  - ACID-compliant
+  - Low-latency read/write
+  - Embedded database
+
+### 2. Semantic Search: FAISS Vector Store
+- **Role**: High-performance similarity search
+- **Features**:
+  - 384-dimensional embeddings
+  - Nearest neighbor search
+  - Supports large-scale vector comparisons
+- **Use Cases**:
+  - Content retrieval
+  - Semantic matching
+  - Context generation
+
+### 3. Caching Layer: Redis
+- **Role**: High-speed in-memory caching
+- **Configuration**:
+  - Port: 6381
+  - Persistence mode: AOF
+- **Functions**:
+  - Temporary data storage
+  - Session management
+  - Query result caching
+
+### 4. Graph Relationships: Neo4j
+- **Role**: Complex relationship tracking
+- **Features**:
+  - Graph database
+  - Advanced query capabilities
+  - Relationship-based context linking
+- **Use Cases**:
+  - Document interconnections
+  - Context graph generation
+  - Semantic relationship analysis
+
+## Transport Layers
+
+### HTTP Transport
+- **Server**: FastAPI at `ltms/mcp_server_http.py`
+- **Port**: 5050
+- **Protocol**: JSON-RPC
+- **Features**:
+  - RESTful endpoint
+  - Comprehensive error handling
+  - Middleware support
+
+### Stdio Transport
+- **Entry Point**: `ltmc_mcp_server.py`
+- **Purpose**: IDE and CLI integration
+- **Characteristics**:
+  - Direct MCP protocol
+  - Low-overhead communication
+  - Identical tool set to HTTP transport
+
+## Tool Modules (25 Total)
+
+### 1. Memory Tools
+- Persistent storage
+- Retrieval with context
+- Resource management
+
+### 2. Chat Tools
+- Conversation history
+- Context linking
+- Usage statistics
+
+### 3. Code Pattern Tools
+- Code generation tracking
+- Pattern analysis
+- Learning from past attempts
+
+### 4. Todo Management
+- Task tracking
+- Search and filtering
+- Completion tracking
+
+### 5. Context and Relationship Tools
+- Resource linking
+- Graph querying
+- Automatic relationship detection
+
+## Async-First Design
+
+### Core Principles
+- All I/O operations use `async/await`
+- Non-blocking architecture
+- High concurrency support
+
+### Performance Characteristics
+- Minimal blocking
+- Efficient resource utilization
+- Scalable design
+
+## Security and Quality Gates
+
+### Authentication
+- TBD: JWT or OAuth integration
+- Per-tool access control
+
+### Error Handling
+- Comprehensive exception tracking
+- Structured error responses
+- Logging with context
+
+### Quality Metrics
+- 100% test coverage goal
+- Comprehensive type hints
+- Strict linting rules
+
+## Integration Patterns
+
+### MCP Server Integration
+- Supports multiple AI assistants
+- Standardized memory protocol
+- Extensible tool framework
+
+### Potential Extensions
+- Machine learning model integration
+- Advanced reasoning capabilities
+- Cross-assistant memory sharing
+
+## System Topology
+
+```
+┌───────────────────┐
+│    AI Assistant   │
+└────────┬──────────┘
+         │
+         ▼
+┌─────────────────────┐
+│   LTMC MCP Server   │
+├─────────┬───────────┤
+│ HTTP    │ Stdio     │
+│ (5050)  │ Transport │
+└────┬────┴───────────┘
+     │
+     ▼
+┌─────────────────────┐
+│   4-Tier Memory     │
+├─────────┬───────────┤
+│ SQLite  │ FAISS     │
+│ Redis   │ Neo4j     │
+└─────────┴───────────┘
+```
+
+## Future Roadmap
+
+- [ ] Advanced ML integration
+- [ ] Multi-agent memory sharing
+- [ ] Enhanced semantic reasoning
+- [ ] Distributed deployment support
+
+## Documentation
+
+- [Installation Guide](/docs/guides/INSTALLATION.md)
+- [Troubleshooting](/docs/guides/TROUBLESHOOTING.md)
+- [API Reference](/docs/api/README.md)
+
+## Licensing
+
+See [LICENSE](/LICENSE) for details.
+
+## Acknowledgments
+
+- **FastAPI**: Web framework
+- **FAISS**: Vector search
+- **Redis**: Caching
+- **Neo4j**: Graph database
+- **SQLite**: Persistent storage

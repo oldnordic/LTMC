@@ -1,0 +1,50 @@
+[
+  {
+    "content": "Create comprehensive performance analysis framework",
+    "status": "in_progress",
+    "priority": "high",
+    "id": "1"
+  },
+  {
+    "content": "Analyze memory usage patterns and detect leaks",
+    "status": "pending",
+    "priority": "high",
+    "id": "2"
+  },
+  {
+    "content": "Monitor API call frequency and patterns",
+    "status": "pending",
+    "priority": "high",
+    "id": "3"
+  },
+  {
+    "content": "Identify performance bottlenecks in PyQt6 interface",
+    "status": "pending",
+    "priority": "high",
+    "id": "4"
+  },
+  {
+    "content": "Test resource cleanup and garbage collection",
+    "status": "pending",
+    "priority": "medium",
+    "id": "5"
+  },
+  {
+    "content": "Analyze thread usage and worker patterns",
+    "status": "pending",
+    "priority": "medium",
+    "id": "6"
+  },
+  {
+    "content": "Generate performance analysis report",
+    "status": "pending",
+    "priority": "low",
+    "id": "7"
+  },
+  {
+    "content": "Add performance analysis to consolidation report",
+    "status": "pending",
+    "priority": "low",
+    "id": "8"
+  }
+]

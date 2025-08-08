@@ -1,0 +1,26 @@
+[
+  {
+    "content": "Update MCP server to use Ollama models instead of local GGUF files for health checks",
+    "status": "in_progress",
+    "priority": "high",
+    "id": "fix_model_paths"
+  },
+  {
+    "content": "Fix health endpoint to properly check Ollama model availability",
+    "status": "pending",
+    "priority": "high",
+    "id": "fix_health_endpoint"
+  },
+  {
+    "content": "Download proper CodeLlama GGUF model for local execution if needed",
+    "status": "pending",
+    "priority": "medium",
+    "id": "download_proper_models"
+  },
+  {
+    "content": "Verify memory system is working with both storage and retrieval",
+    "status": "pending",
+    "priority": "high",
+    "id": "test_memory_system"
+  }
+]

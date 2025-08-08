@@ -1,0 +1,32 @@
+[
+  {
+    "content": "Check if agents are properly calling the execute_task_with_model method in Ollama integration",
+    "status": "completed",
+    "priority": "high",
+    "id": "debug_1"
+  },
+  {
+    "content": "Verify agent model mapping matches available Ollama models",
+    "status": "completed",
+    "priority": "high",
+    "id": "debug_2"
+  },
+  {
+    "content": "Test the actual agent orchestration call chain to identify timeout source",
+    "status": "completed",
+    "priority": "high",
+    "id": "debug_3"
+  },
+  {
+    "content": "Check if MCP learning feedback endpoint is causing the 30s timeout",
+    "status": "completed",
+    "priority": "medium",
+    "id": "debug_4"
+  },
+  {
+    "content": "Test direct agent execution with Ollama (bypass director timeout issue)",
+    "status": "completed",
+    "priority": "medium",
+    "id": "debug_5"
+  }
+]

@@ -1,0 +1,56 @@
+[
+  {
+    "content": "Phase 1: Implement self-correcting parse-and-retry mechanism for LLM responses",
+    "status": "in_progress",
+    "priority": "high",
+    "id": "16"
+  },
+  {
+    "content": "Phase 1: Refactor _analyze_user_intent to use robust JSON parsing",
+    "status": "pending",
+    "priority": "high",
+    "id": "17"
+  },
+  {
+    "content": "Phase 1: Apply robust parsing globally to all LLM interactions",
+    "status": "pending",
+    "priority": "high",
+    "id": "18"
+  },
+  {
+    "content": "Phase 2: Centralize model management with OllamaModelManager",
+    "status": "pending",
+    "priority": "medium",
+    "id": "19"
+  },
+  {
+    "content": "Phase 2: Implement true AI call throttling through AIQueueManager",
+    "status": "pending",
+    "priority": "medium",
+    "id": "20"
+  },
+  {
+    "content": "Phase 2: Introduce adaptive timeouts for LLM requests",
+    "status": "pending",
+    "priority": "medium",
+    "id": "21"
+  },
+  {
+    "content": "Phase 3: Define standardized artifact schema with Pydantic",
+    "status": "pending",
+    "priority": "medium",
+    "id": "22"
+  },
+  {
+    "content": "Phase 3: Refactor agents to produce and consume structured artifacts",
+    "status": "pending",
+    "priority": "medium",
+    "id": "23"
+  },
+  {
+    "content": "Phase 3: Implement pre-flight validation checks for code artifacts",
+    "status": "pending",
+    "priority": "medium",
+    "id": "24"
+  }
+]
