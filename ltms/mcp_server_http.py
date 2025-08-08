@@ -3,7 +3,7 @@
 import os
 import logging
 import asyncio
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -15,6 +15,9 @@ from ltms.tools.chat_tools import CHAT_TOOLS
 from ltms.tools.todo_tools import TODO_TOOLS
 from ltms.tools.context_tools import CONTEXT_TOOLS
 from ltms.tools.code_pattern_tools import CODE_PATTERN_TOOLS
+
+# Import Advanced ML Integration
+from ltms.ml.learning_integration import AdvancedLearningIntegration
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -45,6 +48,9 @@ ALL_TOOLS = {
     **CODE_PATTERN_TOOLS
 }
 
+# Global Advanced ML Integration instance
+ml_integration: Optional[AdvancedLearningIntegration] = None
+
 class JSONRPCRequest(BaseModel):
     """JSON-RPC request model."""
     jsonrpc: str = "2.0"
@@ -67,8 +73,29 @@ async def health():
         "transport": "http",
         "port": int(os.environ.get("HTTP_PORT", 5050)),
         "tools_available": len(ALL_TOOLS),
-        "architecture": "modularized_fastmcp"
+        "architecture": "modularized_fastmcp_with_ml"
     }
+    
+    # Add ML integration health status
+    global ml_integration
+    if ml_integration:
+        try:
+            ml_status = await ml_integration.get_integration_status()
+            health_info["advanced_ml_integration"] = {
+                "enabled": True,
+                "status": ml_status.get("overall_status", "unknown"),
+                "completion": ml_status.get("integration_completion", "unknown"),
+                "active_components": ml_status.get("active_components", 0),
+                "total_components": ml_status.get("total_components", 0)
+            }
+        except Exception as e:
+            health_info["advanced_ml_integration"] = {
+                "enabled": True,
+                "status": "error",
+                "error": str(e)
+            }
+    else:
+        health_info["advanced_ml_integration"] = {"enabled": False}
     
     # Add orchestration health status
     try:
@@ -121,8 +148,45 @@ async def list_tools():
             "todo": len(TODO_TOOLS),
             "context": len(CONTEXT_TOOLS),
             "code_pattern": len(CODE_PATTERN_TOOLS)
-        }
+        },
+        "advanced_ml_integration": "enabled" if ml_integration else "disabled"
     }
+
+@app.get("/ml/status")
+async def ml_integration_status():
+    """Get Advanced ML Integration status."""
+    global ml_integration
+    if not ml_integration:
+        return {"error": "Advanced ML Integration not initialized"}
+    
+    try:
+        return await ml_integration.get_integration_status()
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.get("/ml/insights")
+async def ml_learning_insights():
+    """Get comprehensive ML learning insights."""
+    global ml_integration
+    if not ml_integration:
+        return {"error": "Advanced ML Integration not initialized"}
+    
+    try:
+        return await ml_integration.get_learning_insights()
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.post("/ml/optimize")
+async def trigger_ml_optimization():
+    """Manually trigger comprehensive ML system optimization."""
+    global ml_integration
+    if not ml_integration:
+        return {"error": "Advanced ML Integration not initialized"}
+    
+    try:
+        return await ml_integration.trigger_system_optimization()
+    except Exception as e:
+        return {"error": str(e)}
 
 @app.post("/jsonrpc")
 async def jsonrpc_handler(request: JSONRPCRequest):
@@ -195,6 +259,9 @@ async def root():
             "/health": "Server health status",
             "/tools": "List available tools", 
             "/jsonrpc": "JSON-RPC 2.0 endpoint",
+            "/ml/status": "Advanced ML Integration status",
+            "/ml/insights": "ML learning insights",
+            "/ml/optimize": "Trigger ML optimization",
             "/": "This information"
         },
         "tools_count": len(ALL_TOOLS),
@@ -244,8 +311,29 @@ async def startup():
                 
         except Exception as orchestration_error:
             logger.warning(f"Orchestration integration failed (will use fallback mode): {orchestration_error}")
+        
+        # Initialize Advanced ML Integration
+        global ml_integration
+        try:
+            logger.info("Initializing Advanced ML Integration...")
+            ml_integration = AdvancedLearningIntegration(db_path)
+            ml_success = await ml_integration.initialize()
             
-        logger.info(f"LTMC HTTP Server started with {len(ALL_TOOLS)} tools")
+            if ml_success:
+                logger.info("🎉 Advanced ML Integration 100% COMPLETE and ACTIVE! 🎉")
+                logger.info("✅ All 4 ML phases initialized and running")
+                logger.info("✅ Cross-phase learning coordination active")
+                logger.info("✅ ML endpoints available at /ml/status, /ml/insights, /ml/optimize")
+            else:
+                logger.error("❌ Advanced ML Integration initialization failed")
+                ml_integration = None
+                
+        except Exception as ml_error:
+            logger.error(f"Advanced ML Integration failed: {ml_error}")
+            ml_integration = None
+            
+        logger.info(f"LTMC HTTP Server started with {len(ALL_TOOLS)} tools" + 
+                   (" + Advanced ML Integration" if ml_integration else ""))
         
     except Exception as e:
         logger.error(f"Startup error: {e}")
@@ -255,7 +343,16 @@ async def startup():
 async def shutdown():
     """Clean up on shutdown."""
     try:
-        # Shutdown orchestration integration first
+        # Shutdown Advanced ML Integration first
+        global ml_integration
+        if ml_integration:
+            try:
+                await ml_integration.cleanup()
+                logger.info("Advanced ML Integration shutdown complete")
+            except Exception as ml_error:
+                logger.warning(f"ML integration shutdown error: {ml_error}")
+        
+        # Shutdown orchestration integration
         try:
             from ltms.mcp_orchestration_integration import shutdown_orchestration_integration
             await shutdown_orchestration_integration()

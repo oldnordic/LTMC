@@ -87,6 +87,13 @@ export CACHE_ENABLED="${CACHE_ENABLED:-true}"
 export BUFFER_ENABLED="${BUFFER_ENABLED:-true}"
 export SESSION_STATE_ENABLED="${SESSION_STATE_ENABLED:-true}"
 
+# Set Advanced ML Integration environment variables
+export ML_INTEGRATION_ENABLED="${ML_INTEGRATION_ENABLED:-true}"
+export ML_LEARNING_COORDINATION="${ML_LEARNING_COORDINATION:-true}"
+export ML_KNOWLEDGE_SHARING="${ML_KNOWLEDGE_SHARING:-true}"
+export ML_ADAPTIVE_RESOURCES="${ML_ADAPTIVE_RESOURCES:-true}"
+export ML_OPTIMIZATION_INTERVAL="${ML_OPTIMIZATION_INTERVAL:-15}"
+
 echo -e "${YELLOW}Environment variables:${NC}"
 echo -e "  DB_PATH: $DB_PATH"
 echo -e "  FAISS_INDEX_PATH: $FAISS_INDEX_PATH"
@@ -96,6 +103,8 @@ echo -e "  HTTP_PORT: $HTTP_PORT"
 echo -e "  ORCHESTRATION_MODE: $ORCHESTRATION_MODE"
 echo -e "  REDIS_ENABLED: $REDIS_ENABLED"
 echo -e "  REDIS_PORT: $REDIS_PORT"
+echo -e "  ML_INTEGRATION_ENABLED: $ML_INTEGRATION_ENABLED"
+echo -e "  ML_LEARNING_COORDINATION: $ML_LEARNING_COORDINATION"
 
 # Start the HTTP transport server
 echo -e "${YELLOW}Starting HTTP transport server...${NC}"
@@ -156,13 +165,18 @@ else
     exit 1
 fi
 
-echo -e "${GREEN}✓ LTMC MCP Server started successfully with dual transport!${NC}"
+echo -e "${GREEN}✓ LTMC MCP Server started successfully with dual transport + Advanced ML Integration!${NC}"
 echo -e "${BLUE}Transport Details:${NC}"
 echo -e "  ${GREEN}✓ HTTP Transport:${NC} http://$HTTP_HOST:$HTTP_PORT"
 echo -e "  ${GREEN}✓ Stdio Transport:${NC} Available for MCP clients"
 echo -e "  ${GREEN}✓ Health Check:${NC} http://$HTTP_HOST:$HTTP_PORT/health"
 echo -e "  ${GREEN}✓ Orchestration Health:${NC} http://$HTTP_HOST:$HTTP_PORT/orchestration/health"
 echo -e "  ${GREEN}✓ Tools List:${NC} http://$HTTP_HOST:$HTTP_PORT/tools"
+echo -e "${BLUE}Advanced ML Integration:${NC}"
+echo -e "  ${GREEN}✓ ML Status:${NC} http://$HTTP_HOST:$HTTP_PORT/ml/status"
+echo -e "  ${GREEN}✓ ML Insights:${NC} http://$HTTP_HOST:$HTTP_PORT/ml/insights"  
+echo -e "  ${GREEN}✓ ML Optimize:${NC} http://$HTTP_HOST:$HTTP_PORT/ml/optimize"
 echo -e "${YELLOW}To test HTTP: curl http://$HTTP_HOST:$HTTP_PORT/health${NC}"
 echo -e "${YELLOW}To test orchestration: curl http://$HTTP_HOST:$HTTP_PORT/orchestration/health${NC}"
+echo -e "${YELLOW}To test ML integration: curl http://$HTTP_HOST:$HTTP_PORT/ml/status${NC}"
 echo -e "${YELLOW}To test stdio: mcp dev ltmc_mcp_server.py${NC}"
