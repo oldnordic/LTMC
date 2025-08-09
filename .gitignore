@@ -243,9 +243,12 @@ archive/backups/*
 performance_*.txt
 benchmark_*.json
 
-# Cleanup scripts output
+# Cleanup scripts and temporary files
 cleanup_*.log
+cleanup_*.sh
 reorganize_*.log
+reorganize_*.sh
+temp_*.sh
 
 # ===================================
 # Internal/Private Documents (NEVER COMMIT)
