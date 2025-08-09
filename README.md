@@ -1,58 +1,13 @@
-# LTMC (Long-Term Memory and Context) Multi-Agent Coordination Platform
+# LTMC - Long-Term Memory and Context
 
-[![Production Ready](https://img.shields.io/badge/Status-Production%20Ready-green.svg)]() [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg)]() [![FastMCP](https://img.shields.io/badge/MCP-FastMCP-purple.svg)]() [![Redis](https://img.shields.io/badge/Orchestration-Redis-red.svg)]() [![Documentation](https://img.shields.io/badge/Documentation-Complete-brightgreen.svg)]()
+[![Production Ready](https://img.shields.io/badge/Status-Production%20Ready-green.svg)](https://github.com/your-repo/lmtc) [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://python.org) [![MCP](https://img.shields.io/badge/Protocol-MCP-purple.svg)](https://modelcontextprotocol.io)
 
-A sophisticated, production-ready Model Context Protocol (MCP) server with advanced Redis-powered orchestration, providing persistent memory storage, semantic search, multi-agent coordination, and machine learning-assisted development through dual transport support (HTTP and stdio).
-
-## 🎯 What is LTMC?
-
-LTMC transforms how AI agents work together by providing:
-
-- **🧠 Intelligent Memory**: Semantic search across all your documents and conversations
-- **🤝 Multi-Agent Coordination**: Advanced orchestration for multiple AI agents working together
-- **📚 Code Pattern Learning**: "Experience replay" for AI-assisted code generation
-- **🔗 Knowledge Graphs**: Automatic relationship discovery between documents
-- **⚡ High Performance**: Redis-powered caching and coordination layer
-- **🌐 Dual Protocol Support**: HTTP REST API + native MCP integration
-
-## 🚀 Key Features
-
-- **25 MCP Tools** across 6 categories for comprehensive functionality
-- **4-Tier Memory System** (SQLite + FAISS + Redis + Neo4j) for optimal performance
-- **Advanced ML Integration** with 12 components across 4 phases
-- **Redis Orchestration** with 6 specialized coordination services
-- **Dual Transport Support** (HTTP and stdio) for maximum integration flexibility
-- **Production-Ready Architecture** with monitoring, scaling, and security
-
-## 📋 Documentation Hub
-
-### 🎯 Getting Started
-- [🚀 User Guide](docs/guides/USER_GUIDE.md) - Complete onboarding experience
-- [📦 Deployment Guide](docs/guides/DEPLOYMENT.md) - Development to production
-- [⚡ Quick Start](#quick-start) - Running in 5 minutes
-
-### 📖 Technical Documentation  
-- [🛠 API Reference](docs/api/API_REFERENCE.md) - All 25 MCP tools documented
-- [🏗️ System Architecture](docs/architecture/SYSTEM_ARCHITECTURE.md) - Technical deep dive
-- [📊 Redis Orchestration](docs/redis_orchestration_architecture.md) - Multi-agent coordination
-- [🧪 Testing Strategy](docs/redis_orchestration_testing_strategy.md) - Quality assurance
-
-### 🔧 Advanced Features
-- [🔧 Context Tools](docs/api/CONTEXT_TOOLS.md) - Semantic search and knowledge graphs
-- [🧠 Code Pattern Tools](docs/api/CODE_PATTERN_TOOLS.md) - AI-assisted code learning
-- [🎛️ Complete Documentation Index](docs/README.md) - All documentation organized
+**A production-ready Model Context Protocol (MCP) server providing persistent memory, semantic search, and intelligent context management for AI assistants.**
 
 ## 🚀 Quick Start
 
-### Prerequisites
-- **Python 3.11+** with async support
-- **Redis Server** (port 6381) for orchestration and caching
-- **Neo4j Server** (optional) for knowledge graphs
-
-### Installation & Setup
-
 ```bash
-# Clone and install
+# Clone and setup
 git clone <repository-url>
 cd lmtc
 pip install -r requirements.txt
@@ -61,126 +16,144 @@ pip install -r requirements.txt
 ./setup_redis.sh
 ./start_server.sh
 
-# Verify installation
+# Test the server
 curl http://localhost:5050/health
 ```
 
-### First Steps
+**✅ Server running at `http://localhost:5050`**
 
+## 🎯 What is LTMC?
+
+LTMC transforms AI interactions by providing:
+
+- **🧠 Persistent Memory** - Store and retrieve context across sessions
+- **🔍 Semantic Search** - Find relevant information using AI-powered similarity
+- **📊 Code Pattern Learning** - AI learns from successful code examples  
+- **🔗 Knowledge Graphs** - Automatic relationship discovery between concepts
+- **⚡ High Performance** - Redis caching with <50ms response times
+
+## 🛠️ Core Features
+
+| Feature | Description |
+|---------|-------------|
+| **28 MCP Tools** | Complete toolkit for memory, tasks, chat, and code patterns |
+| **Dual Transport** | HTTP REST API + native MCP protocol support |
+| **Vector Search** | FAISS-powered semantic similarity search |
+| **Redis Orchestration** | High-performance caching and coordination |
+| **Production Ready** | Docker support, monitoring, and scaling |
+
+## 📖 Documentation
+
+- **[User Guide](docs/guides/USER_GUIDE.md)** - Complete getting started guide
+- **[API Reference](docs/api/API_REFERENCE.md)** - All 28 tools documented  
+- **[Architecture](docs/architecture/SYSTEM_ARCHITECTURE.md)** - Technical deep dive
+- **[Deployment](docs/guides/DEPLOYMENT.md)** - Production deployment guide
+
+## 🔧 Architecture
+
+```
+┌─────────────────────────────────────────┐
+│           LTMC MCP Server               │
+├─────────────────────────────────────────┤
+│  HTTP API  ←→  MCP Protocol (stdio)    │
+├─────────────────────────────────────────┤
+│          28 MCP Tools Layer            │  
+├─────────────────────────────────────────┤
+│     SQLite + FAISS + Redis + Neo4j     │
+└─────────────────────────────────────────┘
+```
+
+## 📊 Tool Categories
+
+- **Memory & Search** - `store_memory`, `retrieve_memory`, `ask_with_context`
+- **Chat History** - `log_chat`, `route_query`, `get_chats_by_tool`  
+- **Task Management** - `add_todo`, `list_todos`, `complete_todo`, `search_todos`
+- **Knowledge Graph** - `link_resources`, `query_graph`, `auto_link_documents`
+- **Code Patterns** - `log_code_attempt`, `get_code_patterns`, `analyze_code_patterns`
+- **Cache & Performance** - Redis integration with statistics and health monitoring
+
+## 🔌 Integration
+
+### MCP Configuration
+Add to your MCP client configuration:
+
+```json
+{
+  "ltmc": {
+    "command": "python",
+    "args": ["ltmc_mcp_server.py"],
+    "env": {"DB_PATH": "ltmc.db"}
+  }
+}
+```
+
+### HTTP API Usage
 ```bash
-# Store your first memory
+# Store memory
 curl -X POST http://localhost:5050/jsonrpc \
   -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call", 
-    "params": {
-      "name": "store_memory",
-      "arguments": {
-        "file_name": "welcome.md",
-        "content": "Welcome to LTMC!"
-      }
-    },
-    "id": 1
-  }'
+  -d '{"jsonrpc": "2.0", "method": "tools/call", "params": {"name": "store_memory", "arguments": {"file_name": "note.md", "content": "Important information"}}, "id": 1}'
 
-# Search your memories
+# Search memory  
 curl -X POST http://localhost:5050/jsonrpc \
   -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "retrieve_memory", 
-      "arguments": {"query": "welcome", "top_k": 5}
-    },
-    "id": 2
-  }'
+  -d '{"jsonrpc": "2.0", "method": "tools/call", "params": {"name": "retrieve_memory", "arguments": {"query": "important", "top_k": 5}}, "id": 2}'
 ```
 
-**👉 Ready for more? Check out the [Complete User Guide](docs/guides/USER_GUIDE.md)!**
+## 🚀 Production Deployment
 
-## 📊 Tool Categories (28 Tools)
-
-| Category | Tools | Purpose |
-|----------|--------|---------|
-| **🧠 Memory** | store_memory, retrieve_memory, ask_with_context | Intelligent document storage and semantic search |
-| **💬 Chat** | log_chat, route_query, get_chats_by_tool | Conversation history and context management |
-| **✅ Tasks** | add_todo, list_todos, complete_todo, search_todos | Task management with search capabilities |
-| **🔗 Context** | link_resources, query_graph, auto_link_documents | Knowledge graph and document relationships |
-| **🧠 Code Patterns** | log_code_attempt, get_code_patterns, analyze_code_patterns | AI code learning and experience replay |
-| **🤝 Orchestration** | Agent registry, coordination, memory locking, caching | Multi-agent workflow management |
-
-**👉 See all 28 tools with examples: [Complete API Reference](docs/api/API_REFERENCE.md)**
-
-## 🏗️ Architecture Overview
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    LTMC Multi-Agent Platform                    │
-├─────────────────────────────────────────────────────────────────┤
-│  HTTP (FastAPI + Uvicorn) ←→ MCP (JSON-RPC over stdio)        │
-├─────────────────────────────────────────────────────────────────┤
-│                     MCP Tool Layer (25 Tools)                  │
-├─────────────────────────────────────────────────────────────────┤
-│                  Redis Orchestration Layer                     │
-├─────────────────────────────────────────────────────────────────┤
-│               Advanced ML Integration Layer                     │
-├─────────────────────────────────────────────────────────────────┤
-│  SQLite (Temporal) | Redis (Cache) | FAISS (Vector) | Neo4j (Graph) │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-**👉 Complete architecture details: [System Architecture Guide](docs/architecture/SYSTEM_ARCHITECTURE.md)**
-
-## ⚡ Performance & Features
-
-- **Performance**: <50ms vector search, 1000+ concurrent connections
-- **ML Integration**: 12 components with cross-phase learning coordination  
-- **Scalability**: Horizontal scaling with stateless design
-- **Security**: Input validation, TLS support, authentication
-- **Monitoring**: Health checks, metrics, structured logging
-
-**👉 Full feature details: [User Guide](docs/guides/USER_GUIDE.md) | [Performance Details](docs/guides/DEPLOYMENT.md#performance)**
-
-## 🐳 Production Deployment
-
-**Quick Docker Start:**
+### Docker
 ```bash
-docker-compose up -d
-curl http://localhost:5050/health
+docker build -t ltmc .
+docker run -p 5050:5050 ltmc
 ```
 
-**Production Options:**
-- [🐳 Docker Deployment](docs/guides/DEPLOYMENT.md#docker)
-- [☸️ Kubernetes Deployment](docs/guides/DEPLOYMENT.md#kubernetes) 
-- [☁️ Cloud Platforms](docs/guides/DEPLOYMENT.md#cloud)
+### Environment Variables
+```bash
+DB_PATH=ltmc.db                    # Database file path
+REDIS_HOST=localhost               # Redis host
+REDIS_PORT=6381                   # Redis port  
+LOG_LEVEL=INFO                    # Logging level
+```
 
-**👉 Complete deployment guide: [Production Deployment](docs/guides/DEPLOYMENT.md)**
+## 🧪 Development
 
-## 🛡️ Development Status
+```bash
+# Install development dependencies
+pip install -r requirements.txt
 
-- ✅ **28 MCP Tools** - Complete tool suite operational (100% success rate)
-- ✅ **Advanced ML Integration** - 12 components across 4 phases  
-- ✅ **Redis Orchestration** - 6 specialized coordination services
-- ✅ **4-Tier Memory System** - SQLite, FAISS, Redis, Neo4j integration
-- ✅ **Production Architecture** - Monitoring, scaling, security
-- ✅ **Comprehensive Documentation** - User guides, API reference, architecture
+# Run tests
+python -m pytest tests/
 
-## 🤝 Contributing & Support
+# Check specific functionality
+python tests/manual/test_ltmc_simple.py
+```
 
-**Get Help:**
-- 📖 [Complete Documentation](docs/README.md) - Organized guide hub
-- 🐛 [GitHub Issues](../../issues) - Bug reports and feature requests
-- 💬 [Discussions](../../discussions) - Community help and use cases
+## 📁 Project Structure
 
-**Contribute:**  
-- [Development Setup](docs/guides/DEPLOYMENT.md#development)
-- [Architecture Overview](docs/architecture/SYSTEM_ARCHITECTURE.md)
-- [Testing Strategy](docs/redis_orchestration_testing_strategy.md)
+```
+lmtc/
+├── ltms/                  # Core LTMC system
+├── docs/                  # Documentation
+├── tests/                 # Test suites
+├── config/                # Configuration files
+├── tools/scripts/         # Utility scripts
+└── archive/              # Historical results
+```
+
+## 🤝 Contributing
+
+1. **Issues & Bugs**: [GitHub Issues](../../issues)
+2. **Development**: See [Architecture Guide](docs/architecture/SYSTEM_ARCHITECTURE.md)  
+3. **Testing**: See [Testing Guide](docs/testing/)
+
+## 📋 Status
+
+- ✅ **28 MCP Tools** - Complete and tested
+- ✅ **Production Ready** - Docker, monitoring, scaling
+- ✅ **High Performance** - Redis caching, vector search
+- ✅ **Comprehensive Docs** - User guides and API reference
 
 ---
 
-**Status**: ✅ **Production Ready with Comprehensive Documentation**
-
-**Ready to transform how your AI agents work together? [Get started now!](docs/guides/USER_GUIDE.md)** 🚀
+**Ready to enhance your AI workflows with persistent memory?** [Get started now!](docs/guides/USER_GUIDE.md) 🚀

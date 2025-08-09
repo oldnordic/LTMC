@@ -143,18 +143,70 @@ cython_debug/
 # Cursor IDE files (NEVER commit these)
 .cursor/
 
-# LTMC specific
-ltmc.db
-ltmc_chat_log.db
-faiss_index
-dummy_index
-*.pid
-logs/
-ltmc_config.env
-.env
+# ===================================
+# LTMC Specific Files
+# ===================================
 
-# Neo4j
+# Database files
+ltmc.db*
+ltmc_chat_log.db*
+*.sqlite
+*.sqlite3
+*.db
+
+# Vector indices
+faiss_index*
+dummy_index*
+test_*_faiss_index*
+
+# Process ID files  
+*.pid
+ltmc_*.pid
+redis_*.pid
+
+# Log files
+logs/
+*.log
+
+# Configuration files (keep examples)
+config/*.env
+.env
+!config/*.env.example
+
+# Redis data and config
+redis_data/
+redis_config/*.conf
+!redis_config/*.conf.example
+
+# Neo4j standalone instance
 neo4j-standalone/
+
+# ===================================
+# Test and Development Artifacts  
+# ===================================
+
+# Test result files
+*_test_results_*.json
+*_results_*.json
+comprehensive_*.json
+mcp_test_results_*.json
+ltmc_*_results_*.json
+
+# Temporary test files
+test_stdio_*
+temp_*
+tmp_*
+debug_*
+
+# Node.js (from MCP SDK installations)
+node_modules/
+package.json
+package-lock.json
+npm-debug.log*
+
+# ===================================
+# System and Editor Files
+# ===================================
 
 # Temporary files
 *.tmp
@@ -179,9 +231,18 @@ Thumbs.db
 *_backup.*
 *_new.*
 
-# Test coverage
-.coverage
-htmlcov/
-redis_data/
-redis_config/*.conf
-!redis_config/*.conf.example
+# Archive files (for organized storage)
+archive/results/*.json
+archive/backups/*
+
+# ===================================
+# Development Tools
+# ===================================
+
+# Performance monitoring
+performance_*.txt
+benchmark_*.json
+
+# Cleanup scripts output
+cleanup_*.log
+reorganize_*.log
