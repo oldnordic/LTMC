@@ -55,28 +55,35 @@ def main():
     setup_logging(args.transport)
     logger = logging.getLogger(__name__)
     
-    # Set environment variables for HTTP transport
-    if args.transport == 'http':
-        os.environ['FASTMCP_HOST'] = args.host
-        os.environ['FASTMCP_PORT'] = str(args.port)
-        
-        print(f"Starting LTMC MCP Server with HTTP transport")
-        print(f"Database: {os.getenv('DB_PATH', 'ltmc.db')}")
-        print(f"FAISS Index: {os.getenv('FAISS_INDEX_PATH', 'faiss_index')}")
-        print(f"Server will be available at http://{args.host}:{args.port}")
-        print("Press Ctrl+C to stop the server")
-    else:
-        logger.info("Starting LTMC MCP Server with stdio transport")
-    
-    # Import and run the MCP server
-    from ltms.mcp_server import mcp
-    
     try:
-        mcp.run(transport=args.transport)
+        if args.transport == 'http':
+            # Use the FastAPI HTTP server
+            print(f"Starting LTMC MCP Server with HTTP transport")
+            print(f"Database: {os.getenv('DB_PATH', 'ltmc.db')}")
+            print(f"FAISS Index: {os.getenv('FAISS_INDEX_PATH', 'faiss_index')}")
+            print(f"Server will be available at http://{args.host}:{args.port}")
+            print("Press Ctrl+C to stop the server")
+            
+            # Import and run the HTTP server
+            from ltms.mcp_server_http import app
+            import uvicorn
+            uvicorn.run(app, host=args.host, port=args.port, log_level="info")
+            
+        else:
+            # Use the FastMCP stdio server
+            logger.info("Starting LTMC MCP Server with stdio transport")
+            
+            # Import and run the FastMCP stdio server
+            from ltms.mcp_server import run_stdio
+            import asyncio
+            asyncio.run(run_stdio())
+            
     except KeyboardInterrupt:
         logger.info(f"LTMC MCP Server ({args.transport}) stopped by user")
     except Exception as e:
         logger.error(f"Error running LTMC MCP Server: {e}")
+        import traceback
+        traceback.print_exc()
         sys.exit(1)
 
 if __name__ == "__main__":

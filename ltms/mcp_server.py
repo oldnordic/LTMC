@@ -17,8 +17,8 @@ if project_root_str not in sys.path:
 # Change to project root for consistent behavior
 os.chdir(project_root_str)
 
-# Import MCP SDK
-from mcp.server.fastmcp import FastMCP
+# Import FastMCP SDK
+from fastmcp import FastMCP
 
 # Import our existing services
 from ltms.database.connection import get_db_connection, close_db_connection
@@ -1085,12 +1085,9 @@ def redis_health_check() -> Dict[str, Any]:
 import asyncio
 
 
-async def run_stdio() -> None:
-    """Stub method to satisfy stdio capability checks in tests.
-
-    Real stdio transport is handled by external runners (e.g., mcp dev).
-    """
-    return None
+def run_stdio():
+    """Run the LTMC MCP server with stdio transport."""
+    mcp.run(transport="stdio")
 
 
 async def _store_memory_proxy(file_name: str, content: str, resource_type: str = "document") -> Dict[str, Any]:
