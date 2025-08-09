@@ -1,8 +1,14 @@
 """Configuration management for LTMC with proper environment variable loading."""
 
 import os
+import sys
+import logging
 from pathlib import Path
 from typing import Optional
+
+# Setup stderr logging for configuration (stdio transport compatible)
+logging.basicConfig(stream=sys.stderr, level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Load environment variables from .env file if available
 try:
@@ -14,12 +20,12 @@ try:
     
     if env_file.exists():
         load_dotenv(env_file)
-        print(f"Loaded environment variables from: {env_file}")
+        logger.info(f"Loaded environment variables from: {env_file}")
     else:
-        print(f"No .env file found at: {env_file}")
+        logger.info(f"No .env file found at: {env_file}")
         
 except ImportError:
-    print("python-dotenv not available, using system environment variables only")
+    logger.info("python-dotenv not available, using system environment variables only")
 
 
 class Config:
@@ -130,31 +136,31 @@ class Config:
     
     @classmethod
     def print_config(cls):
-        """Print current configuration for debugging."""
-        print("=== LTMC Configuration ===")
-        print(f"DB_PATH: {cls.DB_PATH}")
-        print(f"FAISS_INDEX_PATH: {cls.FAISS_INDEX_PATH}")
-        print(f"EMBEDDING_MODEL: {cls.EMBEDDING_MODEL}")
-        print(f"HTTP_HOST: {cls.HTTP_HOST}")
-        print(f"HTTP_PORT: {cls.HTTP_PORT}")
-        print(f"LOG_LEVEL: {cls.LOG_LEVEL}")
-        print(f"REDIS_ENABLED: {cls.REDIS_ENABLED}")
+        """Log current configuration for debugging (stdio transport safe)."""
+        logger.info("=== LTMC Configuration ===")
+        logger.info(f"DB_PATH: {cls.DB_PATH}")
+        logger.info(f"FAISS_INDEX_PATH: {cls.FAISS_INDEX_PATH}")
+        logger.info(f"EMBEDDING_MODEL: {cls.EMBEDDING_MODEL}")
+        logger.info(f"HTTP_HOST: {cls.HTTP_HOST}")
+        logger.info(f"HTTP_PORT: {cls.HTTP_PORT}")
+        logger.info(f"LOG_LEVEL: {cls.LOG_LEVEL}")
+        logger.info(f"REDIS_ENABLED: {cls.REDIS_ENABLED}")
         if cls.REDIS_ENABLED:
-            print(f"REDIS_HOST: {cls.REDIS_HOST}")
-            print(f"REDIS_PORT: {cls.REDIS_PORT}")
-        print(f"ORCHESTRATION_MODE: {cls.ORCHESTRATION_MODE}")
-        print("========================")
+            logger.info(f"REDIS_HOST: {cls.REDIS_HOST}")
+            logger.info(f"REDIS_PORT: {cls.REDIS_PORT}")
+        logger.info(f"ORCHESTRATION_MODE: {cls.ORCHESTRATION_MODE}")
+        logger.info("========================")
 
 
 # Initialize configuration on import
 config = Config()
 
-# Validate configuration and print warnings
+# Validate configuration and log warnings (stdio transport safe)
 validation_result = config.validate_config()
 if not validation_result["valid"]:
-    print("Configuration validation issues found:")
+    logger.warning("Configuration validation issues found:")
     for issue in validation_result["issues"]:
-        print(f"  WARNING: {issue}")
+        logger.warning(f"  WARNING: {issue}")
 
 # For backward compatibility, export commonly used values
 DB_PATH = config.get_db_path()

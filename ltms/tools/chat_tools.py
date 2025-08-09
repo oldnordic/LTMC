@@ -11,9 +11,9 @@ from ltms.mcp_server import (
 )
 
 
-def log_chat_handler(content: str, conversation_id: str, role: str = "user") -> Dict[str, Any]:
+def log_chat_handler(conversation_id: str, role: str, content: str, agent_name: str = None, metadata: Dict[str, Any] = None, source_tool: str = None) -> Dict[str, Any]:
     """Log a chat message with automatic context linking."""
-    return _log_chat(content, conversation_id, role)
+    return _log_chat(conversation_id, role, content, agent_name, metadata, source_tool)
 
 
 def ask_with_context_handler(query: str, conversation_id: str, top_k: int = 5) -> Dict[str, Any]:
@@ -41,10 +41,6 @@ CHAT_TOOLS = {
         "schema": {
             "type": "object",
             "properties": {
-                "content": {
-                    "type": "string",
-                    "description": "The chat message content to log"
-                },
                 "conversation_id": {
                     "type": "string",
                     "description": "Unique identifier for the conversation"
@@ -52,11 +48,26 @@ CHAT_TOOLS = {
                 "role": {
                     "type": "string",
                     "description": "Role of the message sender (user, assistant, system)",
-                    "enum": ["user", "assistant", "system"],
-                    "default": "user"
+                    "enum": ["user", "assistant", "system"]
+                },
+                "content": {
+                    "type": "string",
+                    "description": "The chat message content to log"
+                },
+                "agent_name": {
+                    "type": "string",
+                    "description": "Name of the agent if applicable"
+                },
+                "metadata": {
+                    "type": "object",
+                    "description": "Optional metadata dictionary"
+                },
+                "source_tool": {
+                    "type": "string",
+                    "description": "Tool that generated this message (claude-code, cursor, vscode, etc.)"
                 }
             },
-            "required": ["content", "conversation_id"]
+            "required": ["conversation_id", "role", "content"]
         }
     },
     

@@ -13,7 +13,16 @@ This file provides **mandatory guidance** to Claude Code (claude.ai/code) when w
 **VIOLATION = TASK FAILURE**
 
 ### EVERY CLAUDE CODE INTERACTION MUST:
-1. **ALWAYS START WITH MCP USAGE**: Use available MCP servers (sequential-thinking, context7, ltmc)
+**ONLY THESE 4 VERIFIED WORKING MCP SERVERS ARE APPROVED:**
+1. **sequential-thinking**: @modelcontextprotocol/server-sequential-thinking (stdio server - task breakdown)
+2. **context7**: @upstash/context7-mcp@latest (stdio server - best practices retrieval)  
+3. **github**: @modelcontextprotocol/server-github (GitHub integration)
+4. **ltmc**: Local LTMC server (memory operations with 28 tools)
+
+**ALL OTHER MCP SERVERS ARE PROHIBITED - DO NOT REFERENCE NON-EXISTENT SERVERS**
+
+**MANDATORY WORKFLOW:**
+1. **ALWAYS START WITH MCP USAGE**: Use verified MCP servers (sequential-thinking, context7, github, ltmc)
 2. **ALWAYS USE LTMC FOR EVERYTHING**: Mandatory usage of all 28 LTMC tools
 3. **ALWAYS LOG PROGRESS**: Store all work in LTMC memory system
 4. **ALWAYS RETRIEVE CONTEXT**: Check LTMC before starting work

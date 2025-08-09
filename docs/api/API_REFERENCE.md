@@ -2,7 +2,7 @@
 
 ## Overview
 
-The LTMC (Long-Term Memory and Context) MCP Server provides 25+ tools for memory management, chat history, task tracking, code patterns, and multi-agent orchestration. This document provides comprehensive API reference for all available tools.
+The LTMC (Long-Term Memory and Context) MCP Server provides 28 tools for memory management, chat history, task tracking, code patterns, and multi-agent orchestration. This document provides comprehensive API reference for all available tools.
 
 ## Transport Protocols
 
@@ -23,6 +23,7 @@ Currently, LTMC operates in development mode without authentication. For product
 4. [Context Tools](#context-tools) - Semantic context retrieval
 5. [Code Pattern Tools](#code-pattern-tools) - ML-assisted code insights
 6. [Orchestration Tools](#orchestration-tools) - Multi-agent coordination
+7. [Redis Tools](#redis-tools) - Caching and performance management
 
 ## Memory Tools
 
