@@ -246,3 +246,26 @@ benchmark_*.json
 # Cleanup scripts output
 cleanup_*.log
 reorganize_*.log
+
+# ===================================
+# Internal/Private Documents (NEVER COMMIT)
+# ===================================
+
+# Claude Code project instructions
+CLAUDE.md
+
+# Internal planning documents
+*_INTEGRATION_PLAN.md
+*_ANALYSIS.md
+TASKMASTER_*.md
+MEMORY_BANK_*.md
+
+# Research and planning docs
+docs/planning/
+planning/
+research/
+internal/
+
+# Any files with "internal" in the name
+*internal*
+*INTERNAL*
