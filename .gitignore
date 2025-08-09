@@ -182,3 +182,4 @@ Thumbs.db
 # Test coverage
 .coverage
 htmlcov/
+redis_data/
