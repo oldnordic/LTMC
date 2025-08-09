@@ -46,7 +46,7 @@ class Config:
     # Redis configuration
     REDIS_HOST: str = os.getenv("REDIS_HOST", "localhost")
     REDIS_PORT: int = int(os.getenv("REDIS_PORT", "6382"))
-    REDIS_PASSWORD: str = os.getenv("REDIS_PASSWORD", "ltmc_dev_default")
+    REDIS_PASSWORD: str = os.getenv("REDIS_PASSWORD", "ltmc_cache_2025")
     REDIS_ENABLED: bool = os.getenv("REDIS_ENABLED", "true").lower() == "true"
     
     # Orchestration configuration

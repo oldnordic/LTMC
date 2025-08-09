@@ -327,12 +327,16 @@ _cache_service: Optional[RedisCacheService] = None
 
 async def get_redis_manager() -> RedisConnectionManager:
     """Get or create Redis connection manager."""
+    from ..config import Config
+    
     global _redis_manager
     if not _redis_manager:
         _redis_manager = RedisConnectionManager(
-            host="localhost",
-            port=6382,  # FIXED: Non-conflicting port, avoiding KWE Redis ports
-            password=None  # FIXED: Match actual Redis server config (no auth required)
+            host=Config.REDIS_HOST,
+            port=Config.REDIS_PORT,
+            password=Config.REDIS_PASSWORD,
+            max_connections=20,
+            socket_keepalive=True
         )
         await _redis_manager.initialize()
     elif not _redis_manager.is_connected:
