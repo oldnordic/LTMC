@@ -17,7 +17,7 @@ REDIS_CONFIG_FILE="$REDIS_CONFIG_DIR/redis_ltmc.conf"
 REDIS_DATA_DIR="$(pwd)/redis_data"
 REDIS_LOG_FILE="$(pwd)/logs/redis_ltmc.log"
 REDIS_PID_FILE="$(pwd)/redis_ltmc.pid"
-REDIS_PASSWORD="ltmc_cache_2025"
+REDIS_PASSWORD="${REDIS_PASSWORD:-ltmc_dev_$(openssl rand -hex 8)}"
 
 # Create directories if they don't exist
 mkdir -p "$REDIS_CONFIG_DIR" "$REDIS_DATA_DIR" "$(pwd)/logs"

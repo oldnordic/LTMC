@@ -183,3 +183,5 @@ Thumbs.db
 .coverage
 htmlcov/
 redis_data/
+redis_config/*.conf
+!redis_config/*.conf.example

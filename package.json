@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "@modelcontextprotocol/server-sequential-thinking": "^2025.7.1",
+    "@upstash/context7-mcp": "^1.0.14",
+    "context7": "^1.0.3",
+    "vite-plugin-mcp": "^0.2.4",
+    "vite-plugin-vue-mcp": "^0.3.2"
+  }
+}

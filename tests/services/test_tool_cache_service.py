@@ -474,7 +474,7 @@ class TestToolCacheServiceIntegration:
             manager = RedisConnectionManager(
                 host="localhost",
                 port=6381,
-                password="ltmc_cache_2025",
+                password=os.getenv("REDIS_PASSWORD", "test_password"),
                 db=1  # Use different DB for tests
             )
             await manager.initialize()

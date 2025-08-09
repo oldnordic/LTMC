@@ -47,7 +47,7 @@ maxmemory-policy allkeys-lru
 
 # Security
 protected-mode yes
-requirepass ltmc_cache_2025
+requirepass ${REDIS_PASSWORD:-ltmc_dev_$(openssl rand -hex 8)}
 
 # Performance
 tcp-backlog 511
@@ -82,16 +82,16 @@ nohup redis-server "$REDIS_CONF" --daemonize yes --pidfile "$REDIS_PID" > /dev/n
 sleep 2
 
 # Test connection
-if redis-cli -h 127.0.0.1 -p $REDIS_PORT -a ltmc_cache_2025 ping | grep -q "PONG"; then
+if redis-cli -h 127.0.0.1 -p $REDIS_PORT -a "${REDIS_PASSWORD:-ltmc_dev_$(openssl rand -hex 8)}" ping | grep -q "PONG"; then
     echo "✅ LTMC Redis server started successfully on port $REDIS_PORT"
     echo "   Configuration: $REDIS_DIR/$REDIS_CONF"
     echo "   PID file: $REDIS_DIR/$REDIS_PID"
     echo "   Log file: $REDIS_LOG"
-    echo "   Password: ltmc_cache_2025"
+    echo "   Password: ${REDIS_PASSWORD:-[generated]}"
 else
     echo "❌ Failed to start Redis server"
     exit 1
 fi
 
-echo "🔧 To connect: redis-cli -h 127.0.0.1 -p $REDIS_PORT -a ltmc_cache_2025"
-echo "🛑 To stop: redis-cli -h 127.0.0.1 -p $REDIS_PORT -a ltmc_cache_2025 shutdown"
+echo "🔧 To connect: redis-cli -h 127.0.0.1 -p $REDIS_PORT -a \$REDIS_PASSWORD"
+echo "🛑 To stop: redis-cli -h 127.0.0.1 -p $REDIS_PORT -a \$REDIS_PASSWORD shutdown"

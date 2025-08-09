@@ -63,13 +63,13 @@ fi
 # Check Redis connection (required for orchestration)
 REDIS_PORT="${REDIS_PORT:-6382}"
 echo -e "${YELLOW}Checking LTMC Redis connection (port $REDIS_PORT)...${NC}"
-if ! python -c "import redis; r=redis.Redis(host='localhost', port=$REDIS_PORT, decode_responses=True, password='ltmc_cache_2025'); r.ping()" 2>/dev/null; then
+if ! python -c "import redis; r=redis.Redis(host='localhost', port=$REDIS_PORT, decode_responses=True, password='${REDIS_PASSWORD}'); r.ping()" 2>/dev/null; then
     echo -e "${YELLOW}Warning: LTMC Redis not available on port $REDIS_PORT. Starting Redis service...${NC}"
     ./redis_control.sh start
     
     # Wait for Redis to start and verify
     sleep 3
-    if python -c "import redis; r=redis.Redis(host='localhost', port=$REDIS_PORT, decode_responses=True, password='ltmc_cache_2025'); r.ping()" 2>/dev/null; then
+    if python -c "import redis; r=redis.Redis(host='localhost', port=$REDIS_PORT, decode_responses=True, password='${REDIS_PASSWORD}'); r.ping()" 2>/dev/null; then
         echo -e "${GREEN}✓ LTMC Redis started successfully${NC}"
     else
         echo -e "${YELLOW}Warning: Redis failed to start. Orchestration will be disabled.${NC}"
@@ -95,7 +95,7 @@ export ORCHESTRATION_MODE="${ORCHESTRATION_MODE:-basic}"
 export REDIS_ENABLED="${REDIS_ENABLED:-true}"
 export REDIS_HOST="${REDIS_HOST:-localhost}"
 export REDIS_PORT="${REDIS_PORT:-6382}"
-export REDIS_PASSWORD="${REDIS_PASSWORD:-ltmc_cache_2025}"
+export REDIS_PASSWORD="${REDIS_PASSWORD:-ltmc_dev_default}"
 export CACHE_ENABLED="${CACHE_ENABLED:-true}"
 export BUFFER_ENABLED="${BUFFER_ENABLED:-true}"
 export SESSION_STATE_ENABLED="${SESSION_STATE_ENABLED:-true}"
