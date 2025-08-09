@@ -225,16 +225,43 @@ def route_query(query: str, source_types: List[str], top_k: int = 5) -> Dict[str
 def build_context(documents: List[Dict[str, Any]], max_tokens: int = 4000) -> Dict[str, Any]:
     """Build context from documents."""
     try:
-        return build_context_window(documents, max_tokens)
+        if not documents:
+            return {
+                "success": True,
+                "context": "",
+                "token_count": 0,
+                "documents_processed": 0
+            }
+        
+        context_text = build_context_window(documents, max_tokens)
+        token_count = len(context_text.split())  # Approximate token count
+        
+        return {
+            "success": True,
+            "context": context_text,
+            "token_count": token_count,
+            "documents_processed": len(documents),
+            "max_tokens": max_tokens
+        }
     except Exception as e:
-        return {"success": False, "error": str(e)}
+        return {
+            "success": False,
+            "error": str(e),
+            "context": "",
+            "token_count": 0
+        }
 
 
 @mcp.tool()
 def retrieve_by_type(query: str, doc_type: str, top_k: int = 5) -> Dict[str, Any]:
     """Retrieve documents by type."""
     try:
-        return retrieve_by_type_tool(query, doc_type, top_k)
+        results = retrieve_by_type_tool(query, doc_type, top_k)
+        return {
+            "success": True,
+            "documents": results,
+            "count": len(results)
+        }
     except Exception as e:
         return {"success": False, "error": str(e)}
 
@@ -362,7 +389,7 @@ def complete_todo(todo_id: int) -> Dict[str, Any]:
 
 
 @mcp.tool()
-def search_todos(query: str) -> Dict[str, Any]:
+def search_todos(query: str, limit: int = 10) -> Dict[str, Any]:
     """Search todos by title or description with real database search."""
     try:
         # Validate input
@@ -377,8 +404,8 @@ def search_todos(query: str) -> Dict[str, Any]:
         # Search todos
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT * FROM Todos WHERE title LIKE ? OR description LIKE ? ORDER BY created_at DESC",
-            (f"%{query}%", f"%{query}%")
+            "SELECT * FROM Todos WHERE title LIKE ? OR description LIKE ? ORDER BY created_at DESC LIMIT ?",
+            (f"%{query}%", f"%{query}%", limit)
         )
         
         todos = []
@@ -418,6 +445,10 @@ def store_context_links_tool(message_id: int, chunk_ids: List[int]) -> Dict[str,
         db_path = config.get_db_path()
         conn = get_db_connection(db_path)
         create_tables(conn)
+        
+        # Ensure ContextLinks table exists
+        from ltms.database.context_linking import create_context_links_table
+        create_context_links_table(conn)
         
         # Store context links
         result = store_context_links(conn, message_id, chunk_ids)
@@ -718,7 +749,8 @@ def analyze_code_patterns_tool(
     function_name: str = None,
     file_name: str = None,
     module_name: str = None,
-    time_range_days: int = 30
+    time_range_days: int = 30,
+    patterns: List[str] = None
 ) -> Dict[str, Any]:
     """Analyze code pattern success rates and trends.
     

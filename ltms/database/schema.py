@@ -87,13 +87,18 @@ def create_tables(conn: sqlite3.Connection) -> None:
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS CodePatterns (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            function_name TEXT,
+            file_name TEXT,
+            module_name TEXT,
             input_prompt TEXT NOT NULL,
             generated_code TEXT NOT NULL,
-            result TEXT NOT NULL,
-            language TEXT,
-            execution_time REAL,
+            result TEXT CHECK(result IN ('pass', 'fail', 'partial')) NOT NULL,
+            execution_time_ms INTEGER,
             error_message TEXT,
-            created_at TEXT NOT NULL
+            tags TEXT,
+            created_at TEXT NOT NULL,
+            vector_id INTEGER UNIQUE,
+            FOREIGN KEY (vector_id) REFERENCES ResourceChunks (id)
         )
     """)
     

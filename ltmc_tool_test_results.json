@@ -1,0 +1,947 @@
+{
+  "total_tools": 28,
+  "passed": 28,
+  "failed": 0,
+  "errors": 0,
+  "success_rate": 100.0,
+  "results": [
+    {
+      "tool": "store_memory",
+      "status": "PASS",
+      "result": {
+        "success": true,
+        "message": "Memory stored successfully",
+        "resource_id": 54,
+        "chunk_count": 1
+      },
+      "error": null
+    },
+    {
+      "tool": "retrieve_memory",
+      "status": "PASS",
+      "result": {
+        "success": true,
+        "context": "Integration test validation at 1754727185.0138457\n\nte CREATE TABLE statements** from service files\n2.**Standardize on main schema. py** as single source of truth\n3. **Add proper error handling** for schema mismatches\n4. **Add validation checks** before database operations\n\n## IMPLEMENTATION PRIORITY\n\n### P0 - CRITICAL (Implement immediately)\n- [ ] Fix CodePatterns table schema mismatch\n- [ ] Update main schema.\n\nns table schema mismatch\n- [ ] Update main schema.py file\n- [ ] Test all code pattern tools\n\n### P1 - HIGH (Next)\n- [ ] Implement database migration system\n- [ ] Add schema validation\n- [ ] Clean up duplicate schema definitions\n\n### P2 - MEDIUM (Follow-up)\n- [ ] Add database versioning\n- [ ] Implement automatic migration on startup\n- [ ] Add comprehensive schema tests\n\n## TESTING STRATEGY\n\n1. **Backup current database** before any changes\n2. **Test migration script** on copy first\n3.\n\nN-RPC validation due to incorrect return types\n\n3.Function Signature Issues:\n- Chat tools: handler parameters dont match function definitions\n- Context tools: parameter name mismatches cause handler() got unexpected keyword errors\n- Graph tools: Neo4j integration missing or broken\n\n4.\n\nng them to exist before creating relationships\n\n3.**Critical Fix Applied**: Changed MATCH to MERGE in create_relationship() method to create nodes if they dont exist:\n   - Old: MATCH (source:Document {id: $source_id}) MATCH (target:Document {id: $target_id})\n   - New: MERGE (source:Document {id: $source_id}) MERGE (target:Document {id: $target_id})\n\n4.",
+        "retrieved_chunks": [
+          {
+            "chunk_id": 56,
+            "resource_id": 24,
+            "file_name": "integration_test_1754727185.md",
+            "score": 0.6013962019721756
+          },
+          {
+            "chunk_id": 99,
+            "resource_id": 39,
+            "file_name": "database_fix_implementation_plan_20250809.md",
+            "score": 0.6013962019721756
+          },
+          {
+            "chunk_id": 100,
+            "resource_id": 39,
+            "file_name": "database_fix_implementation_plan_20250809.md",
+            "score": 0.6013962019721756
+          },
+          {
+            "chunk_id": 106,
+            "resource_id": 41,
+            "file_name": "ltmc_critical_issue_analysis_20250809.md",
+            "score": 0.6013962019721756
+          },
+          {
+            "chunk_id": 111,
+            "resource_id": 45,
+            "file_name": "p1_neo4j_implementation_complete_20250809.md",
+            "score": 0.6013962019721756
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "tool": "log_chat",
+      "status": "PASS",
+      "result": {
+        "success": true,
+        "message_id": 1231
+      },
+      "error": null
+    },
+    {
+      "tool": "ask_with_context",
+      "status": "PASS",
+      "result": {
+        "success": true,
+        "query": "test query",
+        "conversation_id": "test_session",
+        "context": "Title: integration_test_1754727185.md\nContent: Integration test validation at 1754727185.0138457\n\nTitle: database_fix_implementation_plan_20250809.md\nContent: te CREATE TABLE statements** from service files\n2.**Standardize on main schema. py** as single source of truth\n3. **Add proper error handling** for schema mismatches\n4. **Add validation checks** before database operations\n\n## IMPLEMENTATION PRIORITY\n\n### P0 - CRITICAL (Implement immediately)\n- [ ] Fix CodePatterns table schema mismatch\n- [ ] Update main schema.\n\nTitle: database_fix_implementation_plan_20250809.md\nContent: ns table schema mismatch\n- [ ] Update main schema.py file\n- [ ] Test all code pattern tools\n\n### P1 - HIGH (Next)\n- [ ] Implement database migration system\n- [ ] Add schema validation\n- [ ] Clean up duplicate schema definitions\n\n### P2 - MEDIUM (Follow-up)\n- [ ] Add database versioning\n- [ ] Implement automatic migration on startup\n- [ ] Add comprehensive schema tests\n\n## TESTING STRATEGY\n\n1. **Backup current database** before any changes\n2. **Test migration script** on copy first\n3.",
+        "context_summary": "Found 3 relevant documents:\n1. integration_test_1754727185.md (document, score: 0.73)\n2. database_fix_implementation_plan_20250809.md (document, score: 0.73)\n3. database_fix_implementation_plan_20250809.md (document, score: 0.73)",
+        "answer": "Based on the available context:\n\nFound 3 relevant documents:\n1. integration_test_1754727185.md (document, score: 0.73)\n2. database_fix_implementation_plan_20250809.md (document, score: 0.73)\n3. database_fix_implementation_plan_20250809.md (document, score: 0.73)\n\nThis is a fallback response. Set OPENAI_API_KEY environment variable for full LLM integration.",
+        "documents_used": 3,
+        "top_documents": [
+          {
+            "id": "chunk-56",
+            "title": "integration_test_1754727185.md",
+            "content": "Integration test validation at 1754727185.0138457",
+            "type": "document",
+            "created_at": "2025-08-09T10:13:05.015061",
+            "metadata": {
+              "source": "faiss",
+              "similarity": 0.5270505850525453,
+              "recency": 1.0,
+              "weights": {
+                "alpha": 1.0,
+                "beta": 0.2,
+                "gamma": 0.1,
+                "delta": 0.05,
+                "epsilon": 0.1
+              }
+            },
+            "score": 0.7270505850525453
+          },
+          {
+            "id": "chunk-99",
+            "title": "database_fix_implementation_plan_20250809.md",
+            "content": "te CREATE TABLE statements** from service files\n2.**Standardize on main schema. py** as single source of truth\n3. **Add proper error handling** for schema mismatches\n4. **Add validation checks** before database operations\n\n## IMPLEMENTATION PRIORITY\n\n### P0 - CRITICAL (Implement immediately)\n- [ ] Fix CodePatterns table schema mismatch\n- [ ] Update main schema.",
+            "type": "document",
+            "created_at": "2025-08-09T10:37:00.924372",
+            "metadata": {
+              "source": "faiss",
+              "similarity": 0.5270505850525453,
+              "recency": 1.0,
+              "weights": {
+                "alpha": 1.0,
+                "beta": 0.2,
+                "gamma": 0.1,
+                "delta": 0.05,
+                "epsilon": 0.1
+              }
+            },
+            "score": 0.7270505850525453
+          },
+          {
+            "id": "chunk-100",
+            "title": "database_fix_implementation_plan_20250809.md",
+            "content": "ns table schema mismatch\n- [ ] Update main schema.py file\n- [ ] Test all code pattern tools\n\n### P1 - HIGH (Next)\n- [ ] Implement database migration system\n- [ ] Add schema validation\n- [ ] Clean up duplicate schema definitions\n\n### P2 - MEDIUM (Follow-up)\n- [ ] Add database versioning\n- [ ] Implement automatic migration on startup\n- [ ] Add comprehensive schema tests\n\n## TESTING STRATEGY\n\n1. **Backup current database** before any changes\n2. **Test migration script** on copy first\n3.",
+            "type": "document",
+            "created_at": "2025-08-09T10:37:00.924372",
+            "metadata": {
+              "source": "faiss",
+              "similarity": 0.5270505850525453,
+              "recency": 1.0,
+              "weights": {
+                "alpha": 1.0,
+                "beta": 0.2,
+                "gamma": 0.1,
+                "delta": 0.05,
+                "epsilon": 0.1
+              }
+            },
+            "score": 0.7270505850525453
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "tool": "route_query",
+      "status": "PASS",
+      "result": {
+        "success": true,
+        "query": "test routing",
+        "doc_type": "document",
+        "context": "",
+        "context_summary": "Found 5 relevant documents:\n1. integration_test_1754727185.md (document, score: 0.70)\n2. database_fix_implementation_plan_20250809.md (document, score: 0.70)\n3. database_fix_implementation_plan_20250809.md (document, score: 0.70)",
+        "answer": "Based on the available document context:\n\nFound 5 relevant documents:\n1. integration_test_1754727185.md (document, score: 0.70)\n2. database_fix_implementation_plan_20250809.md (document, score: 0.70)\n3. database_fix_implementation_plan_20250809.md (document, score: 0.70)\n\nThis is a fallback response. Set OPENAI_API_KEY environment variable for full LLM integration.",
+        "documents_used": 5,
+        "top_documents": [
+          {
+            "id": "chunk-56",
+            "title": "integration_test_1754727185.md",
+            "content": "Integration test validation at 1754727185.0138457",
+            "type": "document",
+            "created_at": "2025-08-09T10:13:05.015061",
+            "metadata": {
+              "source": "faiss",
+              "similarity": 0.5042939125471771,
+              "recency": 1.0,
+              "weights": {
+                "alpha": 1.0,
+                "beta": 0.2,
+                "gamma": 0.1,
+                "delta": 0.05,
+                "epsilon": 0.1
+              }
+            },
+            "score": 0.7042939125471772
+          },
+          {
+            "id": "chunk-99",
+            "title": "database_fix_implementation_plan_20250809.md",
+            "content": "te CREATE TABLE statements** from service files\n2.**Standardize on main schema. py** as single source of truth\n3. **Add proper error handling** for schema mismatches\n4. **Add validation checks** before database operations\n\n## IMPLEMENTATION PRIORITY\n\n### P0 - CRITICAL (Implement immediately)\n- [ ] Fix CodePatterns table schema mismatch\n- [ ] Update main schema.",
+            "type": "document",
+            "created_at": "2025-08-09T10:37:00.924372",
+            "metadata": {
+              "source": "faiss",
+              "similarity": 0.5042939125471771,
+              "recency": 1.0,
+              "weights": {
+                "alpha": 1.0,
+                "beta": 0.2,
+                "gamma": 0.1,
+                "delta": 0.05,
+                "epsilon": 0.1
+              }
+            },
+            "score": 0.7042939125471772
+          },
+          {
+            "id": "chunk-100",
+            "title": "database_fix_implementation_plan_20250809.md",
+            "content": "ns table schema mismatch\n- [ ] Update main schema.py file\n- [ ] Test all code pattern tools\n\n### P1 - HIGH (Next)\n- [ ] Implement database migration system\n- [ ] Add schema validation\n- [ ] Clean up duplicate schema definitions\n\n### P2 - MEDIUM (Follow-up)\n- [ ] Add database versioning\n- [ ] Implement automatic migration on startup\n- [ ] Add comprehensive schema tests\n\n## TESTING STRATEGY\n\n1. **Backup current database** before any changes\n2. **Test migration script** on copy first\n3.",
+            "type": "document",
+            "created_at": "2025-08-09T10:37:00.924372",
+            "metadata": {
+              "source": "faiss",
+              "similarity": 0.5042939125471771,
+              "recency": 1.0,
+              "weights": {
+                "alpha": 1.0,
+                "beta": 0.2,
+                "gamma": 0.1,
+                "delta": 0.05,
+                "epsilon": 0.1
+              }
+            },
+            "score": 0.7042939125471772
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "tool": "get_chats_by_tool",
+      "status": "PASS",
+      "result": {
+        "success": true,
+        "messages": [],
+        "count": 0,
+        "source_tool": "store_memory"
+      },
+      "error": null
+    },
+    {
+      "tool": "add_todo",
+      "status": "PASS",
+      "result": {
+        "success": true,
+        "todo_id": 16,
+        "message": "Todo added successfully"
+      },
+      "error": null
+    },
+    {
+      "tool": "list_todos",
+      "status": "PASS",
+      "result": {
+        "success": true,
+        "todos": [
+          {
+            "id": 16,
+            "title": "Test Task",
+            "description": "Test description",
+            "priority": "medium",
+            "completed": false,
+            "created_at": "2025-08-09T11:09:23.531672"
+          },
+          {
+            "id": 15,
+            "title": "Test Task",
+            "description": "Test description",
+            "priority": "medium",
+            "completed": false,
+            "created_at": "2025-08-09T11:08:53.194073"
+          },
+          {
+            "id": 14,
+            "title": "Fix Remaining Tool Issues",
+            "description": "Fix 5 critical tool issues: store_context_links (returns None), search_todos (unexpected limit param), retrieve_by_type (returns list not dict), log_code_attempt (list.split error), analyze_code_patterns (unexpected patterns param)",
+            "priority": "high",
+            "completed": true,
+            "created_at": "2025-08-09T11:03:14.425783"
+          },
+          {
+            "id": 13,
+            "title": "Test Task",
+            "description": "Test description",
+            "priority": "medium",
+            "completed": false,
+            "created_at": "2025-08-09T11:02:47.050851"
+          },
+          {
+            "id": 12,
+            "title": "Test Task",
+            "description": "Test description",
+            "priority": "medium",
+            "completed": false,
+            "created_at": "2025-08-09T10:57:58.534117"
+          },
+          {
+            "id": 11,
+            "title": "Test Task",
+            "description": "Test description",
+            "priority": "medium",
+            "completed": false,
+            "created_at": "2025-08-09T10:56:05.651117"
+          },
+          {
+            "id": 10,
+            "title": "P0 Critical Parameter Fixes",
+            "description": "Fix 6 critical parameter mismatches: get_document_relationships, get_chats_by_tool, get_tool_conversations, route_query, and build_context",
+            "priority": "high",
+            "completed": true,
+            "created_at": "2025-08-09T10:49:20.533969"
+          },
+          {
+            "id": 9,
+            "title": "Fix JSON-RPC validation errors in LTMC tools",
+            "description": "Multiple validation errors found: 1) Pydantic validation errors for dict_type, 2) Parameter mismatch errors between tool definitions and handlers, 3) Schema validation issues in FastMCP implementation",
+            "priority": "high",
+            "completed": false,
+            "created_at": "2025-08-09T10:29:25.438269"
+          },
+          {
+            "id": 8,
+            "title": "LTMC Tool Signature Investigation",
+            "description": "Investigate and fix all 14 broken LTMC tools with parameter signature mismatches, function naming issues, and dependency problems.",
+            "priority": "high",
+            "completed": true,
+            "created_at": "2025-08-09T10:26:09.366184"
+          },
+          {
+            "id": 7,
+            "title": "Test Todo for Validation test_session_1754727727",
+            "description": "This is a test todo created during LTMC validation testing",
+            "priority": "medium",
+            "completed": true,
+            "created_at": "2025-08-09T10:22:07.564451"
+          }
+        ],
+        "count": 10
+      },
+      "error": null
+    },
+    {
+      "tool": "search_todos",
+      "status": "PASS",
+      "result": {
+        "success": true,
+        "todos": [
+          {
+            "id": 16,
+            "title": "Test Task",
+            "description": "Test description",
+            "priority": "medium",
+            "completed": false,
+            "created_at": "2025-08-09T11:09:23.531672"
+          },
+          {
+            "id": 15,
+            "title": "Test Task",
+            "description": "Test description",
+            "priority": "medium",
+            "completed": false,
+            "created_at": "2025-08-09T11:08:53.194073"
+          },
+          {
+            "id": 13,
+            "title": "Test Task",
+            "description": "Test description",
+            "priority": "medium",
+            "completed": false,
+            "created_at": "2025-08-09T11:02:47.050851"
+          },
+          {
+            "id": 12,
+            "title": "Test Task",
+            "description": "Test description",
+            "priority": "medium",
+            "completed": false,
+            "created_at": "2025-08-09T10:57:58.534117"
+          },
+          {
+            "id": 11,
+            "title": "Test Task",
+            "description": "Test description",
+            "priority": "medium",
+            "completed": false,
+            "created_at": "2025-08-09T10:56:05.651117"
+          }
+        ],
+        "count": 5
+      },
+      "error": null
+    },
+    {
+      "tool": "complete_todo",
+      "status": "PASS",
+      "result": {
+        "success": true,
+        "message": "Todo marked as completed"
+      },
+      "error": null
+    },
+    {
+      "tool": "build_context",
+      "status": "PASS",
+      "result": {
+        "success": true,
+        "context": "Title: Unknown\nContent: test document",
+        "token_count": 5,
+        "documents_processed": 1,
+        "max_tokens": 1000
+      },
+      "error": null
+    },
+    {
+      "tool": "retrieve_by_type",
+      "status": "PASS",
+      "result": {
+        "success": true,
+        "documents": [
+          {
+            "id": "chunk-56",
+            "title": "integration_test_1754727185.md",
+            "content": "Integration test validation at 1754727185.0138457",
+            "type": "document",
+            "created_at": "2025-08-09T10:13:05.015061",
+            "metadata": {
+              "source": "faiss",
+              "similarity": 0.6013962019721756,
+              "recency": 1.0,
+              "weights": {
+                "alpha": 1.0,
+                "beta": 0.2,
+                "gamma": 0.1,
+                "delta": 0.05,
+                "epsilon": 0.1
+              }
+            },
+            "score": 0.8013962019721756
+          },
+          {
+            "id": "chunk-99",
+            "title": "database_fix_implementation_plan_20250809.md",
+            "content": "te CREATE TABLE statements** from service files\n2.**Standardize on main schema. py** as single source of truth\n3. **Add proper error handling** for schema mismatches\n4. **Add validation checks** before database operations\n\n## IMPLEMENTATION PRIORITY\n\n### P0 - CRITICAL (Implement immediately)\n- [ ] Fix CodePatterns table schema mismatch\n- [ ] Update main schema.",
+            "type": "document",
+            "created_at": "2025-08-09T10:37:00.924372",
+            "metadata": {
+              "source": "faiss",
+              "similarity": 0.6013962019721756,
+              "recency": 1.0,
+              "weights": {
+                "alpha": 1.0,
+                "beta": 0.2,
+                "gamma": 0.1,
+                "delta": 0.05,
+                "epsilon": 0.1
+              }
+            },
+            "score": 0.8013962019721756
+          },
+          {
+            "id": "chunk-100",
+            "title": "database_fix_implementation_plan_20250809.md",
+            "content": "ns table schema mismatch\n- [ ] Update main schema.py file\n- [ ] Test all code pattern tools\n\n### P1 - HIGH (Next)\n- [ ] Implement database migration system\n- [ ] Add schema validation\n- [ ] Clean up duplicate schema definitions\n\n### P2 - MEDIUM (Follow-up)\n- [ ] Add database versioning\n- [ ] Implement automatic migration on startup\n- [ ] Add comprehensive schema tests\n\n## TESTING STRATEGY\n\n1. **Backup current database** before any changes\n2. **Test migration script** on copy first\n3.",
+            "type": "document",
+            "created_at": "2025-08-09T10:37:00.924372",
+            "metadata": {
+              "source": "faiss",
+              "similarity": 0.6013962019721756,
+              "recency": 1.0,
+              "weights": {
+                "alpha": 1.0,
+                "beta": 0.2,
+                "gamma": 0.1,
+                "delta": 0.05,
+                "epsilon": 0.1
+              }
+            },
+            "score": 0.8013962019721756
+          },
+          {
+            "id": "chunk-106",
+            "title": "ltmc_critical_issue_analysis_20250809.md",
+            "content": "N-RPC validation due to incorrect return types\n\n3.Function Signature Issues:\n- Chat tools: handler parameters dont match function definitions\n- Context tools: parameter name mismatches cause handler() got unexpected keyword errors\n- Graph tools: Neo4j integration missing or broken\n\n4.",
+            "type": "document",
+            "created_at": "2025-08-09T10:45:39.932045",
+            "metadata": {
+              "source": "faiss",
+              "similarity": 0.6013962019721756,
+              "recency": 1.0,
+              "weights": {
+                "alpha": 1.0,
+                "beta": 0.2,
+                "gamma": 0.1,
+                "delta": 0.05,
+                "epsilon": 0.1
+              }
+            },
+            "score": 0.8013962019721756
+          },
+          {
+            "id": "chunk-111",
+            "title": "p1_neo4j_implementation_complete_20250809.md",
+            "content": "ng them to exist before creating relationships\n\n3.**Critical Fix Applied**: Changed MATCH to MERGE in create_relationship() method to create nodes if they dont exist:\n   - Old: MATCH (source:Document {id: $source_id}) MATCH (target:Document {id: $target_id})\n   - New: MERGE (source:Document {id: $source_id}) MERGE (target:Document {id: $target_id})\n\n4.",
+            "type": "document",
+            "created_at": "2025-08-09T10:55:26.699463",
+            "metadata": {
+              "source": "faiss",
+              "similarity": 0.6013962019721756,
+              "recency": 1.0,
+              "weights": {
+                "alpha": 1.0,
+                "beta": 0.2,
+                "gamma": 0.1,
+                "delta": 0.05,
+                "epsilon": 0.1
+              }
+            },
+            "score": 0.8013962019721756
+          }
+        ],
+        "count": 5
+      },
+      "error": null
+    },
+    {
+      "tool": "store_context_links",
+      "status": "PASS",
+      "result": {
+        "success": true,
+        "links_created": 3,
+        "message_id": 1199
+      },
+      "error": null
+    },
+    {
+      "tool": "get_context_links_for_message",
+      "status": "PASS",
+      "result": {
+        "success": true,
+        "links": [
+          {
+            "message_id": 1199,
+            "chunk_id": 1
+          },
+          {
+            "message_id": 1199,
+            "chunk_id": 2
+          },
+          {
+            "message_id": 1199,
+            "chunk_id": 3
+          }
+        ],
+        "count": 3
+      },
+      "error": null
+    },
+    {
+      "tool": "get_messages_for_chunk",
+      "status": "PASS",
+      "result": {
+        "success": true,
+        "messages": [
+          {
+            "message_id": 1,
+            "conversation_id": "statusline_check",
+            "role": "user",
+            "content": "status",
+            "timestamp": "2025-08-09T02:21:40.306495"
+          },
+          {
+            "message_id": 2,
+            "conversation_id": "statusline_check",
+            "role": "user",
+            "content": "status",
+            "timestamp": "2025-08-09T02:21:42.242216"
+          },
+          {
+            "message_id": 3,
+            "conversation_id": "test_retrieval_20250809",
+            "role": "user",
+            "content": "database path configuration patterns",
+            "timestamp": "2025-08-09T02:21:46.672633"
+          },
+          {
+            "message_id": 4,
+            "conversation_id": "statusline_check",
+            "role": "user",
+            "content": "status",
+            "timestamp": "2025-08-09T02:21:48.418610"
+          },
+          {
+            "message_id": 5,
+            "conversation_id": "statusline_check",
+            "role": "user",
+            "content": "status",
+            "timestamp": "2025-08-09T02:21:50.539675"
+          },
+          {
+            "message_id": 6,
+            "conversation_id": "statusline_check",
+            "role": "user",
+            "content": "status",
+            "timestamp": "2025-08-09T02:21:59.500838"
+          },
+          {
+            "message_id": 7,
+            "conversation_id": "statusline_check",
+            "role": "user",
+            "content": "status",
+            "timestamp": "2025-08-09T02:22:01.237241"
+          },
+          {
+            "message_id": 17,
+            "conversation_id": "perf_analysis",
+            "role": "user",
+            "content": "LTMC performance optimization SentenceTransformers model loading",
+            "timestamp": "2025-08-09T02:23:07.102586"
+          },
+          {
+            "message_id": 1199,
+            "conversation_id": "Test chat message",
+            "role": "test_session",
+            "content": "user",
+            "timestamp": "2025-08-09T11:08:52.773002"
+          }
+        ],
+        "count": 9
+      },
+      "error": null
+    },
+    {
+      "tool": "get_context_usage_statistics",
+      "status": "PASS",
+      "result": {
+        "success": true,
+        "statistics": {
+          "total_context_links": 1318,
+          "unique_messages": 1217,
+          "unique_chunks_used": 59,
+          "most_used_chunks": [
+            {
+              "chunk_id": 45,
+              "usage_count": 485
+            },
+            {
+              "chunk_id": 56,
+              "usage_count": 356
+            },
+            {
+              "chunk_id": 17,
+              "usage_count": 201
+            },
+            {
+              "chunk_id": 32,
+              "usage_count": 105
+            },
+            {
+              "chunk_id": 9,
+              "usage_count": 20
+            },
+            {
+              "chunk_id": 42,
+              "usage_count": 10
+            },
+            {
+              "chunk_id": 33,
+              "usage_count": 10
+            },
+            {
+              "chunk_id": 34,
+              "usage_count": 9
+            },
+            {
+              "chunk_id": 10,
+              "usage_count": 9
+            },
+            {
+              "chunk_id": 1,
+              "usage_count": 9
+            }
+          ]
+        }
+      },
+      "error": null
+    },
+    {
+      "tool": "link_resources",
+      "status": "PASS",
+      "result": {
+        "success": true,
+        "relationship_created": true,
+        "source_id": "test_doc1",
+        "target_id": "test_doc2",
+        "relationship_type": "relates_to"
+      },
+      "error": null
+    },
+    {
+      "tool": "query_graph",
+      "status": "PASS",
+      "result": {
+        "success": true,
+        "relationships": [
+          {
+            "source_id": "test_doc1",
+            "target_id": "test_doc2",
+            "relationship_type": "relates_to",
+            "properties": {
+              "type": "relates_to"
+            }
+          }
+        ],
+        "count": 1
+      },
+      "error": null
+    },
+    {
+      "tool": "auto_link_documents",
+      "status": "PASS",
+      "result": {
+        "success": true,
+        "links_created": 0,
+        "documents_processed": 2
+      },
+      "error": null
+    },
+    {
+      "tool": "get_document_relationships",
+      "status": "PASS",
+      "result": {
+        "success": true,
+        "relationships": [
+          {
+            "source_id": "test_doc1",
+            "target_id": "test_doc2",
+            "relationship_type": "relates_to",
+            "properties": {
+              "type": "relates_to"
+            }
+          }
+        ],
+        "count": 1
+      },
+      "error": null
+    },
+    {
+      "tool": "list_tool_identifiers",
+      "status": "PASS",
+      "result": {
+        "success": true,
+        "tools": [],
+        "total_tools": 0,
+        "total_messages": 0,
+        "standard_identifiers": [
+          "claude-code",
+          "cursor",
+          "vscode",
+          "pycharm",
+          "jupyter",
+          "vim",
+          "emacs",
+          "sublime",
+          "atom",
+          "nova",
+          "zed",
+          "copilot"
+        ]
+      },
+      "error": null
+    },
+    {
+      "tool": "get_tool_conversations",
+      "status": "PASS",
+      "result": {
+        "success": true,
+        "conversations": [],
+        "count": 0,
+        "source_tool": "store_memory"
+      },
+      "error": null
+    },
+    {
+      "tool": "log_code_attempt",
+      "status": "PASS",
+      "result": {
+        "success": true,
+        "pattern_id": 8,
+        "message": "Code pattern stored with result: pass"
+      },
+      "error": null
+    },
+    {
+      "tool": "get_code_patterns",
+      "status": "PASS",
+      "result": {
+        "success": true,
+        "patterns": [
+          {
+            "id": 8,
+            "function_name": null,
+            "file_name": null,
+            "module_name": null,
+            "input_prompt": "Create a function",
+            "generated_code": "def test(): return True",
+            "result": "pass",
+            "execution_time_ms": null,
+            "error_message": null,
+            "tags": [
+              "test",
+              "function"
+            ],
+            "created_at": "2025-08-09T11:09:25.205502",
+            "vector_id": 144
+          },
+          {
+            "id": 7,
+            "function_name": null,
+            "file_name": null,
+            "module_name": null,
+            "input_prompt": "Create a function",
+            "generated_code": "def test(): return True",
+            "result": "pass",
+            "execution_time_ms": null,
+            "error_message": null,
+            "tags": [
+              "test",
+              "function"
+            ],
+            "created_at": "2025-08-09T11:08:54.873941",
+            "vector_id": 142
+          },
+          {
+            "id": 6,
+            "function_name": null,
+            "file_name": null,
+            "module_name": null,
+            "input_prompt": "Fix remaining LTMC tool issues",
+            "generated_code": "Successfully fixed 5 critical tool issues:\n1. retrieve_by_type - wrapped result in Dict structure\n2. search_todos - added limit parameter\n3. analyze_code_patterns - added patterns parameter\n4. log_code_attempt - fixed tags input handling\n5. store_context_links - added message_id type conversion",
+            "result": "pass",
+            "execution_time_ms": null,
+            "error_message": null,
+            "tags": [
+              "bugfix",
+              "ltmc",
+              "tools",
+              "json-rpc",
+              "validation"
+            ],
+            "created_at": "2025-08-09T11:08:15.962138",
+            "vector_id": 139
+          },
+          {
+            "id": 5,
+            "function_name": null,
+            "file_name": null,
+            "module_name": null,
+            "input_prompt": "String tags test",
+            "generated_code": "def test2(): return False",
+            "result": "fail",
+            "execution_time_ms": null,
+            "error_message": null,
+            "tags": [
+              "debug",
+              "testing",
+              "failure"
+            ],
+            "created_at": "2025-08-09T11:07:58.303844",
+            "vector_id": 138
+          },
+          {
+            "id": 4,
+            "function_name": null,
+            "file_name": null,
+            "module_name": null,
+            "input_prompt": "Test function implementation",
+            "generated_code": "def test(): return True",
+            "result": "pass",
+            "execution_time_ms": null,
+            "error_message": null,
+            "tags": [
+              "test",
+              "python"
+            ],
+            "created_at": "2025-08-09T11:07:54.107799",
+            "vector_id": 137
+          }
+        ],
+        "count": 5,
+        "query": "function"
+      },
+      "error": null
+    },
+    {
+      "tool": "analyze_code_patterns",
+      "status": "PASS",
+      "result": {
+        "success": true,
+        "total_patterns": 8,
+        "pass_count": 7,
+        "fail_count": 1,
+        "partial_count": 0,
+        "success_rate": 0.875,
+        "avg_execution_time": 175.0
+      },
+      "error": null
+    },
+    {
+      "tool": "redis_health_check",
+      "status": "PASS",
+      "result": {
+        "success": true,
+        "health": {
+          "healthy": true,
+          "connected": true,
+          "host": "localhost",
+          "port": 6382,
+          "db": 0
+        }
+      },
+      "error": null
+    },
+    {
+      "tool": "redis_cache_stats",
+      "status": "PASS",
+      "result": {
+        "success": true,
+        "stats": {
+          "connected": true,
+          "redis_version": "7.2.4",
+          "used_memory": "1.12M",
+          "total_connections": 2,
+          "embedding_cache_count": 0,
+          "query_cache_count": 0,
+          "total_keys": 0
+        }
+      },
+      "error": null
+    },
+    {
+      "tool": "redis_flush_cache",
+      "status": "PASS",
+      "result": {
+        "success": true,
+        "result": {
+          "flushed_embeddings": 0,
+          "flushed_queries": 0,
+          "flushed_chunks": 0,
+          "flushed_resources": 0,
+          "total_flushed": 0
+        }
+      },
+      "error": null
+    }
+  ]
+}

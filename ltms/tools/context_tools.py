@@ -31,12 +31,22 @@ def retrieve_by_type_handler(query: str, doc_type: str, top_k: int = 5) -> Dict[
 
 def store_context_links_handler(message_id: str, chunk_ids: list) -> Dict[str, Any]:
     """Store context links between message and chunks."""
-    return _store_context_links(message_id, chunk_ids)
+    # Convert message_id to int as the underlying function expects it
+    try:
+        msg_id = int(message_id)
+        return _store_context_links(msg_id, chunk_ids)
+    except (ValueError, TypeError):
+        return {"success": False, "error": "message_id must be a valid integer"}
 
 
 def get_context_links_for_message_handler(message_id: str) -> Dict[str, Any]:
     """Get context links for a specific message."""
-    return _get_context_links_for_message(message_id)
+    # Convert message_id to int as the underlying function expects it
+    try:
+        msg_id = int(message_id)
+        return _get_context_links_for_message(msg_id)
+    except (ValueError, TypeError):
+        return {"success": False, "error": "message_id must be a valid integer"}
 
 
 def get_messages_for_chunk_handler(chunk_id: int) -> Dict[str, Any]:
@@ -74,7 +84,7 @@ def list_tool_identifiers_handler() -> Dict[str, Any]:
     return _list_tool_identifiers()
 
 
-def get_tool_conversations_handler(source_tool: str, limit: int = 10) -> Dict[str, Any]:
+def get_tool_conversations_handler(source_tool: str, limit: int = 50) -> Dict[str, Any]:
     """Get conversations that used a specific tool."""
     return _get_tool_conversations(source_tool, limit)
 

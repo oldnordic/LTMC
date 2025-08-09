@@ -1,6 +1,6 @@
 """Chat and conversation management tools for LTMC MCP server."""
 
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 # Import implementation functions
 from ltms.mcp_server import (
@@ -21,14 +21,16 @@ def ask_with_context_handler(query: str, conversation_id: str, top_k: int = 5) -
     return _ask_with_context(query, conversation_id, top_k)
 
 
-def route_query_handler(query: str, conversation_id: str = None) -> Dict[str, Any]:
+def route_query_handler(query: str, source_types: List[str] = None, top_k: int = 5) -> Dict[str, Any]:
     """Route a query to the most appropriate context or tool."""
-    return _route_query(query, conversation_id)
+    if source_types is None:
+        source_types = ["document", "code", "chat", "todo"]
+    return _route_query(query, source_types, top_k)
 
 
-def get_chats_by_tool_handler(tool_name: str, limit: int = 10) -> Dict[str, Any]:
+def get_chats_by_tool_handler(source_tool: str, limit: int = 10) -> Dict[str, Any]:
     """Get chat messages that used a specific tool."""
-    return _get_chats_by_tool(tool_name, limit)
+    return _get_chats_by_tool(source_tool, limit)
 
 
 # Tool definitions for MCP protocol
@@ -94,9 +96,18 @@ CHAT_TOOLS = {
                     "type": "string",
                     "description": "Query to route and process"
                 },
-                "conversation_id": {
-                    "type": "string",
-                    "description": "Optional conversation ID for context"
+                "source_types": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Types of sources to search (document, code, chat, todo)",
+                    "default": ["document", "code", "chat", "todo"]
+                },
+                "top_k": {
+                    "type": "integer",
+                    "description": "Maximum number of results to return",
+                    "default": 5,
+                    "minimum": 1,
+                    "maximum": 50
                 }
             },
             "required": ["query"]
@@ -109,9 +120,9 @@ CHAT_TOOLS = {
         "schema": {
             "type": "object",
             "properties": {
-                "tool_name": {
+                "source_tool": {
                     "type": "string",
-                    "description": "Name of the tool to search for in chat history"
+                    "description": "Name of the source tool to search for in chat history"
                 },
                 "limit": {
                     "type": "integer",
@@ -121,7 +132,7 @@ CHAT_TOOLS = {
                     "maximum": 100
                 }
             },
-            "required": ["tool_name"]
+            "required": ["source_tool"]
         }
     }
 }

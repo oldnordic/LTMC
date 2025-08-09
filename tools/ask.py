@@ -17,7 +17,7 @@ from tools.retrieve import retrieve_with_metadata
 from tools.context_builder import build_context_window, create_context_summary
 
 
-def ask_with_context(query: str, max_tokens: int = 4000, top_k: int = 5) -> Dict[str, Any]:
+def ask_with_context(query: str, conversation_id: str, top_k: int = 5, max_tokens: int = 4000) -> Dict[str, Any]:
     """Ask a question with context from LTMC memory using real LLM."""
     try:
         # Retrieve relevant documents
@@ -71,6 +71,7 @@ Please provide a comprehensive answer based on the context provided."""
         return {
             "success": True,
             "query": query,
+            "conversation_id": conversation_id,
             "context": context,
             "context_summary": context_summary,
             "answer": answer,
@@ -82,7 +83,8 @@ Please provide a comprehensive answer based on the context provided."""
         return {
             "success": False,
             "error": str(e),
-            "query": query
+            "query": query,
+            "conversation_id": conversation_id
         }
 
 

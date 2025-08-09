@@ -132,10 +132,10 @@ class Neo4jGraphStore:
         
         try:
             with self.driver.session() as session:
-                # Create relationship between documents
+                # Create relationship between documents (create nodes if they don't exist)
                 query = """
-                MATCH (source:Document {id: $source_id})
-                MATCH (target:Document {id: $target_id})
+                MERGE (source:Document {id: $source_id})
+                MERGE (target:Document {id: $target_id})
                 MERGE (source)-[r:RELATES_TO {type: $relationship_type}]->(target)
                 SET r += $properties
                 RETURN r

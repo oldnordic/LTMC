@@ -26,9 +26,9 @@ def complete_todo_handler(todo_id: int) -> Dict[str, Any]:
     return _complete_todo(todo_id)
 
 
-def search_todos_handler(query: str) -> Dict[str, Any]:
+def search_todos_handler(query: str, limit: int = 10) -> Dict[str, Any]:
     """Search todo items by title or description."""
-    return _search_todos(query)
+    return _search_todos(query, limit)
 
 
 # Tool definitions for MCP protocol
@@ -106,6 +106,13 @@ TODO_TOOLS = {
                 "query": {
                     "type": "string",
                     "description": "Search query to find matching todos"
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Maximum number of todos to return",
+                    "default": 10,
+                    "minimum": 1,
+                    "maximum": 100
                 }
             },
             "required": ["query"]

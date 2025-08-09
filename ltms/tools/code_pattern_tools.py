@@ -10,12 +10,25 @@ from ltms.mcp_server import (
 )
 
 
-def log_code_attempt_handler(input_prompt: str, generated_code: str, result: str, 
+def log_code_attempt_handler(input_prompt: str, generated_code: str, result: str,
+                           function_name: str = None, file_name: str = None, module_name: str = None,
                            execution_time_ms: int = None, error_message: str = None,
-                           tags: str = None) -> Dict[str, Any]:
+                           tags = None) -> Dict[str, Any]:
     """Log a code generation attempt for learning patterns."""
-    return _log_code_attempt(input_prompt, generated_code, result, 
-                           execution_time_ms, error_message, tags)
+    # Convert tags to list if provided - handle both string and list input
+    if tags:
+        if isinstance(tags, str):
+            tag_list = [tag.strip() for tag in tags.split(',')]
+        elif isinstance(tags, list):
+            tag_list = tags
+        else:
+            tag_list = None
+    else:
+        tag_list = None
+    
+    return _log_code_attempt(input_prompt, generated_code, result,
+                           function_name, file_name, module_name,
+                           execution_time_ms, error_message, tag_list)
 
 
 def get_code_patterns_handler(query: str, result_filter: str = None, function_name: str = None, file_name: str = None, module_name: str = None, top_k: int = 5) -> Dict[str, Any]:
@@ -23,9 +36,9 @@ def get_code_patterns_handler(query: str, result_filter: str = None, function_na
     return _get_code_patterns(query, result_filter, function_name, file_name, module_name, top_k)
 
 
-def analyze_code_patterns_handler(query: str = "", limit: int = 10) -> Dict[str, Any]:
+def analyze_code_patterns_handler(function_name: str = None, file_name: str = None, module_name: str = None, time_range_days: int = 30, patterns: list = None) -> Dict[str, Any]:
     """Analyze code patterns to identify success/failure trends."""
-    return _analyze_code_patterns(query, limit)
+    return _analyze_code_patterns(function_name, file_name, module_name, time_range_days, patterns)
 
 
 # Tool definitions for MCP protocol
@@ -46,8 +59,20 @@ CODE_PATTERN_TOOLS = {
                 },
                 "result": {
                     "type": "string",
-                    "description": "Result of the attempt (pass, fail, error)",
-                    "enum": ["pass", "fail", "error"]
+                    "description": "Result of the attempt (pass, fail, partial)",
+                    "enum": ["pass", "fail", "partial"]
+                },
+                "function_name": {
+                    "type": "string",
+                    "description": "Name of the function being implemented (optional)"
+                },
+                "file_name": {
+                    "type": "string",
+                    "description": "Name of the file where code was generated (optional)"
+                },
+                "module_name": {
+                    "type": "string",
+                    "description": "Name of the module or package (optional)"
                 },
                 "execution_time_ms": {
                     "type": "integer",
@@ -58,8 +83,17 @@ CODE_PATTERN_TOOLS = {
                     "description": "Error message if the attempt failed (optional)"
                 },
                 "tags": {
-                    "type": "string",
-                    "description": "Comma-separated tags for categorization (optional)"
+                    "oneOf": [
+                        {
+                            "type": "string",
+                            "description": "Comma-separated tags for categorization (optional)"
+                        },
+                        {
+                            "type": "array",
+                            "description": "List of tags for categorization (optional)",
+                            "items": {"type": "string"}
+                        }
+                    ]
                 }
             },
             "required": ["input_prompt", "generated_code", "result"]
@@ -111,16 +145,29 @@ CODE_PATTERN_TOOLS = {
         "schema": {
             "type": "object",
             "properties": {
-                "query": {
+                "function_name": {
                     "type": "string",
-                    "description": "Optional query to filter analysis to specific patterns"
+                    "description": "Filter analysis by function name (optional)"
                 },
-                "limit": {
+                "file_name": {
+                    "type": "string",
+                    "description": "Filter analysis by file name (optional)"
+                },
+                "module_name": {
+                    "type": "string",
+                    "description": "Filter analysis by module name (optional)"
+                },
+                "time_range_days": {
                     "type": "integer",
-                    "description": "Maximum number of patterns to analyze",
-                    "default": 10,
+                    "description": "Number of days to analyze (default: 30)",
+                    "default": 30,
                     "minimum": 1,
-                    "maximum": 100
+                    "maximum": 365
+                },
+                "patterns": {
+                    "type": "array",
+                    "description": "Specific patterns to analyze (optional)",
+                    "items": {"type": "string"}
                 }
             }
         }

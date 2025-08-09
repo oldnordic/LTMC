@@ -70,25 +70,8 @@ def store_code_pattern(
         # Get sequential vector ID
         vector_id = get_next_vector_id(conn)
         
-        # Create CodePatterns table if it doesn't exist
+        # Table creation is handled by schema.py
         cursor = conn.cursor()
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS CodePatterns (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                function_name TEXT,
-                file_name TEXT,
-                module_name TEXT,
-                input_prompt TEXT NOT NULL,
-                generated_code TEXT NOT NULL,
-                result TEXT CHECK(result IN ('pass', 'fail', 'partial')),
-                execution_time_ms INTEGER,
-                error_message TEXT,
-                tags TEXT,
-                created_at TEXT NOT NULL,
-                vector_id INTEGER UNIQUE,
-                FOREIGN KEY (vector_id) REFERENCES ResourceChunks (id)
-            )
-        """)
         
         # Store the pattern
         created_at = datetime.now().isoformat()
