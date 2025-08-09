@@ -11,7 +11,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-REDIS_PORT=6381
+REDIS_PORT=6382
 REDIS_CONFIG_DIR="$(pwd)/redis_config"
 REDIS_CONFIG_FILE="$REDIS_CONFIG_DIR/redis_ltmc.conf"
 REDIS_DATA_DIR="$(pwd)/redis_data"

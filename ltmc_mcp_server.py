@@ -13,4 +13,10 @@ from ltms.mcp_server import mcp
 
 if __name__ == "__main__":
     # Run the MCP server with stdio transport
-    mcp.run(transport='stdio')
+    try:
+        mcp.run(transport='stdio')
+    except KeyboardInterrupt:
+        print("\nLTMC MCP Server stdio transport stopped.")
+    except Exception as e:
+        print(f"Error running LTMC MCP Server: {e}")
+        sys.exit(1)

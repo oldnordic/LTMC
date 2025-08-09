@@ -49,24 +49,24 @@ def get_context_usage_statistics_handler() -> Dict[str, Any]:
     return _get_context_usage_statistics()
 
 
-def link_resources_handler(source_id: str, target_id: str, relationship_type: str) -> Dict[str, Any]:
+def link_resources_handler(source_id: str, target_id: str, relation: str) -> Dict[str, Any]:
     """Link two resources with a relationship."""
-    return _link_resources(source_id, target_id, relationship_type)
+    return _link_resources(source_id, target_id, relation)
 
 
-def query_graph_handler(query: str, relationship_types: list = None) -> Dict[str, Any]:
+def query_graph_handler(entity: str, relation_type: str = None) -> Dict[str, Any]:
     """Query the knowledge graph."""
-    return _query_graph(query, relationship_types)
+    return _query_graph(entity, relation_type)
 
 
-def auto_link_documents_handler(document_id: str, similarity_threshold: float = 0.8) -> Dict[str, Any]:
+def auto_link_documents_handler(documents: list) -> Dict[str, Any]:
     """Automatically link documents based on similarity."""
-    return _auto_link_documents(document_id, similarity_threshold)
+    return _auto_link_documents(documents)
 
 
-def get_document_relationships_handler(document_id: str, max_depth: int = 2) -> Dict[str, Any]:
-    """Get document relationships up to specified depth."""
-    return _get_document_relationships(document_id, max_depth)
+def get_document_relationships_handler(doc_id: str) -> Dict[str, Any]:
+    """Get document relationships."""
+    return _get_document_relationships(doc_id)
 
 
 def list_tool_identifiers_handler() -> Dict[str, Any]:
@@ -74,9 +74,9 @@ def list_tool_identifiers_handler() -> Dict[str, Any]:
     return _list_tool_identifiers()
 
 
-def get_tool_conversations_handler(tool_name: str, limit: int = 10) -> Dict[str, Any]:
+def get_tool_conversations_handler(source_tool: str, limit: int = 10) -> Dict[str, Any]:
     """Get conversations that used a specific tool."""
-    return _get_tool_conversations(tool_name, limit)
+    return _get_tool_conversations(source_tool, limit)
 
 
 # Tool definitions for MCP protocol
@@ -203,12 +203,12 @@ CONTEXT_TOOLS = {
                     "type": "string", 
                     "description": "ID of the target resource"
                 },
-                "relationship_type": {
+                "relation": {
                     "type": "string",
                     "description": "Type of relationship (related_to, depends_on, etc.)"
                 }
             },
-            "required": ["source_id", "target_id", "relationship_type"]
+            "required": ["source_id", "target_id", "relation"]
         }
     },
     
@@ -218,17 +218,16 @@ CONTEXT_TOOLS = {
         "schema": {
             "type": "object",
             "properties": {
-                "query": {
+                "entity": {
                     "type": "string",
-                    "description": "Query to search the knowledge graph"
+                    "description": "Entity to search the knowledge graph for"
                 },
-                "relationship_types": {
-                    "type": "array",
-                    "description": "Filter by specific relationship types",
-                    "items": {"type": "string"}
+                "relation_type": {
+                    "type": "string",
+                    "description": "Optional filter by specific relationship type"
                 }
             },
-            "required": ["query"]
+            "required": ["entity"]
         }
     },
     
@@ -238,19 +237,13 @@ CONTEXT_TOOLS = {
         "schema": {
             "type": "object",
             "properties": {
-                "document_id": {
-                    "type": "string",
-                    "description": "ID of the document to find links for"
-                },
-                "similarity_threshold": {
-                    "type": "number",
-                    "description": "Minimum similarity score for linking",
-                    "default": 0.8,
-                    "minimum": 0.0,
-                    "maximum": 1.0
+                "documents": {
+                    "type": "array",
+                    "description": "List of documents to auto-link based on similarity",
+                    "items": {"type": "object"}
                 }
             },
-            "required": ["document_id"]
+            "required": ["documents"]
         }
     },
     
@@ -260,19 +253,12 @@ CONTEXT_TOOLS = {
         "schema": {
             "type": "object",
             "properties": {
-                "document_id": {
+                "doc_id": {
                     "type": "string",
                     "description": "ID of the document"
-                },
-                "max_depth": {
-                    "type": "integer",
-                    "description": "Maximum depth to traverse relationships",
-                    "default": 2,
-                    "minimum": 1,
-                    "maximum": 5
                 }
             },
-            "required": ["document_id"]
+            "required": ["doc_id"]
         }
     },
     
@@ -291,9 +277,9 @@ CONTEXT_TOOLS = {
         "schema": {
             "type": "object",
             "properties": {
-                "tool_name": {
+                "source_tool": {
                     "type": "string",
-                    "description": "Name of the tool"
+                    "description": "Name of the source tool"
                 },
                 "limit": {
                     "type": "integer",
@@ -303,7 +289,7 @@ CONTEXT_TOOLS = {
                     "maximum": 100
                 }
             },
-            "required": ["tool_name"]
+            "required": ["source_tool"]
         }
     }
 }

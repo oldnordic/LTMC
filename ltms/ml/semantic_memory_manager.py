@@ -215,12 +215,12 @@ class SemanticMemoryManager:
             # Get chunk details for cluster members
             placeholders = ','.join(['?'] * len(cluster.member_ids))
             query = f"""
-                SELECT rc.chunk_id, rc.content, rc.chunk_index, 
+                SELECT rc.id as chunk_id, rc.chunk_text as content, 0 as chunk_index, 
                        r.file_name, r.created_at
-                FROM resource_chunks rc
-                JOIN resources r ON rc.resource_id = r.resource_id
-                WHERE rc.chunk_id IN ({placeholders})
-                ORDER BY r.created_at DESC, rc.chunk_index
+                FROM ResourceChunks rc
+                JOIN Resources r ON rc.resource_id = r.id
+                WHERE rc.id IN ({placeholders})
+                ORDER BY r.created_at DESC, rc.id
             """
             
             cursor.execute(query, cluster.member_ids)
@@ -307,10 +307,10 @@ class SemanticMemoryManager:
             cursor = conn.cursor()
             
             query = """
-                SELECT chunk_id, content, chunk_index, resource_id
-                FROM resource_chunks
-                WHERE LENGTH(content) > 10
-                ORDER BY chunk_id
+                SELECT id as chunk_id, chunk_text as content, 0 as chunk_index, resource_id
+                FROM ResourceChunks
+                WHERE LENGTH(chunk_text) > 10
+                ORDER BY id
             """
             
             cursor.execute(query)

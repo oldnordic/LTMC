@@ -15,9 +15,9 @@ def store_memory_handler(file_name: str, content: str, resource_type: str = "doc
     return _store_memory(file_name, content, resource_type)
 
 
-def retrieve_memory_handler(query: str, conversation_id: str = None, top_k: int = 10) -> Dict[str, Any]:
+def retrieve_memory_handler(conversation_id: str, query: str, top_k: int = 10) -> Dict[str, Any]:
     """Retrieve relevant memory/documents from LTMC using semantic search."""
-    return _retrieve_memory(query, conversation_id, top_k)
+    return _retrieve_memory(conversation_id, query, top_k)
 
 
 # Tool definitions for MCP protocol
@@ -52,13 +52,13 @@ MEMORY_TOOLS = {
         "schema": {
             "type": "object",
             "properties": {
+                "conversation_id": {
+                    "type": "string",
+                    "description": "Conversation ID to scope the search"
+                },
                 "query": {
                     "type": "string",
                     "description": "Search query to find relevant memories"
-                },
-                "conversation_id": {
-                    "type": "string",
-                    "description": "Optional conversation ID to scope the search"
                 },
                 "top_k": {
                     "type": "integer",
@@ -68,7 +68,7 @@ MEMORY_TOOLS = {
                     "maximum": 100
                 }
             },
-            "required": ["query"]
+            "required": ["conversation_id", "query"]
         }
     }
 }

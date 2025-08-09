@@ -7,7 +7,8 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
 from ltms.services.redis_service import get_redis_manager, RedisConnectionManager
-from ltms.vector_store.faiss_store import MockFAISSIndex
+import faiss
+from ltms.vector_store.faiss_store import create_faiss_index
 from ltms.services.chunk_buffer_core import ChunkBufferCore
 from ltms.services.chunk_buffer_stats import ChunkBufferStats
 
@@ -17,12 +18,12 @@ logger = logging.getLogger(__name__)
 class ChunkBufferService:
     """Store and coordinate recent chunk access across agents."""
     
-    def __init__(self, redis_manager: RedisConnectionManager, faiss_store: Optional[MockFAISSIndex] = None):
+    def __init__(self, redis_manager: RedisConnectionManager, faiss_store: Optional[faiss.IndexFlatL2] = None):
         """Initialize Shared Chunk Buffer Service.
         
         Args:
             redis_manager: Redis connection manager instance
-            faiss_store: Mock FAISS index for fallback operations
+            faiss_store: FAISS index for fallback operations
         """
         self.redis_manager = redis_manager
         self.faiss_store = faiss_store
@@ -223,7 +224,7 @@ class ChunkBufferService:
 _chunk_buffer_service: Optional[ChunkBufferService] = None
 
 
-async def get_chunk_buffer_service(faiss_store: Optional[MockFAISSIndex] = None) -> ChunkBufferService:
+async def get_chunk_buffer_service(faiss_store: Optional[faiss.IndexFlatL2] = None) -> ChunkBufferService:
     """Get or create chunk buffer service instance."""
     global _chunk_buffer_service
     if not _chunk_buffer_service:

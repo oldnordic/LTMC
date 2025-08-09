@@ -509,12 +509,12 @@ class IntelligentContextRetrieval:
             cursor = conn.cursor()
             
             query = """
-                SELECT rc.chunk_id, rc.content, rc.chunk_index,
+                SELECT rc.id as chunk_id, rc.chunk_text as content, 0 as chunk_index,
                        r.file_name, r.created_at
-                FROM resource_chunks rc
-                JOIN resources r ON rc.resource_id = r.resource_id
-                WHERE LENGTH(rc.content) > 10
-                ORDER BY r.created_at DESC, rc.chunk_index
+                FROM ResourceChunks rc
+                JOIN Resources r ON rc.resource_id = r.id
+                WHERE LENGTH(rc.chunk_text) > 10
+                ORDER BY r.created_at DESC, rc.id
             """
             
             cursor.execute(query)

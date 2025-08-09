@@ -39,7 +39,11 @@ class LTMCDualTransportManager:
         # Set environment for STDIO transport
         env = os.environ.copy()
         env['DB_PATH'] = 'ltmc.db'
-        env['FAISS_INDEX_PATH'] = 'faiss_index'
+        # Use proper data directory for FAISS persistence
+        data_dir = os.path.join(os.getcwd(), 'data')
+        os.makedirs(data_dir, exist_ok=True)
+        env['LTMC_DATA_DIR'] = data_dir
+        env['FAISS_INDEX_PATH'] = os.path.join(data_dir, 'faiss_index')
         
         process = subprocess.Popen(
             cmd,
@@ -63,7 +67,11 @@ import uvicorn
 from ltms.mcp_server_http import app
 import os
 os.environ['DB_PATH'] = 'ltmc.db'
-os.environ['FAISS_INDEX_PATH'] = 'faiss_index'
+# Use proper data directory for FAISS persistence
+data_dir = os.path.join(os.getcwd(), 'data')
+os.makedirs(data_dir, exist_ok=True)
+os.environ['LTMC_DATA_DIR'] = data_dir
+os.environ['FAISS_INDEX_PATH'] = os.path.join(data_dir, 'faiss_index')
 print("HTTP Server starting on http://localhost:5050")
 uvicorn.run(app, host='localhost', port=5050, log_level='info')
 """
@@ -86,6 +94,7 @@ uvicorn.run(app, host='localhost', port=5050, log_level='info')
             print("LTMC Dual Transport Server Manager")
             print("="*60)
             print(f"Database: {os.getenv('DB_PATH', 'ltmc.db')}")
+            print(f"LTMC Data Dir: {os.getenv('LTMC_DATA_DIR', './data')}")
             print(f"FAISS Index: {os.getenv('FAISS_INDEX_PATH', 'faiss_index')}")
             print()
             

@@ -16,9 +16,9 @@ def log_chat_handler(content: str, conversation_id: str, role: str = "user") -> 
     return _log_chat(content, conversation_id, role)
 
 
-def ask_with_context_handler(question: str, conversation_id: str = None, context_limit: int = 10) -> Dict[str, Any]:
+def ask_with_context_handler(query: str, conversation_id: str, top_k: int = 5) -> Dict[str, Any]:
     """Ask a question with relevant context from memory."""
-    return _ask_with_context(question, conversation_id, context_limit)
+    return _ask_with_context(query, conversation_id, top_k)
 
 
 def route_query_handler(query: str, conversation_id: str = None) -> Dict[str, Any]:
@@ -64,23 +64,23 @@ CHAT_TOOLS = {
         "schema": {
             "type": "object",
             "properties": {
-                "question": {
+                "query": {
                     "type": "string",
-                    "description": "The question to ask"
+                    "description": "The query/question to ask"
                 },
                 "conversation_id": {
                     "type": "string",
-                    "description": "Optional conversation ID for context scoping"
+                    "description": "Conversation ID for context scoping"
                 },
-                "context_limit": {
+                "top_k": {
                     "type": "integer",
                     "description": "Maximum number of context items to retrieve",
-                    "default": 10,
+                    "default": 5,
                     "minimum": 1,
                     "maximum": 50
                 }
             },
-            "required": ["question"]
+            "required": ["query", "conversation_id"]
         }
     },
     

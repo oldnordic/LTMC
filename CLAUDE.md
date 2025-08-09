@@ -1,6 +1,24 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+---
+description: "LTMC Project Memory - Mandatory behavior patterns for Claude Code"
+globs: ["**/*"]
+---
+
+This file provides **mandatory guidance** to Claude Code (claude.ai/code) when working with the LTMC project. These patterns are **NON-NEGOTIABLE** and must be followed for all tasks.
+
+## 🚨 MANDATORY CLAUDE CODE BEHAVIOR ENFORCEMENT 🚨
+
+**CRITICAL**: Claude Code MUST follow these patterns for every interaction in this project - **NO EXCEPTIONS**.
+**VIOLATION = TASK FAILURE**
+
+### EVERY CLAUDE CODE INTERACTION MUST:
+1. **ALWAYS START WITH MCP USAGE**: Use available MCP servers (sequential-thinking, context7, ltmc)
+2. **ALWAYS USE LTMC FOR EVERYTHING**: Mandatory usage of all 28 LTMC tools
+3. **ALWAYS LOG PROGRESS**: Store all work in LTMC memory system
+4. **ALWAYS RETRIEVE CONTEXT**: Check LTMC before starting work
+5. **ALWAYS LOG CODE ATTEMPTS**: Track all code generation for learning
+6. **ALWAYS PRESERVE CONTINUITY**: Log chat history before compaction
 
 ## Development Philosophy
 
@@ -34,19 +52,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-LTMC (Long-Term Memory and Context) is a production-ready MCP (Model Context Protocol) server that provides persistent memory storage, retrieval, and context management with dual transport support (HTTP and stdio). The project offers 22 MCP tools for memory management, code pattern learning, chat history, and task management.
+LTMC (Long-Term Memory and Context) is a production-ready MCP (Model Context Protocol) server that provides persistent memory storage, retrieval, and context management with dual transport support (HTTP and stdio). The project offers **28 MCP tools** for memory management, code pattern learning, chat history, task management, Redis caching, and advanced ML integration.
 
 ## Architecture Overview
 
 ### Core Architecture Pattern
-- **Single Source of Truth**: All 22 tools defined in `ltms/mcp_server.py`
+- **Single Source of Truth**: All 28 tools defined in `ltms/mcp_server.py`
 - **Dual Transport**: HTTP (`ltms/mcp_server_http.py`) and stdio (`ltmc_mcp_server.py`) with identical functionality
 - **Database Layer**: SQLite with vector ID sequences and specialized tables
 - **Vector Search**: FAISS-based similarity search with SentenceTransformers embeddings
 - **Service Layer**: Modular services in `ltms/services/` for different functionality areas
 
 ### Key Components
-- **MCP Server**: `ltms/mcp_server.py` - FastMCP-based server with all 22 tools
+- **MCP Server**: `ltms/mcp_server.py` - FastMCP-based server with all 28 tools
 - **HTTP Transport**: `ltms/mcp_server_http.py` - FastAPI wrapper for HTTP access
 - **Stdio Entry Point**: `ltmc_mcp_server.py` - Direct MCP protocol for IDE integration
 - **Database Schema**: `ltms/database/schema.py` - SQLite tables with proper constraints
@@ -106,7 +124,7 @@ rm ltmc.db && python -c "from ltms.database.schema import create_tables; import 
 # Health check
 curl http://localhost:5050/health
 
-# List all 22 tools
+# List all 28 tools
 curl http://localhost:5050/tools
 
 # Test memory storage via JSON-RPC
@@ -161,52 +179,189 @@ Bash(curl -s http://localhost:5050/jsonrpc ...)
 **RATIONALE**: LTMC integration is mandatory. Confirmation prompts break workflow.
 **SCOPE**: LTMC operations only (localhost:5050/jsonrpc)
 
-### Recommended MCP Usage Pattern
-Every development task should follow this pattern:
+## 🚨 MANDATORY LTMC INTEGRATION FOR CLAUDE CODE 🚨
 
-#### 1. Start with Sequential Thinking
-Break down complex tasks before implementation using the sequential-thinking MCP server.
+**ALL 28 LTMC TOOLS MUST BE USED** - This is **NON-NEGOTIABLE**
 
-#### 2. Use Context7 for Best Practices
-Get relevant best practices and documentation before coding.
+### MANDATORY LTMC WORKFLOW PATTERN
+**EVERY Claude Code task MUST follow this exact pattern:**
 
-#### 3. Use LTMC for Memory Operations
-Store all important progress and learnings via LTMC server:
+#### 1. ALWAYS START WITH SEQUENTIAL THINKING
+Use sequential-thinking MCP for task breakdown (if available)
 
+#### 2. ALWAYS USE CONTEXT7 FOR BEST PRACTICES
+Use context7 MCP for documentation and best practices (if available)
+
+#### 3. ALWAYS CHECK LTMC MEMORY FIRST
+**MANDATORY**: Before starting ANY task, check existing knowledge:
 ```bash
-# Store important information (via Bash tool - auto-executes)
+# Check for existing solutions/patterns BEFORE starting work
 Bash(curl -s http://localhost:5050/jsonrpc -X POST -H "Content-Type: application/json" \
 -d '{"jsonrpc": "2.0", "method": "tools/call", "params": {
-  "name": "store_memory", 
+  "name": "retrieve_memory", 
   "arguments": {
-    "content": "Your important information here",
-    "file_name": "descriptive_filename.md"
-  }
-}, "id": 1}')
-
-# Log successful code patterns for learning (via Bash tool - auto-executes)
-Bash(curl -s http://localhost:5050/jsonrpc -X POST -H "Content-Type: application/json" \
--d '{"jsonrpc": "2.0", "method": "tools/call", "params": {
-  "name": "log_code_attempt", 
-  "arguments": {
-    "input_prompt": "What you were trying to implement",
-    "generated_code": "The working code solution",
-    "result": "pass"
+    "query": "task description or keywords",
+    "conversation_id": "session_$(date +%Y%m%d_%H%M%S)",
+    "top_k": 5
   }
 }, "id": 1}')
 ```
 
-### Chat Continuity
-**BEFORE EVERY CHAT COMPACTION** - Store complete chat history:
+#### 4. ALWAYS USE ALL LTMC MEMORY OPERATIONS
+
+**MANDATORY LTMC TOOLS** - Use ALL of these during every task:
+
+##### Memory Storage & Retrieval (MANDATORY)
 ```bash
-# MANDATORY: Store complete chat history before compaction (via Bash tool - auto-executes)
+# Store ALL progress, decisions, learnings
+Bash(curl -s http://localhost:5050/jsonrpc -X POST -H "Content-Type: application/json" \
+-d '{"jsonrpc": "2.0", "method": "tools/call", "params": {
+  "name": "store_memory", 
+  "arguments": {
+    "content": "Your important information, decisions, solutions",
+    "file_name": "claude_session_$(date +%Y%m%d_%H%M%S).md",
+    "resource_type": "document"
+  }
+}, "id": 1}')
+
+# Use context-aware queries
+Bash(curl -s http://localhost:5050/jsonrpc -X POST -H "Content-Type: application/json" \
+-d '{"jsonrpc": "2.0", "method": "tools/call", "params": {
+  "name": "ask_with_context", 
+  "arguments": {
+    "query": "your question or task",
+    "conversation_id": "claude_session",
+    "top_k": 3
+  }
+}, "id": 1}')
+```
+
+##### Code Pattern Learning (MANDATORY FOR ALL CODE)
+```bash
+# Check for similar patterns BEFORE coding
+Bash(curl -s http://localhost:5050/jsonrpc -X POST -H "Content-Type: application/json" \
+-d '{"jsonrpc": "2.0", "method": "tools/call", "params": {
+  "name": "get_code_patterns", 
+  "arguments": {
+    "query": "relevant implementation type",
+    "result_filter": "pass",
+    "top_k": 5
+  }
+}, "id": 1}')
+
+# Log EVERY code attempt for experience replay
+Bash(curl -s http://localhost:5050/jsonrpc -X POST -H "Content-Type: application/json" \
+-d '{"jsonrpc": "2.0", "method": "tools/call", "params": {
+  "name": "log_code_attempt", 
+  "arguments": {
+    "input_prompt": "What you were implementing",
+    "generated_code": "The actual code solution",
+    "result": "pass",
+    "tags": ["claude-code", "implementation"]
+  }
+}, "id": 1}')
+```
+
+##### Task Management (MANDATORY FOR COMPLEX TASKS)
+```bash
+# Add todos for multi-step tasks
+Bash(curl -s http://localhost:5050/jsonrpc -X POST -H "Content-Type: application/json" \
+-d '{"jsonrpc": "2.0", "method": "tools/call", "params": {
+  "name": "add_todo", 
+  "arguments": {
+    "title": "Task title",
+    "description": "Detailed task description",
+    "priority": "high"
+  }
+}, "id": 1}')
+
+# Complete todos when finished
+Bash(curl -s http://localhost:5050/jsonrpc -X POST -H "Content-Type: application/json" \
+-d '{"jsonrpc": "2.0", "method": "tools/call", "params": {
+  "name": "complete_todo", 
+  "arguments": {"todo_id": 123}
+}, "id": 1}')
+```
+
+##### Knowledge Graph Operations (MANDATORY FOR RELATIONSHIPS)
+```bash
+# Link related resources and concepts
+Bash(curl -s http://localhost:5050/jsonrpc -X POST -H "Content-Type: application/json" \
+-d '{"jsonrpc": "2.0", "method": "tools/call", "params": {
+  "name": "link_resources", 
+  "arguments": {
+    "source_id": "resource_1",
+    "target_id": "resource_2",
+    "relation": "implements"
+  }
+}, "id": 1}')
+
+# Query knowledge graph for relationships
+Bash(curl -s http://localhost:5050/jsonrpc -X POST -H "Content-Type: application/json" \
+-d '{"jsonrpc": "2.0", "method": "tools/call", "params": {
+  "name": "query_graph", 
+  "arguments": {
+    "entity": "entity_name",
+    "relation_type": "implements"
+  }
+}, "id": 1}')
+```
+
+#### 5. ALWAYS LOG CHAT FOR CONTINUITY
+**MANDATORY**: Log ALL conversations for continuity:
+```bash
+# Log every important interaction
 Bash(curl -s http://localhost:5050/jsonrpc -X POST -H "Content-Type: application/json" \
 -d '{"jsonrpc": "2.0", "method": "tools/call", "params": {
   "name": "log_chat", 
   "arguments": {
-    "content": "[FULL CHAT CONVERSATION CONTENT]",
-    "conversation_id": "session_$(date +%Y%m%d_%H%M%S)",
+    "content": "conversation content",
+    "conversation_id": "claude_session_$(date +%Y%m%d_%H%M%S)",
+    "role": "assistant"
+  }
+}, "id": 1}')
+```
+
+#### 6. ALWAYS USE REDIS CACHE OPERATIONS
+**MANDATORY**: Leverage Redis caching for performance:
+```bash
+# Check Redis cache health
+Bash(curl -s http://localhost:5050/jsonrpc -X POST -H "Content-Type: application/json" \
+-d '{"jsonrpc": "2.0", "method": "tools/call", "params": {
+  "name": "redis_health_check", 
+  "arguments": {}
+}, "id": 1}')
+
+# Get cache statistics
+Bash(curl -s http://localhost:5050/jsonrpc -X POST -H "Content-Type: application/json" \
+-d '{"jsonrpc": "2.0", "method": "tools/call", "params": {
+  "name": "redis_cache_stats", 
+  "arguments": {}
+}, "id": 1}')
+```
+
+### 🚨 CRITICAL CHAT CONTINUITY PROTOCOL 🚨
+**BEFORE EVERY CHAT COMPACTION** - **MANDATORY** preservation:
+```bash
+# CRITICAL: Store complete chat history before compaction
+Bash(curl -s http://localhost:5050/jsonrpc -X POST -H "Content-Type: application/json" \
+-d '{"jsonrpc": "2.0", "method": "tools/call", "params": {
+  "name": "log_chat", 
+  "arguments": {
+    "content": "[COMPLETE CHAT CONVERSATION CONTENT - FULL CONTEXT]",
+    "conversation_id": "chat_backup_$(date +%Y%m%d_%H%M%S)",
     "role": "system"
+  }
+}, "id": 1}')
+
+# ALSO store session summary
+Bash(curl -s http://localhost:5050/jsonrpc -X POST -H "Content-Type: application/json" \
+-d '{"jsonrpc": "2.0", "method": "tools/call", "params": {
+  "name": "store_memory", 
+  "arguments": {
+    "content": "SESSION SUMMARY: Key achievements, decisions, and next steps",
+    "file_name": "session_backup_$(date +%Y%m%d_%H%M%S).md",
+    "resource_type": "document"
   }
 }, "id": 1}')
 ```
@@ -240,22 +395,53 @@ def test_database_operation():
     # Test operations here
 ```
 
-## Tool Categories (22 Total)
+## ALL 28 LTMC TOOLS - COMPREHENSIVE REFERENCE
 
-### Memory & Context Tools (6)
-- `store_memory`, `retrieve_memory`, `ask_with_context`, `route_query`, `build_context`, `retrieve_by_type`
+**Claude Code MUST leverage ALL 28 tools for maximum intelligence**
 
-### Chat & Communication Tools (5) 
-- `log_chat`, `store_context_links_tool`, `get_context_links_for_message_tool`, `get_messages_for_chunk_tool`, `get_context_usage_statistics_tool`
+### 🔥 CORE MEMORY OPERATIONS (Tools 1-2)
+- `store_memory`: Store documents, knowledge, decisions, progress
+- `retrieve_memory`: Semantic search and retrieval of stored information
 
-### Code Pattern Memory Tools (3)
-- `log_code_attempt`, `get_code_patterns`, `analyze_code_patterns`
+### 🗨️ CHAT & COMMUNICATION (Tools 3-6)
+- `log_chat`: Log conversations for continuity
+- `ask_with_context`: Query with automatic context retrieval
+- `route_query`: Smart query routing
+- `get_chats_by_tool`: Tool usage history
 
-### Task Management Tools (4)
-- `add_todo`, `list_todos`, `complete_todo`, `search_todos`
+### ✅ TASK MANAGEMENT (Tools 7-10)
+- `add_todo`: Add tasks for complex multi-step work
+- `list_todos`: View all tasks
+- `complete_todo`: Mark tasks complete
+- `search_todos`: Search tasks by text
 
-### Graph & Relationship Tools (4)
-- `link_resources`, `query_graph`, `auto_link_documents`, `get_document_relationships_tool`
+### 🧠 CONTEXT & RETRIEVAL (Tools 11-16)
+- `build_context`: Build context windows with token limits
+- `retrieve_by_type`: Type-filtered retrieval
+- `store_context_links`: Link context to messages
+- `get_context_links_for_message`: Get message context
+- `get_messages_for_chunk`: Get chunk messages
+- `get_context_usage_statistics`: Usage statistics
+
+### 🔗 KNOWLEDGE GRAPH & RELATIONSHIPS (Tools 17-20)
+- `link_resources`: Create resource relationships
+- `query_graph`: Graph queries for relationships
+- `auto_link_documents`: Auto-link similar documents
+- `get_document_relationships`: Get document relations
+
+### 🛠️ TOOL TRACKING & ANALYTICS (Tools 21-22)
+- `list_tool_identifiers`: List available tools
+- `get_tool_conversations`: Tool usage conversations
+
+### 💻 CODE PATTERN MEMORY (Tools 23-25)
+- `log_code_attempt`: Experience replay for code generation
+- `get_code_patterns`: Retrieve similar successful patterns
+- `analyze_code_patterns`: Analyze patterns for improvements
+
+### ⚡ REDIS CACHE OPERATIONS (Tools 26-28)
+- `redis_cache_stats`: Cache performance metrics
+- `redis_flush_cache`: Flush cache by type
+- `redis_health_check`: Health check Redis connection
 
 ## Troubleshooting
 
@@ -272,10 +458,22 @@ def test_database_operation():
 
 ## Quality Assurance
 
-### Pre-Commit Checklist
-Before committing any code changes:
-- [ ] Sequential thinking used for complex tasks (if applicable)
-- [ ] Context7 queried for best practices (if applicable)  
+### 🚨 MANDATORY CLAUDE CODE COMPLIANCE CHECKLIST 🚨
+**EVERY task MUST complete ALL of these:**
+
+#### MCP Usage Requirements:
+- [ ] Sequential thinking used for task breakdown (if MCP available)
+- [ ] Context7 queried for best practices (if MCP available)
+- [ ] LTMC memory checked BEFORE starting work
+- [ ] Progress stored in LTMC throughout task
+- [ ] Code patterns retrieved before implementation
+- [ ] All code attempts logged for experience replay
+- [ ] Tasks added to todo system for complex work
+- [ ] Relationships linked in knowledge graph
+- [ ] Chat interactions logged for continuity
+- [ ] Redis cache leveraged for performance
+
+#### Code Quality Requirements:
 - [ ] Tests written first (TDD approach)
 - [ ] All tests passing with `pytest tests/`
 - [ ] Type checking clean with `mypy ltms/ tests/`
@@ -285,8 +483,16 @@ Before committing any code changes:
 - [ ] Security scan clean with `bandit -r ltms/`
 - [ ] Dependencies secure with `safety check`
 - [ ] Integration tests validated
-- [ ] Knowledge saved to LTMC (auto-execute curl commands)
-- [ ] **CRITICAL**: Store chat history if approaching compaction
+
+#### Memory & Continuity Requirements:
+- [ ] All important progress saved to LTMC
+- [ ] Knowledge patterns extracted and stored
+- [ ] **CRITICAL**: Chat history stored before compaction
+- [ ] Session summary created for future reference
+- [ ] Learning outcomes preserved in LTMC
+
+**VIOLATION OF ANY REQUIREMENT = TASK FAILURE**
+**ALL 28 LTMC TOOLS MUST BE LEVERAGED FOR MAXIMUM INTELLIGENCE**
 
 ### Code Quality Commands
 ```bash

@@ -11,7 +11,7 @@ from ltms.mcp_server import (
 )
 
 
-def add_todo_handler(title: str, description: str = "", priority: int = 1) -> Dict[str, Any]:
+def add_todo_handler(title: str, description: str, priority: str = "medium") -> Dict[str, Any]:
     """Add a new todo item."""
     return _add_todo(title, description, priority)
 
@@ -26,9 +26,9 @@ def complete_todo_handler(todo_id: int) -> Dict[str, Any]:
     return _complete_todo(todo_id)
 
 
-def search_todos_handler(query: str, limit: int = 10) -> Dict[str, Any]:
+def search_todos_handler(query: str) -> Dict[str, Any]:
     """Search todo items by title or description."""
-    return _search_todos(query, limit)
+    return _search_todos(query)
 
 
 # Tool definitions for MCP protocol
@@ -49,14 +49,13 @@ TODO_TOOLS = {
                     "default": ""
                 },
                 "priority": {
-                    "type": "integer",
-                    "description": "Priority level (1=low, 2=medium, 3=high)",
-                    "default": 1,
-                    "minimum": 1,
-                    "maximum": 3
+                    "type": "string",
+                    "description": "Priority level (low, medium, high)",
+                    "enum": ["low", "medium", "high"],
+                    "default": "medium"
                 }
             },
-            "required": ["title"]
+            "required": ["title", "description"]
         }
     },
     
@@ -107,13 +106,6 @@ TODO_TOOLS = {
                 "query": {
                     "type": "string",
                     "description": "Search query to find matching todos"
-                },
-                "limit": {
-                    "type": "integer",
-                    "description": "Maximum number of results to return",
-                    "default": 10,
-                    "minimum": 1,
-                    "maximum": 100
                 }
             },
             "required": ["query"]

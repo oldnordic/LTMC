@@ -18,9 +18,9 @@ def log_code_attempt_handler(input_prompt: str, generated_code: str, result: str
                            execution_time_ms, error_message, tags)
 
 
-def get_code_patterns_handler(query: str, limit: int = 5) -> Dict[str, Any]:
+def get_code_patterns_handler(query: str, result_filter: str = None, function_name: str = None, file_name: str = None, module_name: str = None, top_k: int = 5) -> Dict[str, Any]:
     """Retrieve similar code patterns from previous successful attempts."""
-    return _get_code_patterns(query, limit)
+    return _get_code_patterns(query, result_filter, function_name, file_name, module_name, top_k)
 
 
 def analyze_code_patterns_handler(query: str = "", limit: int = 10) -> Dict[str, Any]:
@@ -76,7 +76,24 @@ CODE_PATTERN_TOOLS = {
                     "type": "string",
                     "description": "Query describing the type of code pattern needed"
                 },
-                "limit": {
+                "result_filter": {
+                    "type": "string",
+                    "description": "Filter by result type (pass, fail, partial)",
+                    "enum": ["pass", "fail", "partial"]
+                },
+                "function_name": {
+                    "type": "string",
+                    "description": "Filter by function name"
+                },
+                "file_name": {
+                    "type": "string",
+                    "description": "Filter by file name"
+                },
+                "module_name": {
+                    "type": "string",
+                    "description": "Filter by module name"
+                },
+                "top_k": {
                     "type": "integer",
                     "description": "Maximum number of patterns to return",
                     "default": 5,

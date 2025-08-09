@@ -53,15 +53,23 @@ if ! python -c "import fastapi" 2>/dev/null; then
     pip install -r requirements.txt
 fi
 
+# Load .env file first
+if [ -f .env ]; then
+    set -a
+    source .env
+    set +a
+fi
+
 # Check Redis connection (required for orchestration)
-echo -e "${YELLOW}Checking LTMC Redis connection (port 6381)...${NC}"
-if ! python -c "import redis; r=redis.Redis(host='localhost', port=6381, decode_responses=True, password='ltmc_cache_2025'); r.ping()" 2>/dev/null; then
-    echo -e "${YELLOW}Warning: LTMC Redis not available on port 6381. Starting Redis service...${NC}"
+REDIS_PORT="${REDIS_PORT:-6382}"
+echo -e "${YELLOW}Checking LTMC Redis connection (port $REDIS_PORT)...${NC}"
+if ! python -c "import redis; r=redis.Redis(host='localhost', port=$REDIS_PORT, decode_responses=True, password='ltmc_cache_2025'); r.ping()" 2>/dev/null; then
+    echo -e "${YELLOW}Warning: LTMC Redis not available on port $REDIS_PORT. Starting Redis service...${NC}"
     ./redis_control.sh start
     
     # Wait for Redis to start and verify
     sleep 3
-    if python -c "import redis; r=redis.Redis(host='localhost', port=6381, decode_responses=True, password='ltmc_cache_2025'); r.ping()" 2>/dev/null; then
+    if python -c "import redis; r=redis.Redis(host='localhost', port=$REDIS_PORT, decode_responses=True, password='ltmc_cache_2025'); r.ping()" 2>/dev/null; then
         echo -e "${GREEN}✓ LTMC Redis started successfully${NC}"
     else
         echo -e "${YELLOW}Warning: Redis failed to start. Orchestration will be disabled.${NC}"
@@ -72,7 +80,12 @@ fi
 
 # Set environment variables for LTMC
 export DB_PATH="${DB_PATH:-ltmc.db}"
-export FAISS_INDEX_PATH="${FAISS_INDEX_PATH:-faiss_index}"
+# Use data directory for proper FAISS persistence
+export LTMC_DATA_DIR="${LTMC_DATA_DIR:-$(pwd)/data}"
+export FAISS_INDEX_PATH="${FAISS_INDEX_PATH:-$LTMC_DATA_DIR/faiss_index}"
+
+# Ensure data directory exists
+mkdir -p "$LTMC_DATA_DIR"
 export LOG_LEVEL="${LOG_LEVEL:-INFO}"
 export HTTP_HOST="${HTTP_HOST:-localhost}"
 export HTTP_PORT="$HTTP_PORT"
@@ -81,7 +94,7 @@ export HTTP_PORT="$HTTP_PORT"
 export ORCHESTRATION_MODE="${ORCHESTRATION_MODE:-basic}"
 export REDIS_ENABLED="${REDIS_ENABLED:-true}"
 export REDIS_HOST="${REDIS_HOST:-localhost}"
-export REDIS_PORT="${REDIS_PORT:-6381}"
+export REDIS_PORT="${REDIS_PORT:-6382}"
 export REDIS_PASSWORD="${REDIS_PASSWORD:-ltmc_cache_2025}"
 export CACHE_ENABLED="${CACHE_ENABLED:-true}"
 export BUFFER_ENABLED="${BUFFER_ENABLED:-true}"
@@ -96,6 +109,7 @@ export ML_OPTIMIZATION_INTERVAL="${ML_OPTIMIZATION_INTERVAL:-15}"
 
 echo -e "${YELLOW}Environment variables:${NC}"
 echo -e "  DB_PATH: $DB_PATH"
+echo -e "  LTMC_DATA_DIR: $LTMC_DATA_DIR"
 echo -e "  FAISS_INDEX_PATH: $FAISS_INDEX_PATH"
 echo -e "  LOG_LEVEL: $LOG_LEVEL"
 echo -e "  HTTP_HOST: $HTTP_HOST"
@@ -135,40 +149,26 @@ else
     exit 1
 fi
 
-# Start the stdio transport server (for MCP client integration)
-echo -e "${YELLOW}Starting stdio transport server...${NC}"
+# Validate stdio transport availability (on-demand, not daemon)
+echo -e "${YELLOW}Validating stdio transport availability...${NC}"
 cd "$SCRIPT_DIR"
-# Set environment variables for stdio server
 export DB_PATH="$DB_PATH"
 export FAISS_INDEX_PATH="$FAISS_INDEX_PATH"
-nohup python ltmc_mcp_server.py > "$LOG_FILE" 2>&1 &
-STDIO_PID=$!
 
-# Save stdio PID
-echo $STDIO_PID > "$PID_FILE"
-
-# Wait a moment and check if stdio server started successfully
-sleep 2
-if ps -p $STDIO_PID > /dev/null 2>&1; then
-    echo -e "${GREEN}✓ Stdio transport server started successfully (PID: $STDIO_PID)${NC}"
-    echo -e "${GREEN}✓ Stdio log file: $LOG_FILE${NC}"
+# Test stdio entry point
+if source "$VENV_PATH/bin/activate" && python -c "from ltms.mcp_server import mcp; print('Stdio transport ready')" > /dev/null 2>&1; then
+    echo -e "${GREEN}✓ Stdio transport validated successfully${NC}"
+    echo -e "${GREEN}✓ Entry point: ltmc_mcp_server.py${NC}"
+    echo -e "${GREEN}✓ Wrapper script: run_stdio.sh${NC}"
 else
-    echo -e "${RED}✗ Failed to start stdio server${NC}"
-    echo -e "${YELLOW}Check stdio log file: $LOG_FILE${NC}"
-    rm -f "$PID_FILE"
-    # Stop HTTP server if stdio failed
-    if [ -f "$HTTP_PID_FILE" ]; then
-        HTTP_PID=$(cat "$HTTP_PID_FILE")
-        kill -TERM $HTTP_PID 2>/dev/null
-        rm -f "$HTTP_PID_FILE"
-    fi
-    exit 1
+    echo -e "${YELLOW}Warning: Stdio transport validation failed${NC}"
+    echo -e "${YELLOW}Stdio transport may not be available for IDE integration${NC}"
 fi
 
 echo -e "${GREEN}✓ LTMC MCP Server started successfully with dual transport + Advanced ML Integration!${NC}"
 echo -e "${BLUE}Transport Details:${NC}"
 echo -e "  ${GREEN}✓ HTTP Transport:${NC} http://$HTTP_HOST:$HTTP_PORT"
-echo -e "  ${GREEN}✓ Stdio Transport:${NC} Available for MCP clients"
+echo -e "  ${GREEN}✓ Stdio Transport:${NC} Available on-demand for MCP clients"
 echo -e "  ${GREEN}✓ Health Check:${NC} http://$HTTP_HOST:$HTTP_PORT/health"
 echo -e "  ${GREEN}✓ Orchestration Health:${NC} http://$HTTP_HOST:$HTTP_PORT/orchestration/health"
 echo -e "  ${GREEN}✓ Tools List:${NC} http://$HTTP_HOST:$HTTP_PORT/tools"
@@ -179,4 +179,5 @@ echo -e "  ${GREEN}✓ ML Optimize:${NC} http://$HTTP_HOST:$HTTP_PORT/ml/optimiz
 echo -e "${YELLOW}To test HTTP: curl http://$HTTP_HOST:$HTTP_PORT/health${NC}"
 echo -e "${YELLOW}To test orchestration: curl http://$HTTP_HOST:$HTTP_PORT/orchestration/health${NC}"
 echo -e "${YELLOW}To test ML integration: curl http://$HTTP_HOST:$HTTP_PORT/ml/status${NC}"
-echo -e "${YELLOW}To test stdio: mcp dev ltmc_mcp_server.py${NC}"
+echo -e "${YELLOW}To use stdio: ./run_stdio.sh or python ltmc_mcp_server.py${NC}"
+echo -e "${YELLOW}For IDE integration: mcp dev ltmc_mcp_server.py${NC}"

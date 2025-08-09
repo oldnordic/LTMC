@@ -17,9 +17,9 @@ class RedisConnectionManager:
     def __init__(
         self,
         host: str = "localhost", 
-        port: int = 6381,  # Different port to avoid KWE conflicts (6379=KWE native, 6380=KWE docker)
+        port: int = 6382,  # FIXED: Non-conflicting port, avoiding KWE Redis ports
         db: int = 0,
-        password: Optional[str] = None,
+        password: Optional[str] = None,  # FIXED: Optional auth to match server config
         max_connections: int = 20,
         socket_keepalive: bool = True,
         socket_keepalive_options: Optional[Dict[str, int]] = None
@@ -28,7 +28,7 @@ class RedisConnectionManager:
         
         Args:
             host: Redis server host
-            port: Redis server port (6381 to avoid KWE conflicts)
+            port: Redis server port (6382 to avoid KWE conflicts)
             db: Redis database number
             password: Optional password for authentication
             max_connections: Maximum connection pool size
@@ -56,24 +56,31 @@ class RedisConnectionManager:
     async def initialize(self) -> None:
         """Initialize Redis connection pool."""
         try:
-            self._pool = aioredis.ConnectionPool(
-                host=self.host,
-                port=self.port,
-                db=self.db,
-                password=self.password,
-                max_connections=self.max_connections,
-                socket_keepalive=True,
-                socket_keepalive_options=self.socket_keepalive_options,
-                retry_on_timeout=True,
-                health_check_interval=30
-            )
+            # Create connection pool with conditional authentication
+            pool_kwargs = {
+                "host": self.host,
+                "port": self.port,
+                "db": self.db,
+                "max_connections": self.max_connections,
+                "socket_keepalive": True,
+                "socket_keepalive_options": self.socket_keepalive_options,
+                "retry_on_timeout": True,
+                "health_check_interval": 30
+            }
+            
+            # Only add password if one is configured
+            if self.password:
+                pool_kwargs["password"] = self.password
+                
+            self._pool = aioredis.ConnectionPool(**pool_kwargs)
             
             self._client = aioredis.Redis(connection_pool=self._pool)
             
             # Test connection
             await self._client.ping()
             self._is_connected = True
-            logger.info(f"Redis connection established on {self.host}:{self.port}")
+            auth_status = "with auth" if self.password else "without auth"
+            logger.info(f"Redis connection established on {self.host}:{self.port} ({auth_status})")
             
         except Exception as e:
             logger.error(f"Failed to connect to Redis: {e}")
@@ -324,10 +331,16 @@ async def get_redis_manager() -> RedisConnectionManager:
     if not _redis_manager:
         _redis_manager = RedisConnectionManager(
             host="localhost",
-            port=6381,
-            password="ltmc_cache_2025"
+            port=6382,  # FIXED: Non-conflicting port, avoiding KWE Redis ports
+            password=None  # FIXED: Match actual Redis server config (no auth required)
         )
         await _redis_manager.initialize()
+    elif not _redis_manager.is_connected:
+        # Reinitialize if connection was lost
+        try:
+            await _redis_manager.initialize()
+        except Exception as e:
+            logger.warning(f"Redis reconnection failed: {e}")
     return _redis_manager
 
 
@@ -337,6 +350,10 @@ async def get_cache_service() -> RedisCacheService:
     if not _cache_service:
         manager = await get_redis_manager()
         _cache_service = RedisCacheService(manager)
+    else:
+        # Ensure the underlying Redis manager is connected
+        manager = await get_redis_manager()
+        _cache_service.redis_manager = manager
     return _cache_service
 
 

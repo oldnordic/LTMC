@@ -18,18 +18,21 @@ HTTP_PID_FILE="$SCRIPT_DIR/ltmc_http.pid"
 if [ "$1" = "--status" ]; then
     echo -e "${BLUE}LTMC MCP Server Status:${NC}"
     
-    # Check stdio server
-    if [ -f "$PID_FILE" ]; then
-        PID=$(cat "$PID_FILE")
-        if ps -p $PID > /dev/null 2>&1; then
-            echo -e "${GREEN}✓ Stdio transport server is running (PID: $PID)${NC}"
-            echo -e "${BLUE}  Entry point: ltmc_mcp_server.py${NC}"
-        else
-            echo -e "${RED}✗ Stdio server PID file exists but process is not running${NC}"
-            rm -f "$PID_FILE"
-        fi
+    # Check stdio transport availability (on-demand, not daemon)
+    echo -e "${BLUE}Checking stdio transport availability...${NC}"
+    if [ -f "ltmc_mcp_server.py" ]; then
+        echo -e "${GREEN}✓ Stdio transport available for MCP clients${NC}"
+        echo -e "${BLUE}  Entry point: ltmc_mcp_server.py${NC}"
+        echo -e "${BLUE}  Usage: python ltmc_mcp_server.py (interactive)${NC}"
+        echo -e "${BLUE}  Usage: mcp dev ltmc_mcp_server.py (with MCP dev tool)${NC}"
     else
-        echo -e "${YELLOW}No stdio PID file found - stdio server not running${NC}"
+        echo -e "${RED}✗ Stdio transport entry point not found${NC}"
+    fi
+    
+    # Clean any stale stdio PID files
+    if [ -f "$PID_FILE" ]; then
+        echo -e "${YELLOW}Removing stale stdio PID file${NC}"
+        rm -f "$PID_FILE"
     fi
     
     # Check HTTP server

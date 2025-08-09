@@ -23,10 +23,10 @@ echo -e "${BLUE}========================================${NC}"
 
 # Check Redis connection  
 echo -e "${BLUE}LTMC Redis Service Status:${NC}"
-if python -c "import redis; r=redis.Redis(host='localhost', port=6381, decode_responses=True, password='ltmc_cache_2025'); r.ping()" 2>/dev/null; then
-    echo -e "${GREEN}✓ LTMC Redis is running on port 6381${NC}"
+if python -c "import redis; r=redis.Redis(host='localhost', port=6382, decode_responses=True); r.ping()" 2>/dev/null; then
+    echo -e "${GREEN}✓ LTMC Redis is running on port 6382${NC}"
 else
-    echo -e "${YELLOW}⚠ LTMC Redis not available on port 6381${NC}"
+    echo -e "${YELLOW}⚠ LTMC Redis not available on port 6382${NC}"
     echo -e "${YELLOW}  Start with: ./redis_control.sh start${NC}"
 fi
 echo

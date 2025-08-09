@@ -62,10 +62,12 @@ from ltms.database.neo4j_store import (
     get_document_relationships
 )
 
+# Import centralized configuration with proper .env loading
+from ltms.config import config, DB_PATH, FAISS_INDEX_PATH, EMBEDDING_MODEL
+
 # Default environment variables (fallbacks). Actual paths are resolved at call time.
-DEFAULT_DB_PATH = os.getenv("DB_PATH", "ltmc.db")
-DEFAULT_FAISS_INDEX_PATH = os.getenv("FAISS_INDEX_PATH", "faiss_index")
-EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
+DEFAULT_DB_PATH = DB_PATH
+DEFAULT_FAISS_INDEX_PATH = FAISS_INDEX_PATH
 
 # Neo4j configuration
 NEO4J_CONFIG = {
@@ -88,14 +90,14 @@ def store_memory(file_name: str, content: str, resource_type: str = "document") 
             return {"success": False, "error": "file_name and content are required"}
         
         # Get database connection (resolve path at call time)
-        db_path = os.getenv("DB_PATH", DEFAULT_DB_PATH)
+        db_path = config.get_db_path()
         conn = get_db_connection(db_path)
         create_tables(conn)
         
         # Add resource using real service
         result = add_resource(
             conn=conn,
-            index_path=os.getenv("FAISS_INDEX_PATH", DEFAULT_FAISS_INDEX_PATH),
+            index_path=config.get_faiss_index_path(),
             file_name=file_name,
             resource_type=resource_type,
             content=content
@@ -127,14 +129,14 @@ def retrieve_memory(conversation_id: str, query: str, top_k: int = 3) -> Dict[st
             return {"success": False, "error": "conversation_id and query are required"}
         
         # Get database connection
-        db_path = os.getenv("DB_PATH", DEFAULT_DB_PATH)
+        db_path = config.get_db_path()
         conn = get_db_connection(db_path)
         create_tables(conn)
         
         # Get context using real service
         result = get_context_for_query(
             conn=conn,
-             index_path=os.getenv("FAISS_INDEX_PATH", DEFAULT_FAISS_INDEX_PATH),
+            index_path=config.get_faiss_index_path(),
             conversation_id=conversation_id,
             query=query,
             top_k=top_k
@@ -177,7 +179,7 @@ def log_chat(
             return {"success": False, "error": "conversation_id, role, and content are required"}
         
         # Get database connection
-        db_path = os.getenv("DB_PATH", DEFAULT_DB_PATH)
+        db_path = config.get_db_path()
         conn = get_db_connection(db_path)
         create_tables(conn)
         
@@ -246,7 +248,7 @@ def add_todo(title: str, description: str, priority: str = "medium") -> Dict[str
             return {"success": False, "error": "title and description are required"}
         
         # Get database connection
-        db_path = os.getenv("DB_PATH", DEFAULT_DB_PATH)
+        db_path = config.get_db_path()
         conn = get_db_connection(db_path)
         create_tables(conn)
         
@@ -273,23 +275,30 @@ def add_todo(title: str, description: str, priority: str = "medium") -> Dict[str
 
 
 @mcp.tool()
-def list_todos(completed: Optional[bool] = None) -> Dict[str, Any]:
+def list_todos(status: str = "all", limit: int = 10) -> Dict[str, Any]:
     """List todo items with real database query."""
     try:
         # Get database connection
-        db_path = os.getenv("DB_PATH", DEFAULT_DB_PATH)
+        db_path = config.get_db_path()
         conn = get_db_connection(db_path)
         create_tables(conn)
         
-        # Query todos
+        # Query todos based on status
         cursor = conn.cursor()
-        if completed is None:
-            cursor.execute("SELECT * FROM Todos ORDER BY created_at DESC")
-        else:
+        if status == "all":
+            cursor.execute("SELECT * FROM Todos ORDER BY created_at DESC LIMIT ?", (limit,))
+        elif status == "pending":
             cursor.execute(
-                "SELECT * FROM Todos WHERE completed = ? ORDER BY created_at DESC",
-                (completed,)
+                "SELECT * FROM Todos WHERE completed = 0 ORDER BY created_at DESC LIMIT ?",
+                (limit,)
             )
+        elif status == "completed":
+            cursor.execute(
+                "SELECT * FROM Todos WHERE completed = 1 ORDER BY created_at DESC LIMIT ?",
+                (limit,)
+            )
+        else:
+            cursor.execute("SELECT * FROM Todos ORDER BY created_at DESC LIMIT ?", (limit,))
         
         todos = []
         for row in cursor.fetchall():
@@ -324,7 +333,7 @@ def complete_todo(todo_id: int) -> Dict[str, Any]:
             return {"success": False, "error": "todo_id is required"}
         
         # Get database connection
-        db_path = os.getenv("DB_PATH", DEFAULT_DB_PATH)
+        db_path = config.get_db_path()
         conn = get_db_connection(db_path)
         create_tables(conn)
         
@@ -361,7 +370,7 @@ def search_todos(query: str) -> Dict[str, Any]:
             return {"success": False, "error": "query is required"}
         
         # Get database connection
-        db_path = os.getenv("DB_PATH", DEFAULT_DB_PATH)
+        db_path = config.get_db_path()
         conn = get_db_connection(db_path)
         create_tables(conn)
         
@@ -406,7 +415,7 @@ def store_context_links_tool(message_id: int, chunk_ids: List[int]) -> Dict[str,
             return {"success": False, "error": "message_id and chunk_ids are required"}
         
         # Get database connection
-        db_path = os.getenv("DB_PATH", DEFAULT_DB_PATH)
+        db_path = config.get_db_path()
         conn = get_db_connection(db_path)
         create_tables(conn)
         
@@ -431,7 +440,7 @@ def get_context_links_for_message_tool(message_id: int) -> Dict[str, Any]:
             return {"success": False, "error": "message_id is required"}
         
         # Get database connection
-        db_path = os.getenv("DB_PATH", DEFAULT_DB_PATH)
+        db_path = config.get_db_path()
         conn = get_db_connection(db_path)
         create_tables(conn)
         
@@ -456,7 +465,8 @@ def get_messages_for_chunk_tool(chunk_id: int) -> Dict[str, Any]:
             return {"success": False, "error": "chunk_id is required"}
         
         # Get database connection
-        conn = get_db_connection(DB_PATH)
+        db_path = config.get_db_path()
+        conn = get_db_connection(db_path)
         create_tables(conn)
         
         # Get messages for chunk
@@ -476,7 +486,8 @@ def get_context_usage_statistics_tool() -> Dict[str, Any]:
     """Get statistics about context usage."""
     try:
         # Get database connection
-        conn = get_db_connection(DB_PATH)
+        db_path = config.get_db_path()
+        conn = get_db_connection(db_path)
         create_tables(conn)
         
         # Get statistics
@@ -628,7 +639,7 @@ def log_code_attempt(
             return {"success": False, "error": "result must be one of: pass, fail, partial"}
         
         # Get database connection
-        db_path = os.getenv("DB_PATH", DEFAULT_DB_PATH)
+        db_path = config.get_db_path()
         conn = get_db_connection(db_path)
         create_tables(conn)
         
@@ -678,7 +689,7 @@ def get_code_patterns(
             return {"success": False, "error": "result_filter must be one of: pass, fail, partial"}
         
         # Get database connection
-        db_path = os.getenv("DB_PATH", DEFAULT_DB_PATH)
+        db_path = config.get_db_path()
         conn = get_db_connection(db_path)
         create_tables(conn)
         
@@ -720,7 +731,7 @@ def analyze_code_patterns_tool(
             return {"success": False, "error": "time_range_days must be positive"}
         
         # Get database connection
-        db_path = os.getenv("DB_PATH", DEFAULT_DB_PATH)
+        db_path = config.get_db_path()
         conn = get_db_connection(db_path)
         create_tables(conn)
         
@@ -763,7 +774,7 @@ def get_chats_by_tool(source_tool: str, limit: int = 100, conversation_id: str |
             return {"success": False, "error": "limit must be between 1 and 1000"}
         
         # Get database connection
-        db_path = os.getenv("DB_PATH", DEFAULT_DB_PATH)
+        db_path = config.get_db_path()
         conn = get_db_connection(db_path)
         create_tables(conn)
         
@@ -818,7 +829,7 @@ def list_tool_identifiers() -> Dict[str, Any]:
     """
     try:
         # Get database connection
-        db_path = os.getenv("DB_PATH", DEFAULT_DB_PATH)
+        db_path = config.get_db_path()
         conn = get_db_connection(db_path)
         create_tables(conn)
         
@@ -893,7 +904,7 @@ def get_tool_conversations(source_tool: str, limit: int = 50) -> Dict[str, Any]:
             return {"success": False, "error": "limit must be between 1 and 200"}
         
         # Get database connection
-        db_path = os.getenv("DB_PATH", DEFAULT_DB_PATH)
+        db_path = config.get_db_path()
         conn = get_db_connection(db_path)
         create_tables(conn)
         
@@ -939,38 +950,22 @@ def get_tool_conversations(source_tool: str, limit: int = 50) -> Dict[str, Any]:
 
 
 @mcp.tool()
-def redis_cache_stats() -> Dict[str, Any]:
+async def redis_cache_stats() -> Dict[str, Any]:
     """Get Redis cache statistics and health status.
     
     Returns:
         Dictionary with Redis cache statistics and connection health
     """
-    import asyncio
-    
-    async def get_stats():
-        try:
-            cache_service = await get_cache_service()
-            return await cache_service.get_cache_stats()
-        except Exception as e:
-            return {"connected": False, "error": str(e)}
-    
     try:
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
-            # If event loop is running, create a task
-            import concurrent.futures
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                future = executor.submit(asyncio.run, get_stats())
-                return {"success": True, "stats": future.result()}
-        else:
-            # If no loop running, run directly
-            return {"success": True, "stats": asyncio.run(get_stats())}
+        cache_service = await get_cache_service()
+        stats = await cache_service.get_cache_stats()
+        return {"success": True, "stats": stats}
     except Exception as e:
-        return {"success": False, "error": str(e)}
+        return {"success": False, "error": str(e), "stats": {"connected": False, "error": str(e)}}
 
 
 @mcp.tool()
-def redis_flush_cache(cache_type: str = "all") -> Dict[str, Any]:
+async def redis_flush_cache(cache_type: str = "all") -> Dict[str, Any]:
     """Flush Redis cache entries.
     
     Args:
@@ -979,47 +974,35 @@ def redis_flush_cache(cache_type: str = "all") -> Dict[str, Any]:
     Returns:
         Dictionary with flush results
     """
-    import asyncio
-    
-    async def flush_cache():
-        try:
-            cache_service = await get_cache_service()
+    try:
+        cache_service = await get_cache_service()
+        
+        if cache_type == "all":
+            # Flush all LTMC cache entries
+            embedding_count = await cache_service.invalidate_cache("ltmc:embedding:*")
+            query_count = await cache_service.invalidate_cache("ltmc:query:*")
+            chunk_count = await cache_service.invalidate_cache("ltmc:chunk:*")
+            resource_count = await cache_service.invalidate_cache("ltmc:resource:*")
             
-            if cache_type == "all":
-                # Flush all LTMC cache entries
-                embedding_count = await cache_service.invalidate_cache("ltmc:embedding:*")
-                query_count = await cache_service.invalidate_cache("ltmc:query:*")
-                chunk_count = await cache_service.invalidate_cache("ltmc:chunk:*")
-                resource_count = await cache_service.invalidate_cache("ltmc:resource:*")
-                
-                return {
+            return {
+                "success": True,
+                "result": {
                     "flushed_embeddings": embedding_count,
                     "flushed_queries": query_count,
                     "flushed_chunks": chunk_count,
                     "flushed_resources": resource_count,
                     "total_flushed": embedding_count + query_count + chunk_count + resource_count
                 }
-            elif cache_type == "embeddings":
-                count = await cache_service.invalidate_cache("ltmc:embedding:*")
-                return {"flushed_embeddings": count}
-            elif cache_type == "queries":
-                count = await cache_service.invalidate_cache("ltmc:query:*")
-                return {"flushed_queries": count}
-            else:
-                return {"error": f"Unknown cache_type: {cache_type}"}
-                
-        except Exception as e:
-            return {"error": str(e)}
-    
-    try:
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
-            import concurrent.futures
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                future = executor.submit(asyncio.run, flush_cache())
-                return {"success": True, "result": future.result()}
+            }
+        elif cache_type == "embeddings":
+            count = await cache_service.invalidate_cache("ltmc:embedding:*")
+            return {"success": True, "result": {"flushed_embeddings": count}}
+        elif cache_type == "queries":
+            count = await cache_service.invalidate_cache("ltmc:query:*")
+            return {"success": True, "result": {"flushed_queries": count}}
         else:
-            return {"success": True, "result": asyncio.run(flush_cache())}
+            return {"success": False, "error": f"Unknown cache_type: {cache_type}"}
+            
     except Exception as e:
         return {"success": False, "error": str(e)}
 
@@ -1084,6 +1067,19 @@ async def _store_memory_proxy(file_name: str, content: str, resource_type: str =
 
 async def _retrieve_memory_proxy(conversation_id: str, query: str, top_k: int = 3) -> Dict[str, Any]:
     return retrieve_memory(conversation_id, query, top_k)
+
+
+# Redis tool proxy functions for async handling
+async def _redis_health_check_proxy() -> Dict[str, Any]:
+    return await redis_health_check()
+
+
+async def _redis_cache_stats_proxy() -> Dict[str, Any]:
+    return await redis_cache_stats()
+
+
+async def _redis_flush_cache_proxy(cache_type: str = "all") -> Dict[str, Any]:
+    return await redis_flush_cache(cache_type)
 
 
 async def _log_chat_proxy(conversation_id: str, role: str, content: str) -> Dict[str, Any]:

@@ -4,6 +4,9 @@ import os
 import logging
 import asyncio
 from typing import Dict, Any, List, Optional
+
+# Import centralized configuration
+from ltms.config import config
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -15,6 +18,7 @@ from ltms.tools.chat_tools import CHAT_TOOLS
 from ltms.tools.todo_tools import TODO_TOOLS
 from ltms.tools.context_tools import CONTEXT_TOOLS
 from ltms.tools.code_pattern_tools import CODE_PATTERN_TOOLS
+from ltms.tools.redis_tools import REDIS_TOOLS
 
 # Import Advanced ML Integration
 from ltms.ml.learning_integration import AdvancedLearningIntegration
@@ -45,7 +49,8 @@ ALL_TOOLS = {
     **CHAT_TOOLS,
     **TODO_TOOLS, 
     **CONTEXT_TOOLS,
-    **CODE_PATTERN_TOOLS
+    **CODE_PATTERN_TOOLS,
+    **REDIS_TOOLS
 }
 
 # Global Advanced ML Integration instance
@@ -109,6 +114,23 @@ async def health():
             "message": "Orchestration health check failed"
         }
     
+    # Add embedding models health status
+    try:
+        from ltms.services.embedding_service import get_model_stats
+        model_stats = get_model_stats()
+        health_info["embedding_models"] = {
+            "preloaded": model_stats["initialized"],
+            "loaded_models": model_stats["loaded_models"],
+            "model_count": model_stats["model_count"],
+            "performance_optimized": model_stats["model_count"] > 0
+        }
+    except Exception as e:
+        health_info["embedding_models"] = {
+            "preloaded": False,
+            "error": str(e),
+            "message": "Embedding models health check failed"
+        }
+    
     return health_info
 
 @app.get("/orchestration/health")
@@ -161,6 +183,15 @@ async def ml_integration_status():
     
     try:
         return await ml_integration.get_integration_status()
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.get("/embedding/status")
+async def embedding_model_status():
+    """Get embedding model status and performance information."""
+    try:
+        from ltms.services.embedding_service import get_model_stats
+        return get_model_stats()
     except Exception as e:
         return {"error": str(e)}
 
@@ -277,18 +308,40 @@ async def startup():
     
     try:
         # Initialize database
-        db_path = os.environ.get("DB_PATH", "ltmc.db")
+        db_path = config.get_db_path()
         conn = get_db_connection(db_path)
         create_tables(conn)
         conn.close()
         logger.info("Database initialized successfully")
         
-        # Initialize Redis if available
+        # Pre-load embedding models to prevent per-request loading
         try:
-            from ltms.services.redis_service import get_redis_manager
+            from ltms.services.embedding_service import initialize_embedding_models
+            models_to_preload = ["all-MiniLM-L6-v2"]  # Common model used throughout LTMC
+            success = initialize_embedding_models(models_to_preload)
+            if success:
+                logger.info("🚀 Embedding models pre-loaded successfully - no more per-request loading!")
+            else:
+                logger.warning("⚠️ Failed to pre-load embedding models - will load on first use")
+        except Exception as embedding_error:
+            logger.warning(f"Embedding model pre-loading failed: {embedding_error}")
+        
+        # Initialize Redis if available and force global state persistence
+        try:
+            from ltms.services.redis_service import get_redis_manager, get_cache_service
             redis_manager = await get_redis_manager()
             if redis_manager.is_connected:
                 logger.info(f"Redis connected: {redis_manager.host}:{redis_manager.port}")
+                
+                # Force cache service initialization to ensure global state
+                cache_service = await get_cache_service()
+                logger.info("Redis cache service initialized and ready")
+                
+                # Test a basic operation to ensure everything is working
+                test_stats = await cache_service.get_cache_stats()
+                logger.info(f"Redis cache test: connected={test_stats.get('connected', False)}")
+            else:
+                logger.warning(f"Redis manager created but not connected")
         except Exception as redis_error:
             logger.warning(f"Redis initialization failed: {redis_error}")
         
@@ -316,7 +369,7 @@ async def startup():
         global ml_integration
         try:
             logger.info("Initializing Advanced ML Integration...")
-            ml_integration = AdvancedLearningIntegration(db_path)
+            ml_integration = AdvancedLearningIntegration(config.get_db_path())
             ml_success = await ml_integration.initialize()
             
             if ml_success:
@@ -359,6 +412,14 @@ async def shutdown():
             logger.info("Orchestration integration shutdown complete")
         except Exception as orch_error:
             logger.warning(f"Orchestration shutdown error: {orch_error}")
+        
+        # Cleanup embedding models
+        try:
+            from ltms.services.embedding_service import cleanup_embedding_models
+            cleanup_embedding_models()
+            logger.info("Embedding models cleanup complete")
+        except Exception as embedding_error:
+            logger.warning(f"Embedding cleanup error: {embedding_error}")
         
         # Shutdown Redis
         from ltms.services.redis_service import cleanup_redis

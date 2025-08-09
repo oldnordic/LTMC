@@ -5,6 +5,7 @@ from typing import Dict, Any, List
 from ltms.database.dal import get_chunks_by_vector_ids
 from ltms.services.embedding_service import create_embedding_model, encode_text
 from ltms.vector_store.faiss_store import load_index, search_vectors
+from ltms.database.context_linking import store_context_links
 
 
 def get_context_for_query(
@@ -59,7 +60,7 @@ def get_context_for_query(
         
         # Step 5: Create context links
         chunk_ids = [chunk['chunk_id'] for chunk in chunks]
-        create_context_links(conn, message_id, chunk_ids)
+        store_context_links(conn, message_id, chunk_ids)
         
         # Step 6: Assemble context
         context_parts = []
