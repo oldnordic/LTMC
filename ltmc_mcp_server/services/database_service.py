@@ -7,6 +7,7 @@ Preserves API compatibility while using modular architecture.
 """
 
 import logging
+from typing import Dict, Any
 from config.settings import LTMCSettings
 from .basic_database_service import BasicDatabaseService  
 from .advanced_database_service import AdvancedDatabaseService
@@ -65,3 +66,8 @@ class DatabaseService:
     
     async def get_code_patterns(self, query_tags=None, result_filter=None, limit: int = 10):
         return await self.advanced_service.get_code_patterns(query_tags, result_filter, limit)
+    
+    # Health check operations (delegate to basic_service for SQLite health)
+    async def health_check(self) -> Dict[str, Any]:
+        """Database service health check - delegates to SQLite health check."""
+        return await self.basic_service.health_check()

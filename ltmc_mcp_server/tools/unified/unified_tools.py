@@ -40,7 +40,7 @@ def register_unified_tools(mcp: FastMCP, settings: LTMCSettings) -> None:
     db_service = DatabaseService(settings)
     redis_service = RedisService(settings)
     neo4j_service = Neo4jService(settings)
-    faiss_service = FAISSService(settings)
+    faiss_service = FAISSService(settings, database_service=db_service)
     
     @mcp.tool()
     async def get_performance_report() -> Dict[str, Any]:

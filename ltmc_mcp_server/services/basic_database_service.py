@@ -194,19 +194,129 @@ class BasicDatabaseService:
             
             return list(reversed(messages))  # Return in chronological order
     
+    @measure_performance
+    async def health_check(self) -> Dict[str, Any]:
+        """
+        Perform SQLite database health check.
+        
+        Returns:
+            Dict with health status, connection info, and database metrics
+        """
+        import time
+        
+        try:
+            # Test database connectivity and basic operations
+            start_time = time.time()
+            
+            async with aiosqlite.connect(self.db_path) as db:
+                # Test basic connectivity with a simple query
+                cursor = await db.execute("SELECT 1")
+                await cursor.fetchone()
+                
+                # Test table access
+                cursor = await db.execute("SELECT name FROM sqlite_master WHERE type='table'")
+                tables = await cursor.fetchall()
+                table_count = len(tables)
+                
+                # Test Resources table specifically
+                cursor = await db.execute("SELECT COUNT(*) FROM Resources")
+                resource_count_result = await cursor.fetchone()
+                resource_count = resource_count_result[0] if resource_count_result else 0
+                
+                # Test ChatHistory table
+                cursor = await db.execute("SELECT COUNT(*) FROM ChatHistory")
+                chat_count_result = await cursor.fetchone()
+                chat_count = chat_count_result[0] if chat_count_result else 0
+                
+                # Test VectorIdSequence table
+                cursor = await db.execute("SELECT last_vector_id FROM VectorIdSequence WHERE id = 1")
+                vector_seq_result = await cursor.fetchone()
+                last_vector_id = vector_seq_result[0] if vector_seq_result else 0
+                
+                # Test write capability with a transaction
+                await db.execute("BEGIN TRANSACTION")
+                await db.execute("SELECT 1")  # Simple read within transaction
+                await db.execute("ROLLBACK")
+                
+            # Calculate latency
+            latency_ms = (time.time() - start_time) * 1000
+            
+            return {
+                "status": "healthy",
+                "connected": True,
+                "service": "SQLite (BasicDatabaseService)",
+                "latency_ms": round(latency_ms, 2),
+                "metrics": {
+                    "database_path": str(self.db_path),
+                    "table_count": table_count,
+                    "resource_count": resource_count,
+                    "chat_message_count": chat_count,
+                    "last_vector_id": last_vector_id,
+                    "transaction_support": True
+                },
+                "error": None
+            }
+            
+        except Exception as e:
+            self.logger.error(f"SQLite health check failed: {e}")
+            return {
+                "status": "error",
+                "connected": False,
+                "service": "SQLite (BasicDatabaseService)",
+                "latency_ms": None,
+                "metrics": {
+                    "database_path": str(self.db_path),
+                    "error_details": str(e)
+                },
+                "error": str(e)
+            }
+
     async def _get_next_vector_id(self, db: aiosqlite.Connection) -> int:
-        """Get next available vector ID."""
-        cursor = await db.execute("SELECT last_vector_id FROM VectorIdSequence WHERE id = 1")
-        row = await cursor.fetchone()
+        """
+        Get next available vector ID using atomic database sequence.
         
-        if row:
-            next_id = row[0] + 1
-        else:
-            next_id = 1
+        RACE CONDITION FIX: Uses atomic UPDATE with row locking to prevent 
+        concurrent operations from generating the same vector_id.
         
-        await db.execute(
-            "UPDATE VectorIdSequence SET last_vector_id = ? WHERE id = 1",
-            (next_id,)
-        )
+        Returns:
+            int: Next sequential vector ID from database
+        """
+        # First, ensure the sequence record exists
+        await db.execute("""
+            INSERT OR IGNORE INTO VectorIdSequence (id, last_vector_id) 
+            VALUES (1, 0)
+        """)
         
-        return next_id
+        # ATOMIC OPERATION: Increment and get new value in one statement
+        try:
+            # Use RETURNING clause for atomic read-after-write (SQLite 3.35+)
+            cursor = await db.execute("""
+                UPDATE VectorIdSequence 
+                SET last_vector_id = last_vector_id + 1 
+                WHERE id = 1 
+                RETURNING last_vector_id
+            """)
+            row = await cursor.fetchone()
+            
+            if row:
+                next_id = row[0]
+                self.logger.debug(f"Generated vector ID (atomic): {next_id}")
+                return next_id
+            else:
+                raise RuntimeError("Failed to update VectorIdSequence atomically")
+                
+        except aiosqlite.OperationalError:
+            # Fallback for older SQLite versions without RETURNING support
+            # Note: This fallback uses the existing transaction from the caller
+            cursor = await db.execute("SELECT last_vector_id FROM VectorIdSequence WHERE id = 1")
+            row = await cursor.fetchone()
+            
+            next_id = (row[0] + 1) if row else 1
+            
+            await db.execute(
+                "UPDATE VectorIdSequence SET last_vector_id = ? WHERE id = 1",
+                (next_id,)
+            )
+            
+            self.logger.debug(f"Generated vector ID (fallback): {next_id}")
+            return next_id

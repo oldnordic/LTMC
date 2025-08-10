@@ -40,7 +40,7 @@ def register_advanced_tools(mcp: FastMCP, settings: LTMCSettings) -> None:
     
     # Initialize services
     db_service = DatabaseService(settings)
-    faiss_service = FAISSService(settings)
+    faiss_service = FAISSService(settings, database_service=db_service)
     
     @mcp.tool()
     async def get_context_usage_statistics() -> Dict[str, Any]:

@@ -48,6 +48,96 @@ class Neo4jService:
             return False
     
     @measure_performance
+    async def health_check(self) -> Dict[str, Any]:
+        """
+        Perform Neo4j graph database health check.
+        
+        Returns:
+            Dict with health status, connection info, and database metrics
+        """
+        import time
+        
+        try:
+            if not self.driver:
+                return {
+                    "status": "error",
+                    "connected": False,
+                    "service": "Neo4j",
+                    "latency_ms": None,
+                    "metrics": {"error_details": "Driver not initialized"},
+                    "error": "Neo4j driver not initialized"
+                }
+            
+            # Test database connectivity and basic operations
+            start_time = time.time()
+            
+            async with self.driver.session() as session:
+                # Test basic connectivity with simple query
+                result = await session.run("RETURN 1 as test")
+                test_record = await result.single()
+                
+                # Test database info query
+                result = await session.run("CALL db.info() YIELD name, value RETURN name, value")
+                db_info = await result.data()
+                
+                # Test node count (lightweight query)
+                result = await session.run("MATCH (n) RETURN count(n) as node_count LIMIT 1")
+                count_record = await result.single()
+                node_count = count_record["node_count"] if count_record else 0
+                
+                # Test relationship count 
+                result = await session.run("MATCH ()-[r]->() RETURN count(r) as rel_count LIMIT 1")
+                rel_record = await result.single()
+                relationship_count = rel_record["rel_count"] if rel_record else 0
+                
+                # Test write capability with transaction rollback
+                tx = await session.begin_transaction()
+                try:
+                    await tx.run("CREATE (:HealthCheck {timestamp: timestamp()})")
+                    await tx.rollback()  # Don't actually create the node
+                    write_capable = True
+                except Exception:
+                    write_capable = False
+                    await tx.rollback()
+            
+            # Calculate latency
+            latency_ms = (time.time() - start_time) * 1000
+            
+            # Extract relevant database info
+            db_metrics = {}
+            for info in db_info:
+                if info.get("name") in ["neo4jVersion", "databaseName", "storeSizeBytes"]:
+                    db_metrics[info["name"]] = info.get("value")
+            
+            return {
+                "status": "healthy",
+                "connected": True,
+                "service": "Neo4j",
+                "latency_ms": round(latency_ms, 2),
+                "metrics": {
+                    "node_count": node_count,
+                    "relationship_count": relationship_count,
+                    "write_capable": write_capable,
+                    "database_info": db_metrics
+                },
+                "error": None
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Neo4j health check failed: {e}")
+            return {
+                "status": "error",
+                "connected": False,
+                "service": "Neo4j",
+                "latency_ms": None,
+                "metrics": {
+                    "error_details": str(e),
+                    "driver_initialized": self.driver is not None
+                },
+                "error": str(e)
+            }
+
+    @measure_performance
     async def create_node(self, label: str, properties: Dict[str, Any]) -> Optional[int]:
         """Create node in Neo4j."""
         if not self.driver:
