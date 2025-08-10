@@ -19,14 +19,16 @@ LTMC is a sophisticated Model Context Protocol (MCP) server that provides:
 
 ### 1. Basic Setup
 
-After installation (see [Deployment Guide](DEPLOYMENT.md)), verify LTMC is running:
+After installation (see [Deployment Guide](DEPLOYMENT.md)), configure LTMC in Claude Code:
 
-```bash
-# Check server status
-curl http://localhost:5050/health
-
-# List available tools
-curl http://localhost:5050/tools
+```json
+{
+  "ltmc": {
+    "command": "python",
+    "args": ["ltmc_mcp_server/main.py"],
+    "cwd": "/path/to/ltmc-mcp-server"
+  }
+}
 ```
 
 ### 2. Your First Memory Storage

@@ -3,7 +3,7 @@
 **Version**: 3.0  
 **Status**: Production Ready  
 **Tools**: 55 MCP Tools  
-**Transport**: stdio (primary) + HTTP (fallback)
+**Transport**: stdio MCP protocol
 
 ## 🎯 Overview
 
@@ -23,8 +23,8 @@ LTMC is a comprehensive Model Context Protocol (MCP) server that provides persis
 ## 🛠️ Tech Stack
 
 **Core Technologies:**
-- **Python 3.11+** with FastAPI and FastMCP 
-- **MCP Protocol** - stdio (primary) and HTTP transports
+- **Python 3.11+** with FastMCP SDK
+- **MCP Protocol** - stdio transport for Claude Code integration
 - **Vector Storage** - FAISS for semantic embeddings
 - **Databases** - SQLite (primary), Redis (cache), Neo4j (graphs)
 - **AI/ML** - Pattern learning, complexity analysis, team routing
@@ -44,27 +44,24 @@ cd ltmc-mcp-server
 pip install -r requirements.txt
 ```
 
-### 2. Start Server
-```bash
-./start_server.sh
-```
-
-### 3. Test Connection
-```bash
-curl http://localhost:5050/health
-```
-
-### 4. Claude Code Integration
-Add to your MCP configuration:
+### 2. Claude Code Integration
+Add to your Claude Code MCP configuration:
 ```json
 {
   "ltmc": {
     "command": "python",
-    "args": ["-m", "ltms.mcp_server"],
-    "cwd": "/path/to/ltmc"
+    "args": ["ltmc_mcp_server/main.py"],
+    "cwd": "/path/to/ltmc-mcp-server"
   }
 }
 ```
+
+### 3. Test Integration
+Once configured, LTMC tools will be available in Claude Code:
+- Use `mcp__ltmc__store_memory` to save information
+- Use `mcp__ltmc__retrieve_memory` to search your knowledge
+- Use `mcp__ltmc__add_todo` for task management
+- Access all 55 tools through the MCP interface
 
 ## 📚 Documentation
 

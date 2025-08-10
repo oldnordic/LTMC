@@ -4,44 +4,35 @@ Complete API reference for the LTMC (Long-Term Memory and Context) MCP server wi
 
 ## Quick Reference
 
-- [HTTP Endpoints](#http-endpoints)
-- [JSON-RPC 2.0 Interface](#json-rpc-20-interface)
+- [MCP Protocol Integration](#mcp-protocol-integration)
 - [Memory Tools](#memory-tools) (2 tools)
 - [Chat Tools](#chat-tools) (4 tools)
 - [Todo Tools](#todo-tools) (4 tools)
 - [Context Tools](#context-tools) (12 tools)
 - [Code Pattern Tools](#code-pattern-tools) (3 tools)
 
-## HTTP Endpoints
+## MCP Protocol Integration
 
-### Base URL: `http://localhost:5050`
+### Claude Code Configuration
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/` | GET | Server information |
-| `/health` | GET | Health check |
-| `/tools` | GET | List all available tools |
-| `/jsonrpc` | POST | JSON-RPC 2.0 endpoint |
+Add LTMC to your Claude Code MCP configuration:
 
-### Health Check
-```bash
-curl http://localhost:5050/health
-```
-
-**Response:**
 ```json
 {
-  "status": "healthy",
-  "transport": "http", 
-  "port": 5050,
-  "tools_available": 55,
-  "architecture": "modularized_fastmcp"
+  "ltmc": {
+    "command": "python",
+    "args": ["ltmc_mcp_server/main.py"],
+    "cwd": "/path/to/ltmc-mcp-server"
+  }
 }
 ```
 
-## JSON-RPC 2.0 Interface
+### Tool Access
 
-All MCP tools are accessible via JSON-RPC 2.0 protocol at `/jsonrpc`.
+Once configured, all 55 tools are available through Claude Code MCP interface:
+- Tools are prefixed with `mcp__ltmc__`
+- Example: `mcp__ltmc__store_memory`, `mcp__ltmc__retrieve_memory`
+- Server runs automatically when Claude Code connects via stdio transport
 
 ### Request Format
 ```json

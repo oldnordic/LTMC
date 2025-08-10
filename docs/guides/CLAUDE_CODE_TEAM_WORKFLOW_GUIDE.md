@@ -576,11 +576,8 @@ mcp__ltmc__start_real_time_sync(
 
 ### **1. Basic Setup (5 minutes)**
 ```bash
-# Ensure LTMC server is running
-./start_server.sh
-
-# Verify all 55 tools are available  
-curl http://localhost:5050/health
+# Configure LTMC in your Claude Code MCP settings
+# Server runs automatically when Claude Code connects via stdio
 ```
 
 ### **2. First Workflow (15 minutes)**
