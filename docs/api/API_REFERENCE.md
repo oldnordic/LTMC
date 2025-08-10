@@ -1,29 +1,44 @@
-# LTMC API Reference
+# LTMC API Reference - 55 Tools
 
 ## Overview
 
-The LTMC (Long-Term Memory and Context) MCP Server provides 28 tools for memory management, chat history, task tracking, code patterns, and multi-agent orchestration. This document provides comprehensive API reference for all available tools.
+The LTMC (Long-Term Memory and Context) MCP Server provides **55 comprehensive tools** across 3 categories:
+- **Core LTMC (28)**: Essential memory, chat, task, and code pattern management
+- **Phase3 Advanced (26)**: Blueprint management, documentation sync, and orchestration  
+- **Unified Integration (1)**: System-wide performance monitoring
 
 ## Transport Protocols
 
-LTMC supports dual transport protocols:
+LTMC primarily uses **stdio MCP protocol** (recommended):
 
-- **HTTP Transport**: REST API available at `http://localhost:5050`
-- **MCP Protocol**: JSON-RPC over stdio for MCP clients
+- **MCP Protocol** ⭐: JSON-RPC over stdio for MCP clients (primary)
+- **HTTP Transport**: REST API fallback available at `http://localhost:5050`
 
 ## Authentication
 
 Currently, LTMC operates in development mode without authentication. For production deployments, implement appropriate authentication mechanisms.
 
-## Tool Categories
+## Tool Categories (55 Total)
 
-1. [Memory Tools](#memory-tools) - Persistent storage and retrieval
-2. [Chat Tools](#chat-tools) - Conversation history management  
-3. [Todo Tools](#todo-tools) - Task tracking and management
-4. [Context Tools](#context-tools) - Semantic context retrieval
-5. [Code Pattern Tools](#code-pattern-tools) - ML-assisted code insights
-6. [Orchestration Tools](#orchestration-tools) - Multi-agent coordination
-7. [Redis Tools](#redis-tools) - Caching and performance management
+### Core LTMC Tools (28)
+1. [Memory Tools](#memory-tools) - Persistent storage and retrieval (7 tools)
+2. [Chat Tools](#chat-tools) - Conversation history management (2 tools)
+3. [Todo Tools](#todo-tools) - Task tracking and management (4 tools)  
+4. [Context Tools](#context-tools) - Semantic context retrieval (4 tools)
+5. [Code Pattern Tools](#code-pattern-tools) - Experience replay learning (4 tools)
+6. [Redis Tools](#redis-tools) - Caching and performance management (6 tools)
+7. [System Analytics](#system-analytics) - Usage statistics (1 tool)
+
+### Phase3 Advanced Tools (26)
+8. [Task Blueprints](#task-blueprints) - ML-driven task management (9 tools)
+9. [Team Assignment](#team-assignment) - Workload management (3 tools)  
+10. [Documentation Sync](#documentation-sync) - Code-doc synchronization (5 tools)
+11. [Blueprint Integration](#blueprint-integration) - Code-blueprint sync (5 tools)
+12. [Real-Time Sync](#real-time-sync) - Live monitoring (3 tools)
+13. [Performance Metrics](#performance-metrics) - Advanced analytics (1 tool)
+
+### Unified Integration (1)
+14. [System Monitoring](#system-monitoring) - Unified performance reporting (1 tool)
 
 ## Memory Tools
 

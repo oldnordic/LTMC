@@ -1,6 +1,11 @@
 #!/bin/bash
 
 # LTMC MCP Server Stop Script - Dual Transport (Stdio + HTTP)
+# 
+# ⚠️  DEPRECATED: This script stops the OLD FastAPI server
+# ✅  NEW: Use ./stop_unified_server.sh for the new unified FastMCP server
+# 
+# The new unified server provides all Phase 1-4 features with better performance
 
 # Colors for output
 RED='\033[0;31m'

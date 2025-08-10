@@ -24,6 +24,10 @@ from ltms.services.memory_locking_service import (
     LockType,
     LockPriority
 )
+from ltms.services.enhanced_task_manager import EnhancedTaskManager, TaskAssignment
+from ltms.ml.task_routing_engine import TeamMember
+from ltms.orchestration.workflow_engine import WorkflowEngine, WorkflowDefinition
+from ltms.orchestration.task_coordinator import TaskCoordinator, CoordinationTask, ExecutionContext
 
 logger = logging.getLogger(__name__)
 
@@ -87,6 +91,9 @@ class OrchestrationService:
         self.agent_registry = None
         self.context_coordination = None
         self.memory_locking = None
+        self.task_manager = None
+        self.workflow_engine = None
+        self.task_coordinator = None
         
         # Service state
         self._initialized = False
@@ -169,6 +176,19 @@ class OrchestrationService:
                 
                 if self._mode == OrchestrationMode.FULL:
                     self.memory_locking = await get_memory_locking_service()
+                
+                # Initialize task manager for enhanced coordination
+                if self._mode in [OrchestrationMode.FULL, OrchestrationMode.BASIC]:
+                    self.task_manager = EnhancedTaskManager(redis_manager=self.redis_manager)
+                    await self.task_manager.initialize()
+                
+                # Initialize advanced orchestration components (Component 5)
+                if self._mode in [OrchestrationMode.FULL, OrchestrationMode.DEBUG]:
+                    self.workflow_engine = WorkflowEngine(redis_manager=self.redis_manager)
+                    await self.workflow_engine.initialize()
+                    
+                    self.task_coordinator = TaskCoordinator(redis_manager=self.redis_manager)
+                    await self.task_coordinator.initialize()
             
             self._initialized = True
             logger.info(f"Orchestration Service initialized in {self._mode.value} mode")
@@ -458,7 +478,9 @@ class OrchestrationService:
                     'redis': self.redis_manager is not None,
                     'agent_registry': self.agent_registry is not None,
                     'context_coordination': self.context_coordination is not None,
-                    'memory_locking': self.memory_locking is not None
+                    'memory_locking': self.memory_locking is not None,
+                    'workflow_engine': self.workflow_engine is not None,
+                    'task_coordinator': self.task_coordinator is not None
                 }
             }
             
@@ -704,6 +726,480 @@ class OrchestrationService:
             
         except Exception as e:
             logger.warning(f"Failed to share tool result: {e}")
+    
+    # Task Management Integration Methods
+    
+    async def create_team_member_from_agent(
+        self,
+        agent_id: str,
+        skills: List[str],
+        experience_level: float,
+        availability_hours: float = 8.0,
+        project_id: Optional[str] = None
+    ) -> Optional[TeamMember]:
+        """
+        Create a TeamMember instance from an agent for task assignment.
+        
+        Args:
+            agent_id: Agent identifier
+            skills: List of agent skills
+            experience_level: Experience level (0.0 to 1.0)
+            availability_hours: Available hours per day
+            project_id: Project identifier for isolation
+            
+        Returns:
+            TeamMember instance or None if agent not found
+        """
+        try:
+            agent_context = self._agent_contexts.get(agent_id)
+            if not agent_context:
+                return None
+            
+            # Get current workload from agent registry if available
+            current_workload = 0.0
+            if self.agent_registry:
+                # In a real implementation, you'd fetch actual workload
+                current_workload = 0.3  # Default moderate workload
+            
+            team_member = TeamMember(
+                member_id=agent_id,
+                name=f"Agent {agent_id[:8]}",
+                skills=skills,
+                experience_level=experience_level,
+                current_workload=current_workload,
+                availability_hours=availability_hours,
+                project_id=project_id or agent_context.session_id,
+                metadata=agent_context.metadata
+            )
+            
+            return team_member
+            
+        except Exception as e:
+            logger.error(f"Error creating team member from agent: {e}")
+            return None
+    
+    async def assign_task_to_agents(
+        self,
+        task_blueprint,
+        available_agents: List[str],
+        project_id: str,
+        agent_skills: Optional[Dict[str, List[str]]] = None,
+        agent_experience: Optional[Dict[str, float]] = None
+    ) -> Optional[TaskAssignment]:
+        """
+        Assign a task to the most suitable agent using intelligent routing.
+        
+        Args:
+            task_blueprint: TaskBlueprint to assign
+            available_agents: List of available agent IDs
+            project_id: Project identifier
+            agent_skills: Optional mapping of agent_id -> skills
+            agent_experience: Optional mapping of agent_id -> experience level
+            
+        Returns:
+            TaskAssignment or None if no suitable agent found
+        """
+        try:
+            if not self.task_manager:
+                logger.warning("Task manager not initialized, cannot assign tasks")
+                return None
+            
+            # Convert agents to team members
+            team_members = []
+            for agent_id in available_agents:
+                skills = agent_skills.get(agent_id, []) if agent_skills else []
+                experience = agent_experience.get(agent_id, 0.5) if agent_experience else 0.5
+                
+                team_member = await self.create_team_member_from_agent(
+                    agent_id=agent_id,
+                    skills=skills,
+                    experience_level=experience,
+                    project_id=project_id
+                )
+                
+                if team_member:
+                    team_members.append(team_member)
+            
+            if not team_members:
+                logger.warning(f"No valid team members created from agents: {available_agents}")
+                return None
+            
+            # Use task manager to route the task
+            assignment = await self.task_manager.route_task(
+                task_blueprint=task_blueprint,
+                available_members=team_members,
+                project_id=project_id
+            )
+            
+            logger.info(
+                f"Task {task_blueprint.blueprint_id} assigned to agent {assignment.assigned_member.member_id} "
+                f"with {assignment.confidence_score:.2%} confidence"
+            )
+            
+            return assignment
+            
+        except Exception as e:
+            logger.error(f"Error assigning task to agents: {e}")
+            return None
+    
+    async def update_agent_task_progress(
+        self,
+        assignment_id: str,
+        progress_percentage: float,
+        status: str,
+        notes: str = ""
+    ) -> bool:
+        """
+        Update progress for an agent's task assignment.
+        
+        Args:
+            assignment_id: Task assignment ID
+            progress_percentage: Progress (0.0 to 1.0)
+            status: Current status
+            notes: Progress notes
+            
+        Returns:
+            True if update successful
+        """
+        try:
+            if not self.task_manager:
+                return False
+            
+            await self.task_manager.update_task_progress(
+                assignment_id=assignment_id,
+                progress_percentage=progress_percentage,
+                status=status,
+                notes=notes
+            )
+            
+            # Share progress update with session
+            # Find the agent from assignment
+            assignment_progress = await self.task_manager.get_task_progress(assignment_id)
+            if assignment_progress:
+                await self.share_memory_update(
+                    agent_id=assignment_progress.get('agent_id', 'unknown'),
+                    memory_type='task_progress',
+                    operation='update',
+                    data={
+                        'assignment_id': assignment_id,
+                        'progress_percentage': progress_percentage,
+                        'status': status,
+                        'notes': notes
+                    }
+                )
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error updating agent task progress: {e}")
+            return False
+    
+    async def get_agent_workload_overview(
+        self,
+        project_id: str,
+        agent_ids: Optional[List[str]] = None
+    ) -> Dict[str, Any]:
+        """
+        Get workload overview for agents in a project.
+        
+        Args:
+            project_id: Project identifier
+            agent_ids: Optional specific agent IDs to include
+            
+        Returns:
+            Workload overview dictionary
+        """
+        try:
+            if not self.task_manager:
+                return {'error': 'Task manager not initialized'}
+            
+            # Get all agents in the project
+            if agent_ids is None:
+                agent_ids = [
+                    agent_id for agent_id, context in self._agent_contexts.items()
+                    if context.session_id == project_id  # Using session_id as project proxy
+                ]
+            
+            # Convert to team members
+            team_members = []
+            for agent_id in agent_ids:
+                # Get agent skills from context
+                agent_context = self._agent_contexts.get(agent_id)
+                if agent_context:
+                    team_member = TeamMember(
+                        member_id=agent_id,
+                        name=f"Agent {agent_id[:8]}",
+                        skills=agent_context.capabilities,
+                        experience_level=0.7,  # Default
+                        current_workload=0.3,  # Default
+                        availability_hours=8.0,
+                        project_id=project_id,
+                        metadata=agent_context.metadata
+                    )
+                    team_members.append(team_member)
+            
+            # Get workload overview
+            overview = await self.task_manager.get_team_workload_overview(
+                team_members=team_members,
+                project_id=project_id
+            )
+            
+            return overview
+            
+        except Exception as e:
+            logger.error(f"Error getting agent workload overview: {e}")
+            return {'error': str(e)}
+    
+    async def predict_agent_task_completion(
+        self,
+        assignment_id: str,
+        current_progress: float
+    ) -> Optional[datetime]:
+        """
+        Predict completion time for an agent's task.
+        
+        Args:
+            assignment_id: Task assignment ID
+            current_progress: Current progress (0.0 to 1.0)
+            
+        Returns:
+            Predicted completion datetime or None
+        """
+        try:
+            if not self.task_manager:
+                return None
+            
+            # Get assignment details to find the agent
+            progress_data = await self.task_manager.get_task_progress(assignment_id)
+            if not progress_data:
+                return None
+            
+            # Get agent ID from assignment (would need to be stored in progress data)
+            agent_id = progress_data.get('agent_id', 'unknown')
+            
+            predicted_time = await self.task_manager.predict_completion_time(
+                assignment_id=assignment_id,
+                current_progress=current_progress,
+                member_id=agent_id
+            )
+            
+            return predicted_time
+            
+        except Exception as e:
+            logger.error(f"Error predicting agent task completion: {e}")
+            return None
+    
+    # Advanced Orchestration Methods (Component 5 Integration)
+    
+    async def execute_workflow(
+        self,
+        workflow_id: str,
+        input_data: Dict[str, Any],
+        project_id: Optional[str] = None
+    ) -> Optional[Dict[str, Any]]:
+        """Execute a workflow using the WorkflowEngine.
+        
+        Args:
+            workflow_id: ID of workflow to execute
+            input_data: Input data for the workflow
+            project_id: Optional project identifier
+            
+        Returns:
+            Workflow execution result or None if engine not available
+        """
+        try:
+            if not self.workflow_engine:
+                logger.warning("Workflow engine not initialized - upgrade to FULL mode")
+                return None
+            
+            result = await self.workflow_engine.execute_workflow(
+                workflow_id=workflow_id,
+                input_data=input_data,
+                project_id=project_id
+            )
+            
+            return {
+                'success': result.success,
+                'execution_id': result.workflow_execution.execution_id,
+                'state': result.workflow_execution.state.value,
+                'step_results': {
+                    step_id: {
+                        'success': step_result.success,
+                        'output': step_result.output,
+                        'error': step_result.error,
+                        'execution_time': step_result.execution_time_seconds
+                    }
+                    for step_id, step_result in result.workflow_execution.step_results.items()
+                },
+                'total_time': result.total_execution_time_seconds,
+                'error': result.error_message
+            }
+            
+        except Exception as e:
+            logger.error(f"Error executing workflow {workflow_id}: {e}")
+            return None
+    
+    async def register_workflow_definition(
+        self,
+        workflow_definition: WorkflowDefinition
+    ) -> bool:
+        """Register a workflow definition.
+        
+        Args:
+            workflow_definition: Workflow definition to register
+            
+        Returns:
+            True if registered successfully
+        """
+        try:
+            if not self.workflow_engine:
+                logger.warning("Workflow engine not initialized - upgrade to FULL mode")
+                return False
+            
+            return await self.workflow_engine.register_workflow_definition(workflow_definition)
+            
+        except Exception as e:
+            logger.error(f"Error registering workflow definition: {e}")
+            return False
+    
+    async def coordinate_complex_tasks(
+        self,
+        tasks: List[CoordinationTask],
+        project_id: str,
+        initiated_by: str
+    ) -> Optional[Dict[str, Any]]:
+        """Coordinate execution of complex tasks with dependencies.
+        
+        Args:
+            tasks: List of coordination tasks
+            project_id: Project identifier
+            initiated_by: User who initiated the coordination
+            
+        Returns:
+            Coordination result or None if coordinator not available
+        """
+        try:
+            if not self.task_coordinator:
+                logger.warning("Task coordinator not initialized - upgrade to FULL mode")
+                return None
+            
+            execution_context = ExecutionContext(
+                coordinator_id=f"orchestration_{uuid.uuid4().hex[:8]}",
+                project_id=project_id,
+                initiated_by=initiated_by
+            )
+            
+            result = await self.task_coordinator.coordinate_tasks(
+                tasks=tasks,
+                project_id=project_id,
+                execution_context=execution_context
+            )
+            
+            return {
+                'success': result.success,
+                'execution_context': result.execution_context.coordinator_id,
+                'tasks_completed': result.tasks_completed,
+                'tasks_failed': result.tasks_failed,
+                'tasks_skipped': result.tasks_skipped,
+                'total_execution_time': result.total_execution_time_seconds,
+                'task_results': result.task_results,
+                'error': result.error_message
+            }
+            
+        except Exception as e:
+            logger.error(f"Error coordinating complex tasks: {e}")
+            return None
+    
+    async def register_workflow_step_handler(
+        self,
+        action_name: str,
+        handler: Callable
+    ) -> bool:
+        """Register a workflow step handler.
+        
+        Args:
+            action_name: Name of the workflow action
+            handler: Handler function
+            
+        Returns:
+            True if registered successfully
+        """
+        try:
+            if not self.workflow_engine:
+                logger.warning("Workflow engine not initialized - upgrade to FULL mode")
+                return False
+            
+            return await self.workflow_engine.register_step_handler(action_name, handler)
+            
+        except Exception as e:
+            logger.error(f"Error registering workflow step handler: {e}")
+            return False
+    
+    async def register_task_coordination_handler(
+        self,
+        action_name: str,
+        handler: Callable
+    ) -> bool:
+        """Register a task coordination handler.
+        
+        Args:
+            action_name: Name of the coordination action
+            handler: Handler function
+            
+        Returns:
+            True if registered successfully
+        """
+        try:
+            if not self.task_coordinator:
+                logger.warning("Task coordinator not initialized - upgrade to FULL mode")
+                return False
+            
+            return await self.task_coordinator.register_task_handler(action_name, handler)
+            
+        except Exception as e:
+            logger.error(f"Error registering task coordination handler: {e}")
+            return False
+    
+    async def get_workflow_status(self, workflow_id: str) -> Optional[Dict[str, Any]]:
+        """Get status of active workflows.
+        
+        Args:
+            workflow_id: Optional workflow ID to filter
+            
+        Returns:
+            Workflow status information
+        """
+        try:
+            if not self.workflow_engine:
+                return None
+            
+            active_executions = await self.workflow_engine.get_active_executions()
+            
+            if workflow_id:
+                # Filter by workflow ID
+                active_executions = [
+                    execution for execution in active_executions
+                    if execution.workflow_id == workflow_id
+                ]
+            
+            return {
+                'active_workflows': len(active_executions),
+                'executions': [
+                    {
+                        'execution_id': execution.execution_id,
+                        'workflow_id': execution.workflow_id,
+                        'state': execution.state.value,
+                        'started_at': execution.started_at.isoformat(),
+                        'current_step': execution.current_step,
+                        'project_id': execution.project_id
+                    }
+                    for execution in active_executions
+                ]
+            }
+            
+        except Exception as e:
+            logger.error(f"Error getting workflow status: {e}")
+            return None
 
 
 # Global service instance

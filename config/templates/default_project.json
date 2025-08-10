@@ -1,0 +1,135 @@
+{
+  "name": "default_project",
+  "version": "1.0.0",
+  "description": "Standard LTMC project configuration template with balanced performance and security defaults",
+  "metadata": {
+    "author": "LTMC Team",
+    "created": "2025-08-10",
+    "category": "standard",
+    "compatibility": ["ltmc>=2.0.0"]
+  },
+  "environment": {
+    "DB_PATH": "${PROJECT_ROOT}/data/${PROJECT_NAME:ltmc}.db",
+    "FAISS_INDEX_PATH": "${PROJECT_ROOT}/data/faiss_index",
+    "EMBEDDING_MODEL": "${EMBEDDING_MODEL:all-MiniLM-L6-v2}",
+    "LOG_LEVEL": "${LOG_LEVEL:INFO}",
+    "HTTP_HOST": "${HTTP_HOST:localhost}",
+    "HTTP_PORT": "${HTTP_PORT:5050}",
+    "REDIS_HOST": "${REDIS_HOST:localhost}",
+    "REDIS_PORT": "${REDIS_PORT:6382}",
+    "REDIS_PASSWORD": "${REDIS_PASSWORD:ltmc_cache_2025}",
+    "REDIS_ENABLED": "${REDIS_ENABLED:true}",
+    "ORCHESTRATION_MODE": "${ORCHESTRATION_MODE:basic}",
+    "CACHE_ENABLED": "${CACHE_ENABLED:true}",
+    "BUFFER_ENABLED": "${BUFFER_ENABLED:true}",
+    "SESSION_STATE_ENABLED": "${SESSION_STATE_ENABLED:true}",
+    "ML_INTEGRATION_ENABLED": "${ML_INTEGRATION_ENABLED:true}",
+    "ML_LEARNING_COORDINATION": "${ML_LEARNING_COORDINATION:true}"
+  },
+  "configuration": {
+    "database": {
+      "connection_timeout": 30,
+      "max_connections": 10,
+      "backup_enabled": true,
+      "backup_interval_hours": 24
+    },
+    "vector_store": {
+      "index_type": "HNSW",
+      "ef_construction": 200,
+      "ef_search": 100,
+      "max_connections": 16,
+      "dimension": 384
+    },
+    "redis": {
+      "connection_pool_size": 10,
+      "socket_timeout": 5,
+      "connection_timeout": 5,
+      "retry_on_timeout": true,
+      "max_retry_attempts": 3,
+      "cluster_mode": false
+    },
+    "performance": {
+      "cache_size": 1000,
+      "chunk_buffer_size": 100,
+      "embedding_batch_size": 32,
+      "context_window_size": 4096,
+      "max_concurrent_requests": 100
+    },
+    "security": {
+      "enable_project_isolation": true,
+      "path_validation_enabled": true,
+      "input_sanitization": true,
+      "max_file_size_mb": 100,
+      "allowed_file_extensions": [".txt", ".md", ".json", ".py", ".js", ".ts"],
+      "security_audit_enabled": true
+    },
+    "logging": {
+      "level": "INFO",
+      "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+      "file_logging": true,
+      "max_log_file_size_mb": 10,
+      "backup_count": 5,
+      "log_rotation": "daily"
+    },
+    "ml": {
+      "model_cache_size": 5,
+      "learning_rate": 0.001,
+      "batch_size": 32,
+      "enable_continuous_learning": true,
+      "performance_monitoring": true
+    },
+    "orchestration": {
+      "max_task_duration_seconds": 300,
+      "heartbeat_interval_seconds": 30,
+      "worker_timeout_seconds": 60,
+      "enable_task_queuing": true,
+      "max_queue_size": 1000
+    }
+  },
+  "validation_schema": {
+    "type": "object",
+    "properties": {
+      "database": {
+        "type": "object",
+        "properties": {
+          "connection_timeout": {"type": "integer", "minimum": 1, "maximum": 300},
+          "max_connections": {"type": "integer", "minimum": 1, "maximum": 100}
+        },
+        "required": ["connection_timeout", "max_connections"]
+      },
+      "redis": {
+        "type": "object", 
+        "properties": {
+          "connection_pool_size": {"type": "integer", "minimum": 1, "maximum": 100},
+          "socket_timeout": {"type": "integer", "minimum": 1, "maximum": 60}
+        },
+        "required": ["connection_pool_size"]
+      },
+      "performance": {
+        "type": "object",
+        "properties": {
+          "cache_size": {"type": "integer", "minimum": 100, "maximum": 100000},
+          "max_concurrent_requests": {"type": "integer", "minimum": 1, "maximum": 10000}
+        },
+        "required": ["cache_size"]
+      },
+      "security": {
+        "type": "object",
+        "properties": {
+          "enable_project_isolation": {"type": "boolean"},
+          "max_file_size_mb": {"type": "integer", "minimum": 1, "maximum": 1000}
+        },
+        "required": ["enable_project_isolation"]
+      }
+    },
+    "required": ["database", "redis", "performance", "security"]
+  },
+  "features": {
+    "hot_reload": true,
+    "template_inheritance": true,
+    "environment_substitution": true,
+    "schema_validation": true,
+    "security_integration": true,
+    "performance_monitoring": true
+  }
+}

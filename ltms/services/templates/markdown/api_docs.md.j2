@@ -1,0 +1,52 @@
+# API Documentation
+
+## Project: {{ project_id }}
+
+Generated: {{ generation_timestamp | format_timestamp }}
+Source File: {{ file_path }}
+
+## Functions
+
+{% for node in code_structure.nodes %}
+{% if node.node_type.value == 'function' %}
+### {{ node.name }}
+
+```python
+{{ node | format_function_signature }}
+```
+
+{{ node.docstring or 'No documentation available.' }}
+
+{% if node.parameters %}
+**Parameters:**
+{% for param in node.parameters %}
+- `{{ param.name }}` ({{ param.type or 'Any' }}): {{ param.description or 'No description' }}
+{% endfor %}
+{% endif %}
+
+{% if node.return_type %}
+**Returns:** {{ node.return_type }}
+{% endif %}
+
+---
+{% endif %}
+{% endfor %}
+
+## Classes
+
+{% for node in code_structure.nodes %}
+{% if node.node_type.value == 'class' %}
+### {{ node | format_class_hierarchy }}
+
+{{ node.docstring or 'No documentation available.' }}
+
+{% if node.methods %}
+**Methods:**
+{% for method in node.methods %}
+- `{{ method }}`
+{% endfor %}
+{% endif %}
+
+---
+{% endif %}
+{% endfor %}

@@ -9,6 +9,7 @@ from .chat_tools import CHAT_TOOLS
 from .todo_tools import TODO_TOOLS
 from .code_pattern_tools import CODE_PATTERN_TOOLS
 from .context_tools import CONTEXT_TOOLS
+from .blueprint_tool_registry import BLUEPRINT_TOOLS
 
 __all__ = [
     'MEMORY_TOOLS',
@@ -16,6 +17,7 @@ __all__ = [
     'TODO_TOOLS', 
     'CODE_PATTERN_TOOLS',
     'CONTEXT_TOOLS',
+    'BLUEPRINT_TOOLS',
     'ALL_TOOLS'
 ]
 
@@ -25,5 +27,6 @@ ALL_TOOLS = {
     **CHAT_TOOLS,
     **TODO_TOOLS,
     **CODE_PATTERN_TOOLS,
-    **CONTEXT_TOOLS
+    **CONTEXT_TOOLS,
+    **BLUEPRINT_TOOLS
 }

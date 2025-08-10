@@ -150,19 +150,26 @@ cython_debug/
 # Database files
 ltmc.db*
 ltmc_chat_log.db*
+ltms_memory.db*
 *.sqlite
 *.sqlite3
 *.db
+data/*.db
+data/*.sqlite*
 
 # Vector indices
 faiss_index*
+data/faiss_index*
 dummy_index*
 test_*_faiss_index*
+*.faiss
+*.index
 
 # Process ID files  
 *.pid
 ltmc_*.pid
 redis_*.pid
+redis-ltmc/*.pid
 
 # Log files
 logs/
@@ -170,8 +177,12 @@ logs/
 
 # Configuration files (keep examples)
 config/*.env
+config/.env
 .env
+*.env
+ltmc_config.env
 !config/*.env.example
+!*.env.example
 
 # Redis data and config
 redis_data/
@@ -272,3 +283,6 @@ internal/
 # Any files with "internal" in the name
 *internal*
 *INTERNAL*
+
+# Future planning directory (private documentation)
+future/

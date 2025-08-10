@@ -387,3 +387,22 @@ def get_document_relationships(
         Dictionary with all relationships
     """
     return store.query_relationships(doc_id)
+
+
+# Global instance management
+_neo4j_store: Optional[Neo4jGraphStore] = None
+
+
+async def get_neo4j_graph_store() -> Neo4jGraphStore:
+    """Get or create Neo4j graph store instance."""
+    global _neo4j_store
+    if not _neo4j_store:
+        # Default configuration - in production should be loaded from config
+        config = {
+            "uri": "bolt://localhost:7687",
+            "user": "neo4j",
+            "password": "ltmc_neo4j",
+            "database": "ltmc"
+        }
+        _neo4j_store = Neo4jGraphStore(config)
+    return _neo4j_store

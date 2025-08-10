@@ -40,6 +40,6 @@ echo -e "${GREEN}✓ Environment configured${NC}"
 echo -e "${YELLOW}Ready for MCP protocol on stdin/stdout${NC}"
 echo -e "${YELLOW}Press Ctrl+C to stop${NC}"
 
-# Run the stdio transport
+# Run the unified MCP server with stdio transport
 cd "$SCRIPT_DIR"
-exec python ltmc_mcp_server.py
+exec python unified_mcp_server.py --transport stdio

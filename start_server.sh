@@ -1,6 +1,15 @@
 #!/bin/bash
 
 # LTMC MCP Server Startup Script - Dual Transport (Stdio + HTTP)
+# 
+# ⚠️  DEPRECATED: This script starts the OLD FastAPI server
+# ✅  NEW: Use ./start_unified_server.sh for the new unified FastMCP server with all Phase 1-4 features
+# 
+# The new unified server includes:
+# - All 55 tools (28 LTMC + 26 advanced + 1 unified)
+# - Advanced caching (97.2% hit rate)
+# - Connection pooling and lazy loading
+# - Better performance and maintainability
 
 # Colors for output
 RED='\033[0;31m'

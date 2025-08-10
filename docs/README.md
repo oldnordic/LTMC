@@ -1,6 +1,6 @@
-# LTMC Documentation Hub
+# LTMC Documentation Hub - 55 Tools
 
-Welcome to the comprehensive documentation for the LTMC (Long-Term Memory and Context) Multi-Agent Coordination Platform. This documentation suite provides everything you need to understand, deploy, and use LTMC effectively.
+Welcome to the comprehensive documentation for the LTMC (Long-Term Memory and Context) MCP Server. This documentation suite covers all **55 tools** across 3 categories, providing everything you need to understand, deploy, and use LTMC effectively.
 
 ## 📚 Documentation Overview
 
@@ -8,17 +8,19 @@ Welcome to the comprehensive documentation for the LTMC (Long-Term Memory and Co
 Perfect for new users and quick setup:
 
 - **[User Guide](guides/USER_GUIDE.md)** - Your first LTMC experience with step-by-step examples
+- **[Claude Code Team Workflow Guide](guides/CLAUDE_CODE_TEAM_WORKFLOW_GUIDE.md)** - Complete workflow guide for humans using Claude Code + expert agents with all 55 tools
 - **[Deployment Guide](guides/DEPLOYMENT.md)** - From development to production deployment
 - **[Quick Start Tutorial](#)** - Get running in 5 minutes
 
 ### 📖 API Documentation
 Complete reference for all LTMC tools:
 
-- **[API Reference](api/API_REFERENCE.md)** - Comprehensive documentation for all 25 MCP tools
+- **[API Reference](api/API_REFERENCE.md)** - Comprehensive documentation for all 55 MCP tools
+- **[Complete 55 Tools Reference](guides/COMPLETE_55_TOOLS_REFERENCE.md)** - Detailed usage guide for all tools
 - **[Context Tools](api/CONTEXT_TOOLS.md)** - Advanced semantic search and knowledge graph tools
-- **[Code Pattern Tools](api/CODE_PATTERN_TOOLS.md)** - AI-assisted code learning and pattern analysis
-- **[HTTP Transport Guide](#)** - REST API usage and examples
-- **[MCP Protocol Guide](#)** - JSON-RPC over stdio documentation
+- **[Code Pattern Tools](api/CODE_PATTERN_TOOLS.md)** - Experience replay learning and pattern analysis
+- **[Stdio MCP Protocol](#)** - Primary transport via stdio (recommended)
+- **[HTTP Fallback Guide](#)** - REST API usage for development
 
 ### 🏗️ Architecture & System Design
 Technical deep dives for developers and architects:
@@ -53,6 +55,7 @@ For developers integrating with LTMC:
 #### 👤 End Users
 Start here if you want to use LTMC for memory management and AI assistance:
 - [User Guide](guides/USER_GUIDE.md)
+- [Claude Code Team Workflow Guide](guides/CLAUDE_CODE_TEAM_WORKFLOW_GUIDE.md) - **⭐ RECOMMENDED for humans using Claude Code**
 - [Quick Start Examples](#quick-start-examples)
 - [Common Use Cases](#common-use-cases)
 
@@ -98,45 +101,63 @@ For system design and architecture decisions:
 
 ## 📊 Tool Categories Reference
 
-### Complete Tool List (25 Tools)
+### Complete Tool List (55 Tools)
 
-#### Memory Management (2 tools)
-- `store_memory` - Store documents with automatic chunking and vector indexing
-- `retrieve_memory` - Semantic search across all stored content
+#### Core LTMC Tools (28)
 
-#### Chat & Communication (4 tools)
-- `log_chat` - Maintain conversation history with context linking
-- `ask_with_context` - Q&A with relevant context retrieval
-- `route_query` - Intelligent query routing
-- `get_chats_by_tool` - Find tool-related conversations
+**Memory & Context** (7 tools)
+- `store_memory` - Persistent memory storage across sessions
+- `retrieve_memory` - Semantic search for context-aware decisions  
+- `ask_with_context` - Query with automatic context retrieval
+- `build_context` - Build context windows with token limits
+- `route_query` - Smart query routing to best processing method
+- `retrieve_by_type` - Type-filtered document retrieval
+- `advanced_context_search` - Advanced search with filters
 
-#### Task Management (4 tools)
-- `add_todo` - Create prioritized tasks
-- `list_todos` - Filter and view tasks
-- `complete_todo` - Mark tasks completed
-- `search_todos` - Find tasks by content
+**Chat & Communication** (2 tools)
+- `log_chat` - Log conversations for continuity across sessions
+- `get_chats_by_tool` - Retrieve conversations using specific tools
 
-#### Context & Relationships (11 tools)
-- `build_context` - Create context windows
-- `retrieve_by_type` - Type-filtered search
-- `store_context_links` - Link messages to chunks
-- `get_context_links_for_message` - Retrieve message links
-- `get_messages_for_chunk` - Find chunk references
-- `get_context_usage_statistics` - Usage analytics
-- `link_resources` - Create explicit relationships
-- `query_graph` - Search knowledge graph
-- `auto_link_documents` - Automatic linking
-- `get_document_relationships` - Explore connections
-- `list_tool_identifiers` - Available tools
-- `get_tool_conversations` - Tool usage history
+**Task Management** (4 tools)
+- `add_todo` - Add tasks for complex multi-step implementations
+- `list_todos` - List todos with optional status filtering
+- `complete_todo` - Mark todos as completed for progress tracking
+- `search_todos` - Search todos by title or description
 
-#### Code Pattern Learning (3 tools)
-- `log_code_attempt` - Record code generation attempts
-- `get_code_patterns` - Retrieve similar patterns
-- `analyze_code_patterns` - Pattern trend analysis
+**Knowledge Graph** (4 tools)
+- `link_resources` - Create relationships between resources
+- `query_graph` - Query knowledge graph for related information
+- `auto_link_documents` - Automatically link similar documents
+- `get_document_relationships` - Get all relationships for documents
 
-#### Orchestration (1+ tools)
-- Multi-agent coordination and session management tools
+**Code Pattern Learning** (4 tools)
+- `log_code_attempt` - Log code attempts for experience replay learning
+- `get_code_patterns` - Retrieve successful patterns for learning
+- `analyze_code_patterns` - Analyze patterns for insights and trends
+- `get_code_statistics` - Get comprehensive code pattern statistics
+
+**Redis & Performance** (6 tools)
+- `redis_health_check` - Monitor Redis connection health
+- `redis_cache_stats` - Get Redis cache performance statistics
+- `redis_set_cache` - Set values in Redis cache for optimization
+- `redis_get_cache` - Retrieve values from Redis cache
+- `redis_delete_cache` - Delete keys from Redis cache
+- `redis_clear_cache` - Clear Redis cache with pattern matching
+
+**System Analytics** (1 tool)
+- `get_context_usage_statistics` - Comprehensive context usage analytics
+
+#### Phase3 Advanced Tools (26)
+**Task Blueprints** (9 tools) - ML-driven task management with complexity analysis  
+**Team Assignment** (3 tools) - Workload management and skill-based assignment  
+**Documentation Sync** (5 tools) - Code-documentation synchronization  
+**Blueprint Integration** (5 tools) - Code-blueprint bidirectional sync  
+**Real-Time Sync** (3 tools) - Live file monitoring and updates  
+**Performance Metrics** (1 tool) - Advanced system analytics
+
+#### Unified Integration (1)
+**System Monitoring** (1 tool)
+- `get_performance_report` - Unified system performance and statistics
 
 ## 🎯 Common Use Cases
 
@@ -332,7 +353,7 @@ Historical development guides:
 
 The LTMC Multi-Agent Coordination Platform is fully operational with:
 - ✅ **Dual Transport** (HTTP + stdio) MCP server
-- ✅ **25 MCP Tools** across 6 categories 
+- ✅ **55 MCP Tools** across 14 categories 
 - ✅ **4-Tier Memory System** (SQLite + FAISS + Redis + Neo4j)
 - ✅ **Redis Orchestration** with 6 specialized services
 - ✅ **Advanced ML Integration** with 12 components
@@ -360,8 +381,8 @@ curl http://localhost:5050/ml/status
 
 ---
 
-**Last Updated**: August 8, 2025  
-**Documentation Version**: 2.0  
-**LTMC Version**: Production Ready with Advanced ML Integration
+**Last Updated**: August 10, 2025  
+**Documentation Version**: 3.0  
+**LTMC Version**: Production Ready with 55 Tools & Advanced ML Integration
 
 **Ready to get started?** Begin with the [User Guide](guides/USER_GUIDE.md) for the best LTMC experience! 🚀

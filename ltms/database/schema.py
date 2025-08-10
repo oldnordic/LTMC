@@ -70,13 +70,14 @@ def create_tables(conn: sqlite3.Connection) -> None:
         )
     """)
     
-    # Create Todos table
+    # Create todos table (lowercase to match code expectations)
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS Todos (
+        CREATE TABLE IF NOT EXISTS todos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
             description TEXT NOT NULL,
             priority TEXT DEFAULT 'medium',
+            status TEXT DEFAULT 'pending',
             completed BOOLEAN DEFAULT 0,
             created_at TEXT NOT NULL,
             completed_at TEXT
