@@ -125,6 +125,144 @@ def create_tables(conn: sqlite3.Connection) -> None:
     # Initialize vector ID sequence if empty
     cursor.execute("INSERT OR IGNORE INTO VectorIdSequence (id, last_vector_id) VALUES (1, 0)")
 
+    # =====================================
+    # ADVANCED ML & ORCHESTRATION TABLES
+    # =====================================
+    
+    # Create TaskBlueprints table for blueprint management
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS TaskBlueprints (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            blueprint_id TEXT UNIQUE NOT NULL,
+            title TEXT NOT NULL,
+            description TEXT NOT NULL,
+            complexity TEXT NOT NULL,
+            complexity_score REAL NOT NULL,
+            project_id TEXT,
+            estimated_duration_minutes INTEGER DEFAULT 30,
+            required_skills TEXT,  -- JSON array
+            priority_score REAL DEFAULT 0.5,
+            resource_requirements TEXT,  -- JSON object
+            tags TEXT,  -- JSON array
+            status TEXT DEFAULT 'draft',
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )
+    """)
+    
+    # Create TaskDependencies table for dependency management
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS TaskDependencies (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            dependent_blueprint_id TEXT NOT NULL,
+            prerequisite_blueprint_id TEXT NOT NULL,
+            dependency_type TEXT DEFAULT 'blocking',
+            is_critical BOOLEAN DEFAULT 0,
+            created_at TEXT NOT NULL,
+            FOREIGN KEY (dependent_blueprint_id) REFERENCES TaskBlueprints (blueprint_id),
+            FOREIGN KEY (prerequisite_blueprint_id) REFERENCES TaskBlueprints (blueprint_id),
+            UNIQUE(dependent_blueprint_id, prerequisite_blueprint_id)
+        )
+    """)
+    
+    # Create TeamMembers table for team assignment
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS TeamMembers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            member_id TEXT UNIQUE NOT NULL,
+            name TEXT NOT NULL,
+            skills TEXT,  -- JSON array
+            capacity REAL DEFAULT 1.0,
+            current_workload REAL DEFAULT 0.0,
+            availability_status TEXT DEFAULT 'available',
+            project_id TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )
+    """)
+    
+    # Create TaskAssignments table for task assignment tracking
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS TaskAssignments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            assignment_id TEXT UNIQUE NOT NULL,
+            blueprint_id TEXT NOT NULL,
+            member_id TEXT NOT NULL,
+            project_id TEXT NOT NULL,
+            assigned_at TEXT NOT NULL,
+            status TEXT DEFAULT 'assigned',
+            progress_percentage REAL DEFAULT 0.0,
+            actual_hours_worked REAL DEFAULT 0.0,
+            notes TEXT,
+            completed_at TEXT,
+            FOREIGN KEY (blueprint_id) REFERENCES TaskBlueprints (blueprint_id),
+            FOREIGN KEY (member_id) REFERENCES TeamMembers (member_id)
+        )
+    """)
+    
+    # Create DocumentationSync table for documentation synchronization
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS DocumentationSync (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            sync_id TEXT UNIQUE NOT NULL,
+            file_path TEXT NOT NULL,
+            project_id TEXT NOT NULL,
+            sync_type TEXT NOT NULL,  -- 'code_to_docs', 'docs_to_code', 'bidirectional'
+            consistency_score REAL,
+            last_sync_at TEXT NOT NULL,
+            drift_detected BOOLEAN DEFAULT 0,
+            auto_sync_enabled BOOLEAN DEFAULT 1,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )
+    """)
+    
+    # Create BlueprintCodeLinks table for blueprint-code relationships
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS BlueprintCodeLinks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            blueprint_id TEXT NOT NULL,
+            file_path TEXT NOT NULL,
+            project_id TEXT NOT NULL,
+            link_type TEXT NOT NULL,  -- 'implements', 'defines', 'uses'
+            consistency_status TEXT DEFAULT 'unknown',
+            last_validated_at TEXT,
+            created_at TEXT NOT NULL,
+            FOREIGN KEY (blueprint_id) REFERENCES TaskBlueprints (blueprint_id)
+        )
+    """)
+    
+    # Create RealtimeSync table for real-time file monitoring
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS RealtimeSync (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            sync_session_id TEXT UNIQUE NOT NULL,
+            project_id TEXT NOT NULL,
+            monitored_paths TEXT NOT NULL,  -- JSON array
+            sync_status TEXT DEFAULT 'active',
+            last_activity_at TEXT NOT NULL,
+            changes_detected INTEGER DEFAULT 0,
+            auto_sync_enabled BOOLEAN DEFAULT 1,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )
+    """)
+    
+    # Create PerformanceMetrics table for system analytics
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS PerformanceMetrics (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            metric_id TEXT UNIQUE NOT NULL,
+            metric_type TEXT NOT NULL,  -- 'tool_usage', 'response_time', 'success_rate'
+            project_id TEXT,
+            component_name TEXT NOT NULL,
+            metric_value REAL NOT NULL,
+            unit TEXT,
+            timestamp TEXT NOT NULL,
+            metadata TEXT  -- JSON object
+        )
+    """)
+
     # Add source_tool column to existing ChatHistory tables (migration)
     try:
         cursor.execute("ALTER TABLE ChatHistory ADD COLUMN source_tool TEXT")
