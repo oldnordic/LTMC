@@ -11,8 +11,8 @@ Complete configuration guide for the LTMC (Long-Term Memory and Context) MCP ser
 | `DB_PATH` | `ltmc.db` | SQLite database path |
 | `FAISS_INDEX_PATH` | `faiss_index` | FAISS vector index path |
 | `LOG_LEVEL` | `INFO` | Logging level (DEBUG/INFO/WARNING/ERROR) |
-| `HTTP_HOST` | `localhost` | HTTP server host |
-| `HTTP_PORT` | `5050` | HTTP server port |
+| `MCP_TRANSPORT` | `stdio` | MCP transport protocol (stdio only) |
+| `MCP_LOG_LEVEL` | `WARNING` | MCP logging level for stdio |
 | `ORCHESTRATION_MODE` | `basic` | Redis Orchestration mode (basic/full/debug) |
 | `AGENT_REGISTRY_ENABLED` | `true` | Enable Agent Registry Service |
 | `CONTEXT_COORDINATION_ENABLED` | `true` | Enable Context Coordination Service |
@@ -319,10 +319,15 @@ export LTMC_API_TOKEN=$(openssl rand -hex 32)
 echo "API Token: $LTMC_API_TOKEN"
 ```
 
-**Client Authentication:**
-```bash
-curl -H "Authorization: Bearer $LTMC_API_TOKEN" \
-     http://localhost:5050/jsonrpc
+**MCP Client Authentication:**
+```python
+# Authentication handled via MCP server process security
+# No HTTP tokens required - stdio transport is secure by design
+server_params = StdioServerParameters(
+    command="python",
+    args=["ltmc_stdio_wrapper.py"],
+    env={"LTMC_SECURE_MODE": "true"}
+)
 ```
 
 ### Data Encryption
@@ -352,9 +357,12 @@ tls-key-file /path/to/key.pem
 
 ### Health Monitoring
 
-**Health Check Endpoint:**
-```bash
-curl http://localhost:5050/health
+**Health Check via MCP:**
+```python
+# Check LTMC system health via MCP tools
+health_status = await session.call_tool("get_performance_report")
+redis_health = await session.call_tool("redis_health_check")
+print(f"LTMC Status: {health_status['status']}")
 ```
 
 **System Status:**

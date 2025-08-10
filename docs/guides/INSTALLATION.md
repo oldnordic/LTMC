@@ -112,26 +112,33 @@ ORCHESTRATION_MODE=basic ./start_server.sh
 ./status_server.sh
 ```
 
-### Run Health Check
+### Verify MCP Server Status
 ```bash
-# Main health check (includes orchestration status)
-curl http://localhost:5050/health
+# Check if MCP server process is running
+ps aux | grep ltmc_mcp_server
 
-# Orchestration-specific health check
-curl http://localhost:5050/orchestration/health
+# Server should show as running on stdio transport
+# No HTTP endpoints - all communication via stdio MCP protocol
 ```
 
-### Test MCP Tools
+### Test MCP Tools via Claude Code
+```python
+# Test via Claude Code MCP integration (recommended)
+mcp__ltmc__store_memory(
+  file_name="test.md",
+  content="Test installation successful"
+)
+
+# Verify storage worked
+mcp__ltmc__retrieve_memory(
+  query="test installation"
+)
+```
+
+### Direct stdio JSON-RPC Test (Advanced)
 ```bash
-curl -X POST http://localhost:5050/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "store_memory",
-      "arguments": {
-        "file_name": "test.md",
+# Test direct stdio communication
+echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"store_memory","arguments":{"file_name":"test.md","content":"Test"}},"id":1}' | ./run_modular_stdio.sh
         "content": "Installation test"
       }
     },

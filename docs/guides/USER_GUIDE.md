@@ -1,8 +1,8 @@
-# LTMC User Guide
+# LTMC User Guide - Stdio MCP Protocol
 
 ## Getting Started with LTMC
 
-Welcome to LTMC (Long-Term Memory and Context) - your intelligent memory and multi-agent coordination platform. This guide will help you get up and running quickly and make the most of LTMC's powerful features.
+Welcome to LTMC (Long-Term Memory and Context) - your intelligent memory and multi-agent coordination platform. This guide will help you get up and running quickly and make the most of LTMC's powerful features via **stdio MCP protocol**.
 
 ## What is LTMC?
 
@@ -19,680 +19,376 @@ LTMC is a sophisticated Model Context Protocol (MCP) server that provides:
 
 ### 1. Basic Setup
 
-After installation (see [Deployment Guide](DEPLOYMENT.md)), configure LTMC in Claude Code:
+LTMC operates exclusively through **stdio MCP transport**. There are two primary ways to use LTMC:
 
+**Option A: Via Claude Code (Recommended)**
 ```json
+// Add to .claude/claude_desktop_config.json
 {
-  "ltmc": {
-    "command": "python",
-    "args": ["ltmc_mcp_server/main.py"],
-    "cwd": "/path/to/ltmc-mcp-server"
+  "mcpServers": {
+    "ltmc": {
+      "command": "python",
+      "args": ["path/to/ltmc_stdio_wrapper.py"],
+      "env": {
+        "LTMC_CONFIG_PATH": "/path/to/ltmc/config"
+      }
+    }
   }
 }
 ```
 
-### 2. Your First Memory Storage
+**Option B: Direct MCP Client Integration**
+```python
+import asyncio
+from mcp import ClientSession, StdioServerParameters
+from mcp.client.stdio import stdio_client
 
-Store your first document:
+async def setup_ltmc():
+    server_params = StdioServerParameters(
+        command="python",
+        args=["ltmc_stdio_wrapper.py"]
+    )
+    
+    async with stdio_client(server_params) as (read, write):
+        async with ClientSession(read, write) as session:
+            # Initialize LTMC tools
+            await session.initialize()
+            return session
+```
 
-```bash
-curl -X POST http://localhost:5050/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "store_memory",
-      "arguments": {
-        "file_name": "meeting_notes.md",
-        "content": "# Team Meeting Notes\n\n## Project Status\n- API development is 80% complete\n- Frontend integration starting next week\n- Database migration scheduled for Friday\n\n## Action Items\n- Review code patterns\n- Update documentation\n- Schedule user testing"
-      }
-    },
-    "id": 1
-  }'
+### 2. Store Information
+
+Store important information for later retrieval:
+
+**Via MCP Tool Call:**
+```python
+# Using MCP tool call
+result = await session.call_tool("store_memory", {
+    "file_name": "meeting_notes.md",
+    "content": """# Team Meeting Notes
+
+## Project Status
+- API development is 80% complete
+- Frontend integration starting next week
+- Database migration scheduled for Friday
+
+## Action Items
+- Review code patterns
+- Update documentation
+- Schedule user testing""",
+    "resource_type": "document"
+})
+```
+
+**Via Claude Code (Natural Language):**
+```
+Please store these meeting notes using LTMC:
+
+Team Meeting Notes:
+- API development is 80% complete
+- Frontend integration starting next week
+- Database migration scheduled for Friday
+
+Action Items:
+- Review code patterns
+- Update documentation
+- Schedule user testing
 ```
 
 ### 3. Search Your Memories
 
-Retrieve relevant information:
+Retrieve relevant information using semantic search:
 
-```bash
-curl -X POST http://localhost:5050/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "retrieve_memory",
-      "arguments": {
-        "query": "API development status",
-        "top_k": 5
-      }
-    },
-    "id": 2
-  }'
+**Via MCP Tool Call:**
+```python
+# Search for relevant memories
+results = await session.call_tool("retrieve_memory", {
+    "query": "API development status and next steps",
+    "conversation_id": "session_20250101",
+    "top_k": 5,
+    "resource_type": "document"
+})
+
+print("Found relevant memories:")
+for result in results["memories"]:
+    print(f"- {result['file_name']}: {result['content'][:100]}...")
 ```
 
-## Core Features
-
-### Memory Management
-
-#### Storing Documents
-LTMC automatically processes your documents:
-
-```bash
-# Store different types of content
-curl -X POST http://localhost:5050/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "store_memory",
-      "arguments": {
-        "file_name": "python_best_practices.md",
-        "content": "# Python Best Practices\n\n1. Use type hints\n2. Write docstrings\n3. Follow PEP 8\n4. Use virtual environments\n5. Write tests",
-        "resource_type": "documentation"
-      }
-    },
-    "id": 1
-  }'
+**Via Claude Code (Natural Language):**
+```
+Search my LTMC memories for information about API development status
 ```
 
-**What happens behind the scenes:**
-1. Content is chunked into manageable pieces
-2. Each chunk is converted to a vector embedding
-3. Chunks are indexed for fast semantic search
-4. Metadata is stored for filtering and organization
+### 4. Chat Continuity
 
-#### Searching with Context
-Use semantic search to find relevant information:
+Maintain conversation context across sessions:
 
-```bash
-# Search for specific topics
-curl -X POST http://localhost:5050/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "retrieve_memory",
-      "arguments": {
-        "query": "testing best practices",
-        "top_k": 3
-      }
-    },
-    "id": 2
-  }'
+**Via MCP Tool Call:**
+```python
+# Log chat messages for continuity
+await session.call_tool("log_chat", {
+    "content": "Discussed API architecture changes and timeline adjustments",
+    "conversation_id": "session_20250101",
+    "role": "user",
+    "metadata": {
+        "topic": "api_development",
+        "priority": "high"
+    }
+})
+
+# Retrieve chat history
+history = await session.call_tool("ask_with_context", {
+    "query": "What did we discuss about the API timeline?",
+    "conversation_id": "session_20250101",
+    "include_history": True
+})
 ```
 
-### Task Management
+### 5. Task Management
 
-#### Adding Tasks
-Keep track of your todos:
+Track and manage tasks:
 
-```bash
-curl -X POST http://localhost:5050/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "add_todo",
-      "arguments": {
-        "title": "Update API documentation",
-        "description": "Add examples for new endpoints and update authentication section",
-        "priority": 2
-      }
-    },
-    "id": 1
-  }'
-```
+**Via MCP Tool Call:**
+```python
+# Add a new task
+task = await session.call_tool("add_todo", {
+    "title": "Implement user authentication API",
+    "description": "Create secure JWT-based authentication endpoints with proper validation and error handling",
+    "priority": "high"
+})
 
-#### Managing Tasks
-List and complete your tasks:
-
-```bash
 # List pending tasks
-curl -X POST http://localhost:5050/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "list_todos",
-      "arguments": {
-        "status": "pending",
-        "limit": 10
-      }
-    },
-    "id": 2
-  }'
+pending_tasks = await session.call_tool("list_todos", {
+    "status": "pending",
+    "priority": "high",
+    "limit": 10
+})
 
-# Complete a task
-curl -X POST http://localhost:5050/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "complete_todo",
-      "arguments": {
-        "todo_id": 1
-      }
-    },
-    "id": 3
-  }'
+# Mark task as completed
+await session.call_tool("complete_todo", {
+    "todo_id": task["todo_id"]
+})
 ```
 
-### Chat History Management
+### 6. Code Pattern Learning
 
-#### Logging Conversations
-Maintain context across chat sessions:
+Learn from successful code patterns:
 
-```bash
-curl -X POST http://localhost:5050/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "log_chat",
-      "arguments": {
-        "content": "User asked about implementing authentication in the API",
-        "conversation_id": "project_discussion_001",
-        "role": "user"
-      }
-    },
-    "id": 1
-  }'
-```
+**Via MCP Tool Call:**
+```python
+# Log successful code pattern
+await session.call_tool("log_code_attempt", {
+    "input_prompt": "Create async database connection with error handling",
+    "generated_code": """
+import asyncpg
+from contextlib import asynccontextmanager
 
-#### Contextual Q&A
-Ask questions with relevant context:
+@asynccontextmanager
+async def get_db_connection():
+    conn = None
+    try:
+        conn = await asyncpg.connect(DATABASE_URL)
+        yield conn
+    except Exception as e:
+        logger.error(f"Database connection failed: {e}")
+        raise
+    finally:
+        if conn:
+            await conn.close()
+""",
+    "result": "pass",
+    "tags": ["python", "async", "database", "error_handling"]
+})
 
-```bash
-curl -X POST http://localhost:5050/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "ask_with_context",
-      "arguments": {
-        "question": "What are the best practices for API authentication?",
-        "conversation_id": "project_discussion_001",
-        "context_limit": 5
-      }
-    },
-    "id": 2
-  }'
-```
-
-### Code Pattern Learning
-
-#### Learning from Code
-Store successful code patterns for future reference:
-
-```bash
-curl -X POST http://localhost:5050/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "log_code_attempt",
-      "arguments": {
-        "input_prompt": "Create a secure API endpoint with JWT authentication",
-        "generated_code": "from fastapi import FastAPI, HTTPException, Depends\nfrom fastapi.security import HTTPBearer\nimport jwt\n\napp = FastAPI()\nsecurity = HTTPBearer()\n\ndef verify_token(token: str = Depends(security)):\n    try:\n        payload = jwt.decode(token.credentials, SECRET_KEY, algorithms=[\"HS256\"])\n        return payload\n    except jwt.InvalidTokenError:\n        raise HTTPException(status_code=401, detail=\"Invalid token\")\n\n@app.get(\"/protected\")\nasync def protected_endpoint(current_user: dict = Depends(verify_token)):\n    return {\"message\": \"Hello, authenticated user!\", \"user\": current_user}",
-        "result": "pass",
-        "execution_time_ms": 125,
-        "tags": "fastapi,jwt,authentication,security"
-      }
-    },
-    "id": 1
-  }'
-```
-
-#### Retrieving Code Patterns
-Get similar successful patterns:
-
-```bash
-curl -X POST http://localhost:5050/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "get_code_patterns",
-      "arguments": {
-        "query": "FastAPI authentication JWT",
-        "limit": 3
-      }
-    },
-    "id": 2
-  }'
+# Retrieve similar patterns when needed
+patterns = await session.call_tool("get_code_patterns", {
+    "query": "async database connection with error handling",
+    "result_filter": "pass",
+    "top_k": 5
+})
 ```
 
 ## Advanced Features
 
-### Knowledge Graph Integration
-
-#### Linking Documents
-Create relationships between documents:
-
-```bash
-curl -X POST http://localhost:5050/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "link_resources",
-      "arguments": {
-        "source_id": "api_docs_123",
-        "target_id": "auth_guide_456",
-        "relationship_type": "references"
-      }
-    },
-    "id": 1
-  }'
-```
-
-#### Auto-Linking Similar Documents
-Let LTMC find relationships automatically:
-
-```bash
-curl -X POST http://localhost:5050/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "auto_link_documents",
-      "arguments": {
-        "document_id": "new_api_guide",
-        "similarity_threshold": 0.8
-      }
-    },
-    "id": 2
-  }'
-```
-
-#### Querying the Knowledge Graph
-Discover document relationships:
-
-```bash
-curl -X POST http://localhost:5050/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "query_graph",
-      "arguments": {
-        "query": "authentication implementation",
-        "relationship_types": ["references", "implements"]
-      }
-    },
-    "id": 3
-  }'
-```
-
 ### Multi-Agent Coordination
 
-When using LTMC with multiple AI agents:
+LTMC provides advanced orchestration for multiple AI agents:
 
-#### Agent Registration
-```bash
-curl -X POST http://localhost:5050/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "register_agent",
-      "arguments": {
-        "agent_id": "coding_assistant",
-        "agent_type": "code_generator",
-        "capabilities": ["python", "fastapi", "testing"]
-      }
-    },
-    "id": 1
-  }'
-```
-
-#### Shared Context Management
-```bash
-curl -X POST http://localhost:5050/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "create_shared_context",
-      "arguments": {
-        "session_id": "team_coding_session_001",
-        "participating_agents": ["coding_assistant", "test_generator", "doc_writer"]
-      }
-    },
-    "id": 2
-  }'
-```
-
-## Integration Examples
-
-### Python Integration
-
+**Via MCP Tool Call:**
 ```python
-import aiohttp
-import asyncio
-import json
+# Create task blueprint for multi-agent execution
+blueprint = await session.call_tool("create_task_blueprint", {
+    "title": "Implement user dashboard",
+    "description": "Create responsive user dashboard with real-time data",
+    "estimated_duration_minutes": 240,
+    "required_skills": ["frontend", "backend", "database"],
+    "priority_score": 0.8,
+    "tags": ["ui", "dashboard", "real-time"]
+})
 
-class LTMCClient:
-    def __init__(self, base_url="http://localhost:5050"):
-        self.base_url = base_url
-        
-    async def call_tool(self, tool_name: str, arguments: dict):
-        payload = {
-            "jsonrpc": "2.0",
-            "method": "tools/call",
-            "params": {
-                "name": tool_name,
-                "arguments": arguments
-            },
-            "id": 1
-        }
-        
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
-                f"{self.base_url}/jsonrpc",
-                json=payload
-            ) as response:
-                return await response.json()
-
-# Usage example
-async def main():
-    client = LTMCClient()
-    
-    # Store a document
-    result = await client.call_tool("store_memory", {
-        "file_name": "project_notes.md",
-        "content": "Important project information..."
-    })
-    print("Stored:", result)
-    
-    # Search for information
-    result = await client.call_tool("retrieve_memory", {
-        "query": "project information",
-        "top_k": 3
-    })
-    print("Found:", result)
-
-# Run the example
-asyncio.run(main())
+# Analyze task complexity
+complexity = await session.call_tool("analyze_task_complexity", {
+    "title": "Implement user dashboard",
+    "description": "Create responsive user dashboard with real-time data",
+    "required_skills": ["frontend", "backend", "database"]
+})
 ```
 
-### JavaScript Integration
+### Knowledge Graphs
 
-```javascript
-class LTMCClient {
-    constructor(baseUrl = 'http://localhost:5050') {
-        this.baseUrl = baseUrl;
+Build and query knowledge relationships:
+
+**Via MCP Tool Call:**
+```python
+# Link related documents
+await session.call_tool("link_resources", {
+    "resource_1_id": "api_docs_id",
+    "resource_2_id": "frontend_guide_id",
+    "relationship_type": "implements",
+    "metadata": {
+        "connection_strength": "high",
+        "created_by": "system"
     }
-    
-    async callTool(toolName, arguments) {
-        const payload = {
-            jsonrpc: '2.0',
-            method: 'tools/call',
-            params: {
-                name: toolName,
-                arguments: arguments
-            },
-            id: 1
-        };
-        
-        const response = await fetch(`${this.baseUrl}/jsonrpc`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-        });
-        
-        return await response.json();
-    }
-}
+})
 
-// Usage example
-const client = new LTMCClient();
-
-// Store a document
-client.callTool('store_memory', {
-    file_name: 'meeting_notes.md',
-    content: 'Meeting notes from today...'
-}).then(result => {
-    console.log('Stored:', result);
-});
-
-// Add a todo
-client.callTool('add_todo', {
-    title: 'Review API documentation',
-    description: 'Check all endpoints are documented',
-    priority: 2
-}).then(result => {
-    console.log('Todo added:', result);
-});
+# Query document relationships
+relationships = await session.call_tool("get_document_relationships", {
+    "document_id": "api_docs_id",
+    "include_metadata": True
+})
 ```
 
-### cURL Examples Collection
+### System Health Monitoring
+
+Monitor LTMC system health:
+
+**Via MCP Tool Call:**
+```python
+# Check Redis cache health
+redis_health = await session.call_tool("redis_health_check")
+
+# Get cache statistics
+cache_stats = await session.call_tool("redis_cache_stats")
+
+# Get performance metrics
+performance = await session.call_tool("get_performance_report")
+```
+
+## Configuration
+
+### Environment Variables
 
 ```bash
-#!/bin/bash
-# ltmc_examples.sh - Collection of useful LTMC commands
+# Core Configuration
+LTMC_DB_PATH=/path/to/ltmc.db
+LTMC_VECTOR_PATH=/path/to/vector_store
+REDIS_HOST=localhost
+REDIS_PORT=6379
+NEO4J_URI=bolt://localhost:7687
 
-# Store project documentation
-curl -X POST http://localhost:5050/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "store_memory",
-      "arguments": {
-        "file_name": "project_overview.md",
-        "content": "# Project Overview\n\nThis project implements a REST API for user management with the following features:\n- User registration and authentication\n- Profile management\n- Role-based access control\n- Data validation and sanitization"
-      }
-    },
-    "id": 1
-  }'
+# Security
+REDIS_PASSWORD=your_redis_password
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=your_neo4j_password
 
-# Search for authentication info
-curl -X POST http://localhost:5050/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "retrieve_memory",
-      "arguments": {
-        "query": "authentication implementation",
-        "top_k": 3
-      }
-    },
-    "id": 2
-  }'
-
-# Add development tasks
-curl -X POST http://localhost:5050/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "add_todo",
-      "arguments": {
-        "title": "Implement user registration endpoint",
-        "description": "Create POST /users endpoint with validation",
-        "priority": 3
-      }
-    },
-    "id": 3
-  }'
-
-# Log successful code pattern
-curl -X POST http://localhost:5050/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "log_code_attempt",
-      "arguments": {
-        "input_prompt": "Create user registration with password hashing",
-        "generated_code": "from passlib.context import CryptContext\n\npwd_context = CryptContext(schemes=[\"bcrypt\"], deprecated=\"auto\")\n\ndef hash_password(password: str) -> str:\n    return pwd_context.hash(password)\n\ndef verify_password(plain_password: str, hashed_password: str) -> bool:\n    return pwd_context.verify(plain_password, hashed_password)",
-        "result": "pass",
-        "tags": "security,password,bcrypt"
-      }
-    },
-    "id": 4
-  }'
+# Performance
+LTMC_CACHE_SIZE=1000
+LTMC_VECTOR_DIMENSIONS=384
+LTMC_SIMILARITY_THRESHOLD=0.7
 ```
 
-## Best Practices
+### MCP Server Configuration
 
-### Memory Organization
+For Claude Code integration, add to your `.claude/claude_desktop_config.json`:
 
-1. **Use Descriptive Filenames**: Choose clear, searchable names
-   ```
-   ✓ "api_authentication_guide.md"
-   ✗ "doc1.md"
-   ```
+```json
+{
+  "mcpServers": {
+    "ltmc": {
+      "command": "python",
+      "args": ["ltmc_stdio_wrapper.py"],
+      "env": {
+        "LTMC_DB_PATH": "/home/user/ltmc/data/ltmc.db",
+        "LTMC_VECTOR_PATH": "/home/user/ltmc/data/vectors",
+        "REDIS_HOST": "localhost",
+        "REDIS_PORT": "6379",
+        "NEO4J_URI": "bolt://localhost:7687",
+        "LTMC_LOG_LEVEL": "INFO"
+      }
+    }
+  }
+}
+```
 
-2. **Tag Your Content**: Use consistent resource types
-   ```
-   ✓ resource_type: "documentation", "code", "meeting_notes"
-   ✗ resource_type: "stuff", "things"
-   ```
+## Health Check and Status
 
-3. **Structure Your Content**: Well-formatted content searches better
-   ```markdown
-   # Clear Title
-   
-   ## Organized Sections
-   
-   - Bullet points
-   - Key information
-   - Actionable items
-   ```
+Monitor your LTMC system status:
 
-### Task Management
+**Via MCP Tool Call:**
+```python
+# Get comprehensive system status
+status = await session.call_tool("get_performance_report")
 
-1. **Prioritize Effectively**:
-   - Priority 3: Critical, blocking issues
-   - Priority 2: Important, planned work
-   - Priority 1: Nice to have, future work
+# Check specific components
+redis_status = await session.call_tool("redis_health_check")
+context_stats = await session.call_tool("get_context_usage_statistics")
+```
 
-2. **Write Clear Descriptions**: Include enough context for later review
-
-3. **Use Search**: Find related tasks with `search_todos`
-
-### Code Pattern Learning
-
-1. **Log Both Success and Failure**: Failed attempts are valuable learning data
-
-2. **Use Consistent Tags**: Standardize your tagging scheme
-   ```
-   ✓ "async,database,error-handling"
-   ✗ "async stuff,db,errors"
-   ```
-
-3. **Include Performance Data**: Execution times help identify optimal patterns
-
-### Context Management
-
-1. **Use Conversation IDs**: Group related discussions
-   ```
-   "conversation_id": "feature_planning_2025_01"
-   ```
-
-2. **Build Rich Context**: Combine multiple sources for better results
-
-3. **Monitor Usage**: Use statistics to understand your patterns
+**Via Claude Code StatusLine:**
+Your Claude Code statusline will show real-time LTMC system status including:
+- 🚀 LTMC Optimal (system status)
+- 55 tools (available MCP tools)
+- 55+v (vector count)
+- redis:6382 (Redis connection)
+- ML:opt (ML integration status)
+- mem:ok (memory system)
+- stdio (transport protocol)
 
 ## Troubleshooting
 
 ### Common Issues
 
-#### "Connection refused" Error
+**1. MCP Server Not Starting**
 ```bash
-# Check if LTMC is running
-curl http://localhost:5050/health
+# Check process
+pgrep -f ltmc_mcp_server
 
-# If not running, start it
-./start_server.sh
+# Check logs
+tail -f ltmc_server.log
 ```
 
-#### "No results found" in Search
-```bash
-# Check if documents are stored
-curl -X POST http://localhost:5050/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "retrieve_memory",
-      "arguments": {
-        "query": "",
-        "top_k": 100
-      }
-    },
-    "id": 1
-  }'
+**2. Memory/Vector Store Issues**
+```python
+# Reset vector store if needed
+await session.call_tool("redis_clear_cache", {
+    "pattern": "ltmc:vectors:*"
+})
 ```
 
-#### Slow Search Performance
-```bash
-# Check system resources
-curl http://localhost:5050/ml/status
-
-# Consider adjusting search parameters
-# Use more specific queries
-# Reduce top_k values
+**3. Performance Issues**
+```python
+# Check system performance
+performance = await session.call_tool("get_performance_report")
+print(f"Status: {performance['status']}")
+print(f"Memory usage: {performance['memory_usage']}")
 ```
 
-### Getting Help
+## Best Practices
 
-1. **Check Server Logs**:
-   ```bash
-   tail -f logs/ltmc_http.log
-   ```
-
-2. **Verify Configuration**:
-   ```bash
-   curl http://localhost:5050/orchestration/health
-   ```
-
-3. **Test Basic Functionality**:
-   ```bash
-   # Test storage
-   curl -X POST http://localhost:5050/jsonrpc -H "Content-Type: application/json" \
-     -d '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"store_memory","arguments":{"file_name":"test.md","content":"test"}},"id":1}'
-   ```
+1. **Use Descriptive Names**: Always use meaningful file names and content descriptions
+2. **Leverage Tags**: Tag your code patterns and documents for better organization
+3. **Monitor Performance**: Regularly check system health via MCP tools
+4. **Maintain Context**: Use conversation IDs to maintain session continuity
+5. **Cache Management**: Leverage Redis caching for better performance
+6. **Regular Backups**: Export important memories periodically
 
 ## Next Steps
 
-- **Advanced Usage**: See [API Reference](../api/API_REFERENCE.md) for complete tool documentation
-- **Integration**: Learn about [Multi-Agent Coordination](../architecture/SYSTEM_ARCHITECTURE.md#multi-agent-coordination)
-- **Performance**: Review [Performance Tuning Guide](PERFORMANCE_TUNING.md) for optimization
-- **Deployment**: Scale with the [Deployment Guide](DEPLOYMENT.md)
+- Explore the **[Complete 55 Tools Reference](COMPLETE_55_TOOLS_REFERENCE.md)** for detailed tool documentation
+- Check out **[API Reference](../api/API_REFERENCE.md)** for comprehensive MCP tool specifications
+- Review **[Troubleshooting Guide](TROUBLESHOOTING.md)** for common issues and solutions
+- See **[System Architecture](../architecture/SYSTEM_ARCHITECTURE.md)** for technical details
 
-## Community and Support
+---
 
-- **Documentation**: Complete guides in the `/docs` directory
-- **Examples**: Additional examples in `/examples` directory
-- **Issues**: Report problems and request features
-- **Discussions**: Share use cases and get help
-
-Welcome to the LTMC community! Start building smarter, more contextual applications today.
+**Note**: LTMC operates exclusively via stdio MCP protocol. All examples in this guide demonstrate the recommended integration patterns for maximum performance and reliability.

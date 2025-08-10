@@ -23,9 +23,10 @@ from pathlib import Path
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 
-# Essential imports only
-from fastmcp import FastMCP
-from fastmcp.transport import StdioTransport
+# Essential imports only - Updated for official MCP SDK
+from mcp.server.fastmcp import FastMCP
+from mcp import run_stdio
+from mcp.server.models import InitializeResult
 
 # Configure minimal logging for stdio
 logging.basicConfig(
@@ -93,15 +94,17 @@ class LTMCStdioWrapper:
             logging.error(f"Error loading full tools: {e}")
             raise
     
-    def run_stdio(self):
-        """Run the server with stdio transport."""
-        transport = StdioTransport()
-        transport.run(self.app)
+    async def run_stdio(self):
+        """Run the server with stdio transport using official MCP SDK."""
+        await run_stdio(self.app.name, self.app)  # Official MCP SDK pattern
 
-def main():
+async def main():
     """Main entry point for stdio wrapper."""
     wrapper = LTMCStdioWrapper()
-    wrapper.run_stdio()
+    await wrapper.run_stdio()
 
 if __name__ == "__main__":
-    main()
+    # Use asyncio.run for proper async execution
+    asyncio.run(main())
+
+# Removed - this is now handled above in the if __name__ block

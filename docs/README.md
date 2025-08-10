@@ -20,7 +20,7 @@ Complete reference for all LTMC tools:
 - **[Context Tools](api/CONTEXT_TOOLS.md)** - Advanced semantic search and knowledge graph tools
 - **[Code Pattern Tools](api/CODE_PATTERN_TOOLS.md)** - Experience replay learning and pattern analysis
 - **[Stdio MCP Protocol](#)** - Primary transport via stdio (recommended)
-- **[HTTP Fallback Guide](#)** - REST API usage for development
+- **[Stdio MCP Integration Guide](#)** - Complete stdio protocol integration
 
 ### 🏗️ Architecture & System Design
 Technical deep dives for developers and architects:
@@ -187,33 +187,36 @@ For system design and architecture decisions:
 
 ## 🔄 Integration Patterns
 
-### HTTP API Integration
-```bash
-# Example: Store and retrieve pattern
-curl -X POST http://localhost:5050/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "store_memory",
-      "arguments": {
-        "file_name": "example.md",
-        "content": "Example content"
-      }
-    },
-    "id": 1
-  }'
+### Claude Code MCP Integration (Primary)
+```python
+# Example: Direct MCP tool usage in Claude Code
+mcp__ltmc__store_memory(
+  file_name="example.md",
+  content="Example content"
+)
+
+# Retrieve stored memories
+result = mcp__ltmc__retrieve_memory(
+  query="search terms",
+  top_k=5
+)
 ```
 
-### Python SDK Integration
-```python
-# Example: Async client pattern
-client = LTMCClient()
-result = await client.call_tool("retrieve_memory", {
-    "query": "search terms",
-    "top_k": 5
-})
+### Direct stdio JSON-RPC (Advanced)
+```bash
+# Example: Direct stdio communication for custom integrations
+echo '{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "store_memory",
+    "arguments": {
+      "file_name": "example.md",
+      "content": "Example content"
+    }
+  },
+  "id": 1
+}' | ./run_modular_stdio.sh
 ```
 
 ### MCP Client Integration
@@ -270,15 +273,15 @@ Historical development guides:
 - Monitor performance through health endpoints
 
 ### Scaling Considerations
-- Horizontal scaling through multiple instances
+- Horizontal scaling through multiple MCP server instances
 - Redis cluster for orchestration scaling
 - Neo4j clustering for knowledge graph scaling
-- Load balancing for HTTP transport
+- Stdio MCP connection pooling for high throughput
 
 ## 🔐 Security Best Practices
 
 ### Transport Security
-- Use HTTPS in production deployments
+- Use secure stdio transport with proper process isolation
 - Implement proper authentication mechanisms
 - Configure Redis password protection
 - Secure Neo4j with appropriate credentials
@@ -352,7 +355,7 @@ Historical development guides:
 **Current Status**: ✅ **PRODUCTION READY WITH COMPREHENSIVE DOCUMENTATION**
 
 The LTMC Multi-Agent Coordination Platform is fully operational with:
-- ✅ **Dual Transport** (HTTP + stdio) MCP server
+- ✅ **Stdio MCP Transport** - Primary protocol for all operations
 - ✅ **55 MCP Tools** across 14 categories 
 - ✅ **4-Tier Memory System** (SQLite + FAISS + Redis + Neo4j)
 - ✅ **Redis Orchestration** with 6 specialized services
@@ -364,19 +367,18 @@ The LTMC Multi-Agent Coordination Platform is fully operational with:
 ## 🔧 Quick Usage
 
 ```bash
-# Start the LTMC server with full orchestration
-./start_server.sh --orchestration-mode=full
+# Start the LTMC MCP server (stdio transport)
+./run_modular_stdio.sh
 
-# Check comprehensive status
-./status_server.sh
+# Check server process status
+ps aux | grep ltmc_mcp_server
 
-# Test API functionality
-curl http://localhost:5050/health
-curl http://localhost:5050/orchestration/health
-curl http://localhost:5050/ml/status
+# Test MCP functionality via Claude Code
+# mcp__ltmc__store_memory(file_name="test.md", content="test")
+# mcp__ltmc__retrieve_memory(query="test")
 
 # Stop the server
-./stop_server.sh
+pkill -f ltmc_mcp_server
 ```
 
 ---

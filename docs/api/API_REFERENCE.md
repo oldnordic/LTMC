@@ -9,10 +9,11 @@ The LTMC (Long-Term Memory and Context) MCP Server provides **55 comprehensive t
 
 ## Transport Protocols
 
-LTMC primarily uses **stdio MCP protocol** (recommended):
+LTMC uses the **stdio MCP protocol exclusively**:
 
-- **MCP Protocol** ⭐: JSON-RPC over stdio for MCP clients (primary)
-- **HTTP Transport**: REST API fallback available at `http://localhost:5050`
+- **MCP Protocol**: JSON-RPC over stdio transport for all MCP clients
+- **Integration**: Direct integration with Claude Code, Cursor, MCP Inspector
+- **Performance**: Low latency, direct process communication
 
 ## Authentication
 
@@ -46,23 +47,31 @@ Currently, LTMC operates in development mode without authentication. For product
 
 Store a document or memory in LTMC with automatic chunking and vector indexing.
 
-**HTTP Request:**
-```bash
-curl -X POST http://localhost:5050/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "store_memory",
-      "arguments": {
-        "file_name": "project_notes.md",
-        "content": "Important project information...",
-        "resource_type": "document"
-      }
-    },
-    "id": 1
-  }'
+**MCP Tool Call:**
+```python
+# Via Claude Code MCP integration
+mcp__ltmc__store_memory(
+  file_name="project_notes.md",
+  content="Important project information...",
+  resource_type="document"
+)
+```
+
+**Direct JSON-RPC over stdio:**
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "store_memory",
+    "arguments": {
+      "file_name": "project_notes.md",
+      "content": "Important project information...",
+      "resource_type": "document"
+    }
+  },
+  "id": 1
+}
 ```
 
 **Parameters:**
@@ -89,23 +98,31 @@ curl -X POST http://localhost:5050/jsonrpc \
 
 Retrieve relevant documents/memories using semantic search.
 
-**HTTP Request:**
-```bash
-curl -X POST http://localhost:5050/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "retrieve_memory",
-      "arguments": {
-        "query": "project implementation details",
-        "conversation_id": "session_123",
-        "top_k": 10
-      }
-    },
-    "id": 1
-  }'
+**MCP Tool Call:**
+```python
+# Via Claude Code MCP integration
+mcp__ltmc__retrieve_memory(
+  query="project implementation details",
+  conversation_id="session_123",
+  top_k=10
+)
+```
+
+**Direct JSON-RPC over stdio:**
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "retrieve_memory",
+    "arguments": {
+      "query": "project implementation details",
+      "conversation_id": "session_123",
+      "top_k": 10
+    }
+  },
+  "id": 1
+}
 ```
 
 **Parameters:**
@@ -144,23 +161,31 @@ curl -X POST http://localhost:5050/jsonrpc \
 
 Log a chat message with automatic context linking and relationship building.
 
-**HTTP Request:**
-```bash
-curl -X POST http://localhost:5050/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "log_chat",
-      "arguments": {
-        "content": "User asked about API implementation",
-        "conversation_id": "session_123",
-        "role": "user"
-      }
-    },
-    "id": 1
-  }'
+**MCP Tool Call:**
+```python
+# Via Claude Code MCP integration
+mcp__ltmc__log_chat(
+  content="User asked about API implementation",
+  conversation_id="session_123",
+  role="user"
+)
+```
+
+**Direct JSON-RPC over stdio:**
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "log_chat",
+    "arguments": {
+      "content": "User asked about API implementation",
+      "conversation_id": "session_123",
+      "role": "user"
+    }
+  },
+  "id": 1
+}
 ```
 
 **Parameters:**
@@ -186,23 +211,31 @@ curl -X POST http://localhost:5050/jsonrpc \
 
 Ask a question with relevant context retrieved from memory.
 
-**HTTP Request:**
-```bash
-curl -X POST http://localhost:5050/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "ask_with_context",
-      "arguments": {
-        "question": "How do I implement error handling?",
-        "conversation_id": "session_123",
-        "context_limit": 10
-      }
-    },
-    "id": 1
-  }'
+**MCP Tool Call:**
+```python
+# Via Claude Code MCP integration
+mcp__ltmc__ask_with_context(
+  question="How do I implement error handling?",
+  conversation_id="session_123",
+  context_limit=10
+)
+```
+
+**Direct JSON-RPC over stdio:**
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "ask_with_context",
+    "arguments": {
+      "question": "How do I implement error handling?",
+      "conversation_id": "session_123",
+      "context_limit": 10
+    }
+  },
+  "id": 1
+}
 ```
 
 **Parameters:**
@@ -234,22 +267,29 @@ curl -X POST http://localhost:5050/jsonrpc \
 
 Route a query to the most appropriate context or processing method.
 
-**HTTP Request:**
-```bash
-curl -X POST http://localhost:5050/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "route_query",
-      "arguments": {
-        "query": "What are the best practices for async programming?",
-        "conversation_id": "session_123"
-      }
-    },
-    "id": 1
-  }'
+**MCP Tool Call:**
+```python
+# Via Claude Code MCP integration
+mcp__ltmc__route_query(
+  query="What are the best practices for async programming?",
+  conversation_id="session_123"
+)
+```
+
+**Direct JSON-RPC over stdio:**
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "route_query",
+    "arguments": {
+      "query": "What are the best practices for async programming?",
+      "conversation_id": "session_123"
+    }
+  },
+  "id": 1
+}
 ```
 
 **Parameters:**
@@ -276,23 +316,31 @@ curl -X POST http://localhost:5050/jsonrpc \
 
 Add a new todo item to the task management system.
 
-**HTTP Request:**
-```bash
-curl -X POST http://localhost:5050/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "add_todo",
-      "arguments": {
-        "title": "Implement API authentication",
-        "description": "Add JWT-based authentication to the HTTP transport",
-        "priority": 3
-      }
-    },
-    "id": 1
-  }'
+**MCP Tool Call:**
+```python
+# Via Claude Code MCP integration
+mcp__ltmc__add_todo(
+  title="Implement API authentication",
+  description="Add JWT-based authentication to the MCP server",
+  priority=3
+)
+```
+
+**Direct JSON-RPC over stdio:**
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "add_todo",
+    "arguments": {
+      "title": "Implement API authentication",
+      "description": "Add JWT-based authentication to the MCP server",
+      "priority": 3
+    }
+  },
+  "id": 1
+}
 ```
 
 **Parameters:**
@@ -320,22 +368,29 @@ curl -X POST http://localhost:5050/jsonrpc \
 
 List todo items with optional status filtering.
 
-**HTTP Request:**
-```bash
-curl -X POST http://localhost:5050/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "list_todos",
-      "arguments": {
-        "status": "pending",
-        "limit": 20
-      }
-    },
-    "id": 1
-  }'
+**MCP Tool Call:**
+```python
+# Via Claude Code MCP integration
+mcp__ltmc__list_todos(
+  status="pending",
+  limit=20
+)
+```
+
+**Direct JSON-RPC over stdio:**
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "list_todos",
+    "arguments": {
+      "status": "pending",
+      "limit": 20
+    }
+  },
+  "id": 1
+}
 ```
 
 **Parameters:**
@@ -369,21 +424,27 @@ curl -X POST http://localhost:5050/jsonrpc \
 
 Mark a specific todo item as completed.
 
-**HTTP Request:**
-```bash
-curl -X POST http://localhost:5050/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "complete_todo",
-      "arguments": {
-        "todo_id": 456
-      }
-    },
-    "id": 1
-  }'
+**MCP Tool Call:**
+```python
+# Via Claude Code MCP integration
+mcp__ltmc__complete_todo(
+  todo_id=456
+)
+```
+
+**Direct JSON-RPC over stdio:**
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "complete_todo",
+    "arguments": {
+      "todo_id": 456
+    }
+  },
+  "id": 1
+}
 ```
 
 **Parameters:**
@@ -407,22 +468,29 @@ curl -X POST http://localhost:5050/jsonrpc \
 
 Search todo items by title or description using text search.
 
-**HTTP Request:**
-```bash
-curl -X POST http://localhost:5050/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "search_todos",
-      "arguments": {
-        "query": "authentication",
-        "limit": 10
-      }
-    },
-    "id": 1
-  }'
+**MCP Tool Call:**
+```python
+# Via Claude Code MCP integration
+mcp__ltmc__search_todos(
+  query="authentication",
+  limit=10
+)
+```
+
+**Direct JSON-RPC over stdio:**
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "search_todos",
+    "arguments": {
+      "query": "authentication",
+      "limit": 10
+    }
+  },
+  "id": 1
+}
 ```
 
 **Parameters:**
@@ -486,60 +554,76 @@ Currently, no rate limiting is implemented. For production deployments, implemen
 
 ### Complete Workflow Example
 
-```bash
+**Via Claude Code MCP integration:**
+```python
 # 1. Store some memory
-curl -X POST http://localhost:5050/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "store_memory",
-      "arguments": {
-        "file_name": "api_design.md",
-        "content": "REST API best practices: Use proper HTTP methods, implement proper error handling, use JSON for data exchange..."
-      }
-    },
-    "id": 1
-  }'
+mcp__ltmc__store_memory(
+  file_name="api_design.md",
+  content="API best practices: Use proper MCP methods, implement proper error handling, use JSON-RPC for communication..."
+)
 
 # 2. Add a related todo
-curl -X POST http://localhost:5050/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "add_todo",
-      "arguments": {
-        "title": "Review API design document",
-        "description": "Review the stored API design best practices",
-        "priority": 2
-      }
-    },
-    "id": 2
-  }'
+mcp__ltmc__add_todo(
+  title="Review API design document",
+  description="Review the stored API design best practices",
+  priority=2
+)
 
 # 3. Search for related information
-curl -X POST http://localhost:5050/jsonrpc \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "tools/call",
-    "params": {
-      "name": "retrieve_memory",
-      "arguments": {
-        "query": "API best practices error handling"
-      }
-    },
-    "id": 3
-  }'
+mcp__ltmc__retrieve_memory(
+  query="API best practices error handling"
+)
+```
+
+**Via direct stdio JSON-RPC:**
+```json
+// 1. Store some memory
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "store_memory",
+    "arguments": {
+      "file_name": "api_design.md",
+      "content": "API best practices: Use proper MCP methods, implement proper error handling, use JSON-RPC for communication..."
+    }
+  },
+  "id": 1
+}
+
+// 2. Add a related todo
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "add_todo",
+    "arguments": {
+      "title": "Review API design document",
+      "description": "Review the stored API design best practices",
+      "priority": 2
+    }
+  },
+  "id": 2
+}
+
+// 3. Search for related information
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "retrieve_memory",
+    "arguments": {
+      "query": "API best practices error handling"
+    }
+  },
+  "id": 3
+}
 ```
 
 ## Next Steps
 
 - [Context Tools Reference](CONTEXT_TOOLS.md) - Advanced context and semantic search tools
 - [Code Pattern Tools Reference](CODE_PATTERN_TOOLS.md) - ML-assisted code pattern analysis
-- [Orchestration Tools Reference](ORCHESTRATION_TOOLS.md) - Multi-agent coordination tools
-- [HTTP Transport Guide](HTTP_TRANSPORT.md) - Complete HTTP API documentation
-- [MCP Protocol Guide](MCP_PROTOCOL.md) - JSON-RPC over stdio documentation
+- [Complete 55 Tools Reference](../guides/COMPLETE_55_TOOLS_REFERENCE.md) - All LTMC MCP tools documentation
+- [MCP Protocol Guide](../guides/USER_GUIDE.md) - JSON-RPC over stdio integration guide
+- [Configuration Guide](../guides/CONFIGURATION.md) - MCP server setup and configuration
