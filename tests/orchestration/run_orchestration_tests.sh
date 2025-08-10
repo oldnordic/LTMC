@@ -85,18 +85,18 @@ if ! curl -f -s http://localhost:5050/health | grep -q "healthy"; then
     exit 1
 fi
 
-# Verify all MCP tools available (expect at least 25, actual count is 28)
+# Verify all MCP tools available (expect at least 45, actual count is 55)
 echo -e "${YELLOW}  Verifying MCP tools availability...${NC}"
 TOOL_COUNT=$(curl -s http://localhost:5050/tools | jq -r '.count' 2>/dev/null || echo "0")
-if [ "$TOOL_COUNT" -lt "25" ]; then
-    echo -e "${RED}  ❌ Expected at least 25 MCP tools, found ${TOOL_COUNT}${NC}"
+if [ "$TOOL_COUNT" -lt "45" ]; then
+    echo -e "${RED}  ❌ Expected at least 45 MCP tools, found ${TOOL_COUNT}${NC}"
     kill $SERVER_PID 2>/dev/null || true
     exit 1
 fi
 
 echo -e "${GREEN}🎉 PHASE 0 VALIDATION SUCCESSFUL${NC}"
 echo -e "${GREEN}  ✅ Server started and healthy${NC}"
-echo -e "${GREEN}  ✅ All ${TOOL_COUNT} MCP tools available (meets minimum 25)${NC}"
+echo -e "${GREEN}  ✅ All ${TOOL_COUNT} MCP tools available (meets minimum 45)${NC}"
 echo -e "${GREEN}  ✅ Ready for orchestration testing${NC}"
 echo ""
 
@@ -138,7 +138,7 @@ echo -e "${BLUE}===========================================${NC}"
 echo ""
 
 # CRITICAL: Backward Compatibility Tests
-if run_test_category "BACKWARD COMPATIBILITY" "test_backward_compatibility.py" "Ensuring 25 MCP tools work unchanged"; then
+if run_test_category "BACKWARD COMPATIBILITY" "test_backward_compatibility.py" "Ensuring 55 MCP tools work unchanged"; then
     ((TESTS_PASSED++))
 else
     ((TESTS_FAILED++))
@@ -234,7 +234,7 @@ if [ $TESTS_FAILED -eq 0 ]; then
 
 ### Validation Status
 ✅ System startup validation successful
-✅ All 25 MCP tools functional and unchanged
+✅ All 55 MCP tools functional and unchanged
 ✅ Orchestration services integration working
 ✅ Performance requirements met
 ✅ Multi-agent coordination validated

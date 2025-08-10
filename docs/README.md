@@ -336,7 +336,7 @@ Historical development guides:
 ## 📝 Documentation Status
 
 - ✅ **User Guide** - Complete with examples and tutorials
-- ✅ **API Reference** - All 25 tools documented with examples
+- ✅ **API Reference** - All 55 tools documented with examples
 - ✅ **Architecture Guide** - Comprehensive system design documentation
 - ✅ **Deployment Guide** - Development to production deployment
 - ✅ **Context Tools** - Advanced semantic search features

@@ -32,7 +32,7 @@ The LTMC (Long-Term Memory and Context) Multi-Agent Coordination Platform is a s
 │   FastAPI + Uvicorn      │      JSON-RPC over stdio            │
 │   localhost:5050         │      MCP Client Integration         │
 ├──────────────────────────┴──────────────────────────────────────┤
-│                     MCP Tool Layer (25 Tools)                  │
+│                     MCP Tool Layer (55 Tools)                  │
 ├───────────────────┬───────────────────┬────────────────────────┤
 │   Memory Tools    │   Context Tools   │   Code Pattern Tools   │
 │   • store_memory  │   • build_context │   • log_code_attempt   │

@@ -1,7 +1,7 @@
 """
 Backward Compatibility Tests for Redis Orchestration Layer
 
-CRITICAL: These tests ensure all 25 MCP tools continue working unchanged
+CRITICAL: These tests ensure all 55 MCP tools continue working unchanged
 after orchestration implementation. No existing functionality should be broken.
 """
 
@@ -29,7 +29,7 @@ class TestBackwardCompatibility:
     CRITICAL TEST SUITE: Backward compatibility validation.
     
     These tests verify that the orchestration layer does not break
-    any existing functionality of the 25 MCP tools.
+    any existing functionality of the 55 MCP tools.
     """
     
     @pytest.fixture(scope="class")
@@ -121,7 +121,7 @@ class TestBackwardCompatibility:
         print(f"Missing tools: {sorted(missing_tools) if missing_tools else 'None'}")
         
         assert len(missing_tools) == 0, f"Missing core tools after orchestration: {missing_tools}"
-        assert len(available_set) >= 25, f"Expected at least 25 tools, found {len(available_set)} tools: {sorted(available_set)}"
+        assert len(available_set) >= 55, f"Expected at least 55 tools, found {len(available_set)} tools: {sorted(available_set)}"
     
     @pytest.mark.asyncio
     async def test_memory_operations_unchanged(self, test_database):
@@ -541,7 +541,7 @@ if __name__ == "__main__":
     
     if exit_code == 0:
         print("\\n🎉 BACKWARD COMPATIBILITY TESTS PASSED")
-        print("✅ All 25 MCP tools working unchanged")
+        print("✅ All 55 MCP tools working unchanged")
         print("✅ Tool signatures preserved")
         print("✅ Return value formats preserved") 
         print("✅ Transport compatibility maintained")

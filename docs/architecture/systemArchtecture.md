@@ -68,7 +68,7 @@ LTMC (Long-Term Memory and Context) is a sophisticated, modular MCP (Model Conte
   - Low-overhead communication
   - Identical tool set to HTTP transport
 
-## Tool Modules (25 Total)
+## Tool Modules (55 Total)
 
 ### 1. Memory Tools
 - Persistent storage

@@ -1,6 +1,6 @@
 # LTMC API Reference
 
-Complete API reference for the LTMC (Long-Term Memory and Context) MCP server with all 25 available tools.
+Complete API reference for the LTMC (Long-Term Memory and Context) MCP server with all 55 available tools.
 
 ## Quick Reference
 
@@ -34,7 +34,7 @@ curl http://localhost:5050/health
   "status": "healthy",
   "transport": "http", 
   "port": 5050,
-  "tools_available": 25,
+  "tools_available": 55,
   "architecture": "modularized_fastmcp"
 }
 ```

@@ -2,7 +2,7 @@
 Phase 0: System Startup Validation Tests
 
 MANDATORY FIRST STEP: These tests MUST pass before any other orchestration testing.
-Validates that the actual LTMC system starts successfully and all 25 MCP tools remain functional.
+Validates that the actual LTMC system starts successfully and all 55 MCP tools remain functional.
 """
 
 import pytest
@@ -89,9 +89,9 @@ class TestSystemStartupValidation:
         health_data = response.json()
         assert health_data.get("status") == "healthy", f"Server reports unhealthy: {health_data}"
     
-    def test_all_25_tools_available(self, server_process):
+    def test_all_55_tools_available(self, server_process):
         """
-        PHASE 0 GATE 2: Verify all 25 MCP tools are available.
+        PHASE 0 GATE 2: Verify all 55 MCP tools are available.
         
         Critical test to ensure no tools were broken during orchestration changes.
         """
@@ -99,7 +99,7 @@ class TestSystemStartupValidation:
         assert response.status_code == 200, f"Tools endpoint failed: {response.status_code}"
         
         tools_data = response.json()
-        assert tools_data.get("count") == 25, f"Expected 25 tools, got {tools_data.get('count')}"
+        assert tools_data.get("count") == 55, f"Expected 55 tools, got {tools_data.get('count')}"
         
         # Verify expected tools are present
         expected_tools = {
@@ -438,7 +438,7 @@ if __name__ == "__main__":
     if exit_code == 0:
         print("\\n🎉 PHASE 0 VALIDATION SUCCESSFUL")
         print("✅ System startup validation passed")
-        print("✅ All 25 MCP tools functional") 
+        print("✅ All 55 MCP tools functional") 
         print("✅ Database connections working")
         print("✅ Performance baseline established")
         print("\\n➡️  Ready to proceed with orchestration testing")

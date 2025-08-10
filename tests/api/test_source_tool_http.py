@@ -346,7 +346,7 @@ class TestSourceToolHTTP:
         
         result = response.json()
         assert result["status"] == "healthy"
-        assert result["tools_available"] == 25  # Updated count with new source tool functions
+        assert result["tools_available"] == 55  # Updated count with new source tool functions
 
     def test_tools_endpoint_includes_new_tools(self, client):
         """Test that /tools endpoint includes the new source tool tracking functions."""
@@ -359,7 +359,7 @@ class TestSourceToolHTTP:
         assert "get_chats_by_tool" in tools
         assert "list_tool_identifiers" in tools
         assert "get_tool_conversations" in tools
-        assert result["count"] == 25
+        assert result["count"] == 55
 
     def test_api_tools_discovery_includes_new_tools(self, client):
         """Test that /api/v1/tools endpoint includes new tools with descriptions."""

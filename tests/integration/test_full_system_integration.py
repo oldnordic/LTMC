@@ -349,7 +349,7 @@ class TestRealMCPToolsIntegration:
                 failed_tools.append((tool_name, str(e)))
                 logger.error(f"❌ Tool {tool_name} failed: {e}")
         
-        # Validate at least 25 of 28 tools work (allow for some edge cases)
+        # Validate at least 45 of 55 tools work (allow for some edge cases)
         success_rate = len(successful_tools) / len(mcp_tools)
         assert success_rate >= 0.85, f"Too many MCP tools failed: {failed_tools}"
         

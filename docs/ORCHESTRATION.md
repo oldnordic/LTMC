@@ -37,7 +37,7 @@ The orchestration layer consists of 6 core services that enable multi-agent coor
 ├─────────────────────────────────────────────────────────────┤
 │                      LTMC CORE                              │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
-│  │     25      │  │    Dual     │  │      SQLite +       │  │
+│  │     55      │  │    Dual     │  │      SQLite +       │  │
 │  │ MCP Tools   │  │ Transport   │  │   FAISS + Redis     │  │
 │  │   (Async)   │  │(HTTP/stdio)│  │                     │  │
 │  └─────────────┘  └─────────────┘  └─────────────────────┘  │
@@ -155,7 +155,7 @@ Detailed orchestration service status and metrics.
 
 ### MCP Tools
 
-All 25 existing MCP tools remain unchanged and fully functional:
+All 55 existing MCP tools remain unchanged and fully functional:
 
 ```bash
 # List all available tools
@@ -311,7 +311,7 @@ SESSION_CLEANUP_INTERVAL=1800      # More frequent cleanup
 
 The orchestration implementation maintains **100% backward compatibility**:
 
-- All 25 existing MCP tools work unchanged
+- All 55 existing MCP tools work unchanged
 - Existing API endpoints remain functional
 - Original configuration options still supported
 - Graceful degradation when orchestration disabled
