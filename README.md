@@ -1,7 +1,6 @@
 # LTMC - Long-Term Memory and Context MCP Server
 
 **Version**: 3.0  
-**Status**: Production Ready  
 **Tools**: 55 MCP Tools  
 **Transport**: stdio MCP protocol
 
