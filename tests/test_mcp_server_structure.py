@@ -40,7 +40,7 @@ class TestMCPServerStructure:
             assert callable(mcp.tool)
             
             # Check that it's the right type for mcp dev
-            from mcp.server.fastmcp import FastMCP
+            from fastmcp import FastMCP
             assert isinstance(mcp, FastMCP)
             
         except ImportError as e:
@@ -84,7 +84,7 @@ class TestFastMCPServerImplementation:
     def test_fastmcp_server_creation(self):
         """Test creating a FastMCP server."""
         try:
-            from mcp.server.fastmcp import FastMCP
+            from fastmcp import FastMCP
             
             # Create a basic FastMCP server
             server = FastMCP("LTMC Server")
@@ -110,7 +110,7 @@ class TestFastMCPServerImplementation:
     def test_fastmcp_server_with_all_tools(self):
         """Test FastMCP server with all our tools."""
         try:
-            from mcp.server.fastmcp import FastMCP
+            from fastmcp import FastMCP
             
             # Create server with all our tools
             server = FastMCP("LTMC Server")

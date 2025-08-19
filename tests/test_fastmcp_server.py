@@ -12,7 +12,7 @@ class TestFastMCPServer:
     def test_fastmcp_server_creation(self):
         """Test creating a FastMCP server that works with mcp dev."""
         try:
-            from mcp.server.fastmcp import FastMCP
+            from fastmcp import FastMCP
             
             # Create a FastMCP server
             server = FastMCP("LTMC Server")
@@ -45,7 +45,7 @@ class TestFastMCPServer:
     def test_fastmcp_server_with_all_tools(self):
         """Test FastMCP server with all our LTMC tools."""
         try:
-            from mcp.server.fastmcp import FastMCP
+            from fastmcp import FastMCP
             
             # Create server with all our tools
             server = FastMCP("LTMC Server")
@@ -124,7 +124,7 @@ class TestFastMCPServer:
     def test_fastmcp_server_global_variable(self):
         """Test that FastMCP server can be assigned to global variable."""
         try:
-            from mcp.server.fastmcp import FastMCP
+            from fastmcp import FastMCP
             
             # Create server
             server = FastMCP("LTMC Server")

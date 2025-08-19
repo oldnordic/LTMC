@@ -5,7 +5,7 @@ import tempfile
 import os
 from unittest.mock import patch, MagicMock
 
-from mcp.server.fastmcp import FastMCP
+from fastmcp import FastMCP
 
 
 class TestMCPServerInitialization:

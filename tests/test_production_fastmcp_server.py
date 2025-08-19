@@ -11,7 +11,7 @@ class TestProductionFastMCPServer:
     def test_fastmcp_server_creation(self):
         """Test creating a production FastMCP server."""
         try:
-            from mcp.server.fastmcp import FastMCP
+            from fastmcp import FastMCP
             
             # Create the production server
             server = FastMCP("LTMC Server")
@@ -26,7 +26,7 @@ class TestProductionFastMCPServer:
     def test_all_tools_registered(self):
         """Test that all LTMC tools are properly registered."""
         try:
-            from mcp.server.fastmcp import FastMCP
+            from fastmcp import FastMCP
             
             # Create server
             server = FastMCP("LTMC Server")
@@ -101,7 +101,7 @@ class TestProductionFastMCPServer:
     def test_tools_with_real_data(self):
         """Test tools with real data (no mocks)."""
         try:
-            from mcp.server.fastmcp import FastMCP
+            from fastmcp import FastMCP
             
             # Create server
             server = FastMCP("LTMC Server")
@@ -137,7 +137,7 @@ class TestProductionFastMCPServer:
     def test_server_global_variable(self):
         """Test that server can be assigned to global variable for mcp dev."""
         try:
-            from mcp.server.fastmcp import FastMCP
+            from fastmcp import FastMCP
             
             # Create server
             server = FastMCP("LTMC Server")
@@ -233,7 +233,7 @@ class TestProductionFastMCPServerFile:
             content = f.read()
             
             # Should import FastMCP
-            assert "from mcp.server.fastmcp import FastMCP" in content
+            assert "from fastmcp import FastMCP" in content
             
             # Should create server instance
             assert "FastMCP(" in content
@@ -257,7 +257,7 @@ class TestProductionFastMCPServerFile:
             from ltms.mcp_server_proper import mcp
             
             # Check that it's a FastMCP instance
-            from mcp.server.fastmcp import FastMCP
+            from fastmcp import FastMCP
             assert isinstance(mcp, FastMCP)
             
             # Check that it has all our tools
@@ -285,7 +285,7 @@ class TestProductionFastMCPServerEndToEnd:
     async def test_end_to_end_workflow(self):
         """Test complete workflow: store -> retrieve -> ask."""
         try:
-            from mcp.server.fastmcp import FastMCP, Client
+            from fastmcp import FastMCP, Client
             
             # Create server with real tools
             server = FastMCP("LTMC Server")
