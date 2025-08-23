@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  neo4j-ltmc:
+    image: neo4j:5.20-community
+    container_name: ltmc-neo4j
+    ports:
+      - "7688:7474"  # HTTP UI port (different from KWE's 7474)
+      - "7689:7687"  # Bolt protocol port (different from KWE's 7687)
+    environment:
+      - NEO4J_AUTH=neo4j/ltmc_password_2025
+      - NEO4J_PLUGINS=["apoc"]
+      - NEO4J_apoc_export_file_enabled=true
+      - NEO4J_apoc_import_file_enabled=true
+      - NEO4J_apoc_import_file_use__neo4j__config=true
+      - NEO4J_dbms_security_procedures_unrestricted=apoc.*
+    volumes:
+      - ltmc_neo4j_data:/data
+      - ltmc_neo4j_logs:/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "neo4j", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+volumes:
+  ltmc_neo4j_data:
+    name: ltmc_neo4j_data
+  ltmc_neo4j_logs:
+    name: ltmc_neo4j_logs

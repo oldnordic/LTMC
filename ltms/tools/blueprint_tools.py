@@ -44,7 +44,9 @@ from typing import Dict, Any, List, Optional, Union
 
 # Import LTMC infrastructure
 from ltms.database.connection import get_db_connection
-from ltms.config import DB_PATH
+from ltms.config import get_config
+config = get_config()
+DB_PATH = config.get_db_path()
 
 # Import models and services
 from ltms.models.task_blueprint import (

@@ -20,7 +20,7 @@ project_root = current_file.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from ltms.config import Config
+from ltms.config import get_config, LTMCConfig as Config
 from ltms.services.config_template_service import (
     ConfigTemplateManager,
     ConfigTemplate,

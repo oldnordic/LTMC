@@ -62,8 +62,12 @@ from ltms.database.neo4j_store import (
     get_document_relationships
 )
 
-# Import centralized configuration with proper .env loading
-from ltms.config import config, DB_PATH, FAISS_INDEX_PATH, EMBEDDING_MODEL
+# Import centralized configuration from JSON config
+from ltms.config import get_config
+config = get_config()
+DB_PATH = config.get_db_path()
+FAISS_INDEX_PATH = config.get_faiss_index_path()
+EMBEDDING_MODEL = config.embedding_model
 
 # Import connection pooling for high performance
 from ltms.core.connection_pool import get_connection_manager, PoolConfig
