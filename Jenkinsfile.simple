@@ -1,3 +1,72 @@
+// Professional Error Handling Framework with LTMC Integration - Moved outside pipeline block
+def handleStageError(stageName, exception) {
+    env.BUILD_STATUS = 'FAILED'
+    env.ERROR_STATE = stageName
+    env.STAGE_CONTEXT = "Error in ${stageName}: ${exception.getMessage()}"
+    
+    echo "❌ Stage ${stageName} failed: ${exception.getMessage()}"
+    echo "🔧 Error context preserved for recovery analysis"
+    
+    // LTMC Error Storage with comprehensive context
+    try {
+        sh """
+            python3 -c "
+import sys, json, time
+sys.path.insert(0, '${env.LTMC_HOME}')
+
+# Store error context in LTMC memory
+error_context = {
+    'stage_name': '${stageName}',
+    'error_message': '''${exception.getMessage()}''',
+    'build_number': '${env.BUILD_NUMBER}',
+    'timestamp': time.strftime('%Y-%m-%d %H:%M:%S'),
+    'recovery_strategy': 'manual_intervention_required'
+}
+
+print('🔧 Error context stored in LTMC memory system')
+print('📊 Error preserved for professional recovery analysis')
+"
+        """
+    } catch (Exception ltmcError) {
+        echo "⚠️ LTMC error storage warning: ${ltmcError.getMessage()}"
+        echo "Error context preserved locally for manual recovery"
+    }
+    
+    throw exception
+}
+
+def executeWithErrorHandling(stageName, closure) {
+    try {
+        env.STAGE_CONTEXT = stageName
+        echo "▶️ Professional execution: ${stageName}"
+        
+        closure()
+        
+        echo "✅ Stage completed successfully: ${stageName}"
+        
+        // LTMC Success Tracking
+        sh """
+            python3 -c "
+import sys, time
+sys.path.insert(0, '${env.LTMC_HOME}')
+
+success_context = {
+    'stage_name': '${stageName}',
+    'build_number': '${env.BUILD_NUMBER}',
+    'timestamp': time.strftime('%Y-%m-%d %H:%M:%S'),
+    'status': 'success'
+}
+
+print('✅ Stage success tracked in LTMC memory')
+print('📊 Professional execution metrics preserved')
+"
+        """
+        
+    } catch (Exception e) {
+        handleStageError(stageName, e)
+    }
+}
+
 pipeline {
     agent any
     
@@ -31,87 +100,14 @@ pipeline {
         buildDiscarder(logRotator(numToKeepStr: '10'))
     }
     
-    // Professional Error Handling Framework with LTMC Integration
-    def handleStageError(stageName, exception) {
-        env.BUILD_STATUS = 'FAILED'
-        env.ERROR_STATE = stageName
-        env.STAGE_CONTEXT = "Error in ${stageName}: ${exception.getMessage()}"
-        
-        echo "❌ Stage ${stageName} failed: ${exception.getMessage()}"
-        echo "🔧 Error context preserved for recovery analysis"
-        
-        // LTMC Error Storage with comprehensive context
-        script {
-            try {
-                sh """
-                    python3 -c "
-import sys, json, time
-sys.path.insert(0, '${env.LTMC_HOME}')
-
-# Store error context in LTMC memory
-error_context = {
-    'stage_name': '${stageName}',
-    'error_message': '''${exception.getMessage()}''',
-    'build_number': '${env.BUILD_NUMBER}',
-    'timestamp': time.strftime('%Y-%m-%d %H:%M:%S'),
-    'recovery_strategy': 'manual_intervention_required'
-}
-
-print('🔧 Error context stored in LTMC memory system')
-print('📊 Error preserved for professional recovery analysis')
-"
-                """
-            } catch (Exception ltmcError) {
-                echo "⚠️ LTMC error storage warning: ${ltmcError.getMessage()}"
-                echo "Error context preserved locally for manual recovery"
-            }
-        }
-        
-        throw exception
-    }
-    
-    def executeWithErrorHandling(stageName, closure) {
-        try {
-            env.STAGE_CONTEXT = stageName
-            echo "▶️ Professional execution: ${stageName}"
-            
-            closure()
-            
-            echo "✅ Stage completed successfully: ${stageName}"
-            
-            // LTMC Success Tracking
-            script {
-                sh """
-                    python3 -c "
-import sys, time
-sys.path.insert(0, '${env.LTMC_HOME}')
-
-success_context = {
-    'stage_name': '${stageName}',
-    'build_number': '${env.BUILD_NUMBER}',
-    'timestamp': time.strftime('%Y-%m-%d %H:%M:%S'),
-    'status': 'success'
-}
-
-print('✅ Stage success tracked in LTMC memory')
-print('📊 Professional execution metrics preserved')
-"
-                """
-            }
-            
-        } catch (Exception e) {
-            handleStageError(stageName, e)
-        }
-    }
-    
     stages {
         stage('Checkout from Local Git') {
             steps {
-                executeWithErrorHandling('Checkout') {
-                    echo '🔄 Checking out LTMC from local Git server (192.168.1.119)...'
-                    checkout scm
-                    
-                    script {
+                script {
+                    executeWithErrorHandling('Checkout') {
+                        echo '🔄 Checking out LTMC from local Git server (192.168.1.119)...'
+                        checkout scm
+                        
                         env.GIT_COMMIT_MSG = sh(
                             script: 'git log -1 --pretty=%B',
                             returnStdout: true
@@ -124,18 +120,19 @@ print('📊 Professional execution metrics preserved')
                             script: 'git rev-parse --short HEAD',
                             returnStdout: true
                         ).trim()
+                        
+                        echo "📝 Commit: ${env.GIT_COMMIT_MSG}"
+                        echo "👤 Author: ${env.GIT_AUTHOR}"
+                        echo "🔗 SHA: ${env.SHORT_COMMIT}"
                     }
-                    
-                    echo "📝 Commit: ${env.GIT_COMMIT_MSG}"
-                    echo "👤 Author: ${env.GIT_AUTHOR}"
-                    echo "🔗 SHA: ${env.SHORT_COMMIT}"
                 }
             }
         }
         
         stage('LTMC Tools Validation') {
             steps {
-                executeWithErrorHandling('LTMC_Tools_Validation') {
+                script {
+                    executeWithErrorHandling('LTMC_Tools_Validation') {
                     echo '🧠 Validating LTMC 11-tool integration...'
                     
                     script {
@@ -254,7 +251,8 @@ except Exception as e:
                         echo "${ltmcValidationResult}"
                     }
                     
-                    echo '🎯 LTMC tools integration validated for Jenkins pipeline'
+                        echo '🎯 LTMC tools integration validated for Jenkins pipeline'
+                    }
                 }
             }
         }
