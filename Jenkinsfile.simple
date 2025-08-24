@@ -220,7 +220,7 @@ try:
     print(f'')
     print(f'📊 LTMC Tools Validation Results:')
     print(f'✅ Tools Validated: {len(validated_tools)}/11')
-    print(f'🎯 Validation Status: {\"PRODUCTION READY\" if len(validated_tools) >= 10 else \"NEEDS ATTENTION\"}')
+    print(f'🎯 Validation Status: {\\\"PRODUCTION READY\\\" if len(validated_tools) >= 10 else \\\"NEEDS ATTENTION\\\"}')
     
     if len(validated_tools) >= 10:
         print('🎉 LTMC TOOLS: Jenkins integration ready!')
