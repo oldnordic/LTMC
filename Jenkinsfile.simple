@@ -5,8 +5,8 @@ pipeline {
     agent any
     
     environment {
-        LTMC_HOME = '/home/feanor/Projects/ltmc'
-        PYTHONPATH = "${LTMC_HOME}"
+        LTMC_HOME = "${WORKSPACE}"
+        PYTHONPATH = "${WORKSPACE}"
     }
     
     stages {
