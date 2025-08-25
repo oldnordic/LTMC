@@ -19,7 +19,7 @@ pipeline {
                         
                         # Create and activate virtual environment
                         python3 -m venv jenkins_venv
-                        source jenkins_venv/bin/activate
+                        . jenkins_venv/bin/activate
                         
                         # Install dependencies in virtual environment
                         pip install --upgrade pip
@@ -41,7 +41,7 @@ pipeline {
                     echo "=== LTMC Architecture Validation ==="
                     sh '''
                         cd ${WORKSPACE}
-                        source jenkins_venv/bin/activate
+                        . jenkins_venv/bin/activate
                         
                         # Verify consolidated tool structure - real file checking
                         if [ ! -f "ltms/tools/consolidated.py" ]; then
@@ -86,7 +86,7 @@ pipeline {
                     echo "=== Database Connectivity Tests ==="
                     sh '''
                         cd ${WORKSPACE}
-                        source jenkins_venv/bin/activate
+                        . jenkins_venv/bin/activate
                         
                         if [ -f "jenkins_validation_scripts/validate_database_connectivity_tests.py" ]; then
                             echo "Running comprehensive database connectivity tests..."
@@ -118,7 +118,7 @@ pipeline {
                     echo "=== Performance SLA Validation ==="
                     sh '''
                         cd ${WORKSPACE}
-                        source jenkins_venv/bin/activate
+                        . jenkins_venv/bin/activate
                         
                         if [ -f "jenkins_validation_scripts/validate_performance_sla_tests.py" ]; then
                             echo "Running performance SLA tests..."
@@ -137,7 +137,7 @@ pipeline {
                     echo "=== MCP Protocol Compliance ==="
                     sh '''
                         cd ${WORKSPACE}
-                        source jenkins_venv/bin/activate
+                        . jenkins_venv/bin/activate
                         
                         if [ -f "jenkins_validation_scripts/validate_mcp_protocol_compliance_tests.py" ]; then
                             echo "Running MCP protocol compliance tests..."
