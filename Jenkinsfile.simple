@@ -15,25 +15,21 @@ pipeline {
                 script {
                     echo "=== LTMC Environment Setup ==="
                     sh '''
-                        cd ${LTMC_HOME}
+                        cd ${WORKSPACE}
                         
-                        # Real dependency installation - no conditional imports
-                        pip3 install --upgrade pip
+                        # Create and activate virtual environment
+                        python3 -m venv jenkins_venv
+                        source jenkins_venv/bin/activate
                         
-                        # Install from requirements if available
-                        if [ -f "requirements.txt" ]; then
-                            pip3 install -r requirements.txt
-                        fi
+                        # Install dependencies in virtual environment
+                        pip install --upgrade pip
+                        pip install pydantic>=2.0.0
+                        pip install neo4j redis faiss-cpu || echo "Warning: Some packages may not install"
                         
-                        # Explicitly install critical missing dependencies
-                        pip3 install pydantic>=2.0.0 || echo "Warning: pydantic installation failed"
-                        
-                        # Validate critical dependencies - fail fast if missing
-                        python3 -c "import pydantic; print(f'✅ Pydantic: {pydantic.__version__}')" || exit 1
-                        python3 -c "import neo4j; print('✅ Neo4j driver installed')" || echo "⚠️  Neo4j not available"
-                        python3 -c "import redis; print('✅ Redis client installed')" || echo "⚠️  Redis not available"
-                        python3 -c "import sqlite3; print('✅ SQLite available')" || exit 1
-                        python3 -c "import faiss; print('✅ FAISS available')" || echo "⚠️  FAISS not available"
+                        # Validate critical dependencies
+                        python -c "import pydantic; print(f'✅ Pydantic: {pydantic.__version__}')"
+                        python -c "import sqlite3; print('✅ SQLite available')"
+                        echo "✅ Virtual environment created successfully"
                     '''
                 }
             }
@@ -44,7 +40,8 @@ pipeline {
                 script {
                     echo "=== LTMC Architecture Validation ==="
                     sh '''
-                        cd ${LTMC_HOME}
+                        cd ${WORKSPACE}
+                        source jenkins_venv/bin/activate
                         
                         # Verify consolidated tool structure - real file checking
                         if [ ! -f "ltms/tools/consolidated.py" ]; then
@@ -88,7 +85,8 @@ pipeline {
                 script {
                     echo "=== Database Connectivity Tests ==="
                     sh '''
-                        cd ${LTMC_HOME}
+                        cd ${WORKSPACE}
+                        source jenkins_venv/bin/activate
                         
                         if [ -f "jenkins_validation_scripts/validate_database_connectivity_tests.py" ]; then
                             echo "Running comprehensive database connectivity tests..."
@@ -119,7 +117,8 @@ pipeline {
                 script {
                     echo "=== Performance SLA Validation ==="
                     sh '''
-                        cd ${LTMC_HOME}
+                        cd ${WORKSPACE}
+                        source jenkins_venv/bin/activate
                         
                         if [ -f "jenkins_validation_scripts/validate_performance_sla_tests.py" ]; then
                             echo "Running performance SLA tests..."
@@ -137,7 +136,8 @@ pipeline {
                 script {
                     echo "=== MCP Protocol Compliance ==="
                     sh '''
-                        cd ${LTMC_HOME}
+                        cd ${WORKSPACE}
+                        source jenkins_venv/bin/activate
                         
                         if [ -f "jenkins_validation_scripts/validate_mcp_protocol_compliance_tests.py" ]; then
                             echo "Running MCP protocol compliance tests..."
@@ -168,7 +168,8 @@ pipeline {
         always {
             script {
                 sh '''
-                    cd ${LTMC_HOME}
+                    cd ${WORKSPACE}
+                    source jenkins_venv/bin/activate
                     echo "=== LTMC JENKINS VALIDATION REPORT ==="
                     echo "Repository: $(pwd)"
                     echo "Branch: $(git branch --show-current 2>/dev/null || echo 'unknown')"
