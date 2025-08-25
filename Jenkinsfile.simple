@@ -169,7 +169,7 @@ pipeline {
             script {
                 sh '''
                     cd ${WORKSPACE}
-                    source jenkins_venv/bin/activate
+                    . jenkins_venv/bin/activate
                     echo "=== LTMC JENKINS VALIDATION REPORT ==="
                     echo "Repository: $(pwd)"
                     echo "Branch: $(git branch --show-current 2>/dev/null || echo 'unknown')"
