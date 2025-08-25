@@ -173,16 +173,9 @@ pipeline {
                     fi
                     
                     echo "Dependencies Status:"
-                    python3 -c "
-                    deps = ['pydantic', 'neo4j', 'redis', 'sqlite3', 'faiss']
-                    for dep in deps:
-                        try:
-                            mod = __import__(dep)
-                            version = getattr(mod, '__version__', 'unknown')
-                            print(f'  ✅ {dep}: {version}')
-                        except ImportError:
-                            print(f'  ❌ {dep}: MISSING')
-                    " 2>/dev/null || echo "  ⚠️  Python dependency check failed"
+                    for dep in pydantic neo4j redis sqlite3 faiss; do
+                        python3 -c "import $dep; print(f'  ✅ $dep: {getattr($dep, \"__version__\", \"available\")}')" 2>/dev/null || echo "  ❌ $dep: MISSING"
+                    done
                     echo "=== END VALIDATION REPORT ==="
                 '''
             }
