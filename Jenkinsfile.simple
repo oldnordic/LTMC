@@ -65,16 +65,7 @@ pipeline {
                         fi
                         
                         # Test tool imports - real functionality validation
-                        python3 -c "
-                        import sys
-                        sys.path.append('${LTMC_HOME}')
-                        try:
-                            from ltms.tools.consolidated import memory_action, graph_action
-                            print('✅ Core LTMC tools import successfully')
-                        except ImportError as e:
-                            print(f'❌ FAIL: Tool import failed: {e}')
-                            sys.exit(1)
-                        "
+                        python3 -c "import sys; sys.path.append('${WORKSPACE}'); from ltms.tools.consolidated import memory_action, graph_action; print('✅ Core LTMC tools import successfully')"
                     '''
                 }
             }
