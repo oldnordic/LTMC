@@ -100,8 +100,8 @@ from typing import Dict, Any, List, Optional, Union
 from datetime import datetime, timezone
 
 
-def memory_action(action: str, **params) -> Dict[str, Any]:
-    """Memory operations with real internal SQLite+FAISS implementation.
+async def memory_action(action: str, **params) -> Dict[str, Any]:
+    """Memory operations with ATOMIC SYNCHRONIZATION across SQLite+FAISS+Neo4j+Redis.
     
     Actions: store, retrieve, build_context, retrieve_by_type, ask_with_context
     """
@@ -115,81 +115,29 @@ def memory_action(action: str, **params) -> Dict[str, Any]:
                 return {'success': False, 'error': f'Missing required parameter: {param}'}
         
         try:
-            from ltms.config import get_config
-            config = get_config()
-            db_path = config.get_db_path()
+            # Use atomic memory integration for synchronized storage
+            from ltms.tools.atomic_memory_integration import get_atomic_memory_manager
             
-            # Direct SQLite connection
-            conn = sqlite3.connect(db_path)
-            cursor = conn.cursor()
+            # Extract tags from params if provided
+            tags = params.get('tags', [])
+            if isinstance(tags, str):
+                tags = [tag.strip() for tag in tags.split(',') if tag.strip()]
             
-            # Create table if not exists
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS documents (
-                    id INTEGER PRIMARY KEY,
-                    file_name TEXT NOT NULL,
-                    content TEXT NOT NULL,
-                    resource_type TEXT DEFAULT 'document',
-                    created_at TEXT NOT NULL,
-                    chunk_count INTEGER DEFAULT 1
-                )
-            ''')
+            # Get atomic memory manager and call async store operation
+            manager = get_atomic_memory_manager()
+            result = await manager.atomic_store(
+                file_name=params['file_name'],
+                content=params['content'],
+                resource_type=params.get('resource_type', 'document'),
+                tags=tags,
+                conversation_id=params.get('conversation_id', 'default'),
+                **{k: v for k, v in params.items() if k not in ['file_name', 'content', 'resource_type', 'tags', 'conversation_id']}
+            )
             
-            # Insert document
-            created_at = datetime.now(timezone.utc).isoformat()
-            cursor.execute('''
-                INSERT INTO documents (file_name, content, resource_type, created_at)
-                VALUES (?, ?, ?, ?)
-            ''', (
-                params['file_name'],
-                params['content'],
-                params.get('resource_type', 'document'),
-                created_at
-            ))
-            
-            doc_id = cursor.lastrowid
-            conn.commit()
-            conn.close()
-            
-            # Real FAISS vector indexing
-            try:
-                from sentence_transformers import SentenceTransformer
-                import faiss
-                import numpy as np
-                
-                model = SentenceTransformer('all-MiniLM-L6-v2')
-                embeddings = model.encode([params['content']]).astype('float32')
-                
-                faiss_path = config.get_faiss_index_path()
-                dimension = embeddings.shape[1]
-                
-                if os.path.exists(faiss_path):
-                    index = faiss.read_index(faiss_path)
-                else:
-                    index = faiss.IndexFlatL2(dimension)
-                
-                index.add(embeddings)
-                faiss.write_index(index, faiss_path)
-                
-                return {
-                    'success': True,
-                    'doc_id': doc_id,
-                    'file_name': params['file_name'],
-                    'resource_type': params.get('resource_type', 'document'),
-                    'vector_count': index.ntotal,
-                    'message': 'Document stored with vector indexing'
-                }
-                
-            except Exception as vector_error:
-                return {
-                    'success': True,
-                    'doc_id': doc_id,
-                    'warning': f'Vector indexing failed: {str(vector_error)}',
-                    'message': 'Document stored (text only)'
-                }
+            return result
                 
         except Exception as e:
-            return {'success': False, 'error': f'Memory store failed: {str(e)}'}
+            return {'success': False, 'error': f'Atomic memory store failed: {str(e)}'}
     
     elif action == 'retrieve':
         required_params = ['conversation_id', 'query']
@@ -198,63 +146,45 @@ def memory_action(action: str, **params) -> Dict[str, Any]:
                 return {'success': False, 'error': f'Missing required parameter: {param}'}
         
         try:
-            from sentence_transformers import SentenceTransformer
-            import faiss
-            import numpy as np
-            from ltms.config import get_config
+            # Use atomic memory integration for vector search
+            from ltms.tools.atomic_memory_integration import get_atomic_memory_manager
+            import asyncio
             
-            config = get_config()
-            faiss_path = config.get_faiss_index_path()
+            # Get atomic memory manager
+            manager = get_atomic_memory_manager()
             
-            if not os.path.exists(faiss_path):
-                return {'success': True, 'documents': [], 'message': 'No documents indexed yet'}
+            # Perform vector search using atomic FAISS manager
+            search_result = await manager.atomic_search(
+                query=params['query'], 
+                k=params.get('top_k', 10)
+            )
             
-            model = SentenceTransformer('all-MiniLM-L6-v2')
-            index = faiss.read_index(faiss_path)
-            
-            query_embedding = model.encode([params['query']]).astype('float32')
-            top_k = int(params.get('top_k', 10))
-            scores, indices = index.search(query_embedding, min(top_k, index.ntotal))
-            
-            db_path = config.get_db_path()
-            conn = sqlite3.connect(db_path)
-            cursor = conn.cursor()
-            
-            documents = []
-            for i, (score, idx) in enumerate(zip(scores[0], indices[0])):
-                np = _get_numpy()
-                if idx >= 0 and isinstance(idx, (int, np.integer)):
-                    # Convert to int and ensure valid database ID
-                    doc_id = int(idx) + 1
-                    cursor.execute('''
-                        SELECT file_name, content, resource_type, created_at 
-                        FROM documents 
-                        WHERE id = ?
-                    ''', (doc_id,))
-                    
-                    row = cursor.fetchone()
-                    if row:
-                        documents.append({
-                            'file_name': row[0],
-                            'content': row[1][:500] + '...' if len(row[1]) > 500 else row[1],
-                            'resource_type': row[2],
-                            'created_at': row[3],
-                            'similarity_score': float(score),
-                            'rank': i + 1
-                        })
-            
-            conn.close()
-            
-            return {
-                'success': True,
-                'documents': documents,
-                'query': params['query'],
-                'conversation_id': params['conversation_id'],
-                'total_found': len(documents)
-            }
+            if search_result['success']:
+                # Format results for compatibility
+                documents = []
+                for i, result in enumerate(search_result.get('results', [])):
+                    documents.append({
+                        'file_name': result.get('doc_id'),
+                        'content': result.get('content_preview', ''),
+                        'resource_type': result.get('metadata', {}).get('resource_type', 'document'),
+                        'created_at': result.get('metadata', {}).get('stored_at', ''),
+                        'similarity_score': 1.0 - result.get('distance', 1.0),  # Convert distance to similarity
+                        'rank': i + 1
+                    })
+                
+                return {
+                    'success': True,
+                    'documents': documents,
+                    'query': params['query'],
+                    'conversation_id': params['conversation_id'],
+                    'total_found': len(documents),
+                    'atomic_search': True
+                }
+            else:
+                return search_result
             
         except Exception as e:
-            return {'success': False, 'error': f'Memory retrieve failed: {str(e)}'}
+            return {'success': False, 'error': f'Atomic memory retrieve failed: {str(e)}'}
     
     elif action == 'build_context':
         if 'documents' not in params:

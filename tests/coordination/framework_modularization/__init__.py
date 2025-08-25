@@ -1,0 +1,1 @@
+# Tests for LTMC Agent Coordination Framework modularization components

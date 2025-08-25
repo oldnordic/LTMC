@@ -299,6 +299,32 @@ internal/
 future/
 
 # ===================================
+# IMPORTANT: WHAT SHOULD BE COMMITTED
+# ===================================
+#
+# COMMIT THESE (Source Code & Core Documentation):
+# - README.md (main project documentation)
+# - LTMC_COMPREHENSIVE_APPLICATION_MAPPING_REPORT.md (architecture documentation)  
+# - CONTRIBUTING.md (contribution guidelines)
+# - CHANGELOG.md (version history)
+# - ltms/ (all source code in ltms directory)
+# - tests/ (only core test files, not diagnostic tests)
+# - examples/ (usage examples)
+# - docs/ (only core documentation, not temporary analysis)
+# - requirements.txt, setup.py, pyproject.toml (package configuration)
+# - .gitignore, LICENSE (repository configuration)
+#
+# DO NOT COMMIT:
+# - Temporary analysis documents
+# - Diagnostic and debugging files  
+# - Database files and indices
+# - Configuration files with secrets
+# - Build artifacts and binaries
+# - IDE and editor configuration
+# - Backup and temporary files
+#
+
+# ===================================
 # Build Artifacts and Binary Files
 # ===================================
 
@@ -320,17 +346,73 @@ Cargo.lock
 ltmc-rust/
 
 # ===================================
-# Additional Crap Files
+# Documentation and Analysis Files (NON-SOURCE)
 # ===================================
 
-# Test artifacts that aren't source
+# Temporary analysis and diagnostic documents
+*_ANALYSIS.md
+*_REPORT.md  
+*_INVESTIGATION*.md
+*_DIAGNOSTIC*.md
+*_DAMAGE_ASSESSMENT*.md
+*_STATUS_REPORT.md
+*_ERROR_LOG.md
+*_COMPLETE_*.md
+*_SYNCHRONIZATION_*.md
+*_COMPETITIVE_*.md
+*_STRATEGIC_*.md
+*_MIGRATION_*.md
+
+# Specific temporary documents that should not be committed
+JENKINS_GROOVY_REFACTOR_TDD_PLAN.md
+JENKINS_MCP_INTEGRATION_TEST_REPORT.md
+LTMC_ASYNC_MEMORY_ACTION_FIX_DOCUMENTATION.md
+LTMC_ATOMIC_SYNCHRONIZATION_COMPLETE_READY_FOR_TESTING.md
+LTMC_Competitive_Analysis_Report_2025.md
+LTMC_DATABASE_SYNC_FIX_STEP_BY_STEP_GUIDE.md
+LTMC_PostgreSQL_Qdrant_Migration_Analysis.md
+LTMC_SYNCHRONIZATION_ARCHITECTURE_RECOMMENDATIONS.md
+DATA_SYNCHRONIZATION_COMPLETE_SUCCESS.md
+MCP_FastAPI_Event_Loop_Conflict_Research.md
+ChatGPT_Agent_Coordination_Strategic_Analysis.md
+
+# Test artifacts and diagnostic files
 test_*_implementation.py
 test_*_validation.py
 *_test_report.md
-*_STATUS_REPORT.md
-*_ERROR_LOG.md
-*_DAMAGE_ASSESSMENT*.md
-*_INVESTIGATION_REPORT.md
+*_diagnostic*.py
+*_diagnostic*.json
+agent_coordination_diagnostic*
+ltmc_jenkins_mcp_test.py
+
+# Backup files with dates
+*.backup.*
+*_backup_*
+
+# Web scraping and temporary files
+cookies.txt
+login.html
+*.html
+
+# Jenkins integration temporary files  
+jenkins_token_generation_results.json
+jenkins_mcp_test_configuration.json
+jenkins_api_token_programmatic_solution.py
+
+# Test runner files (keep main test source only)
+test_agent_handoff_coordinator.py
+test_all_ltmc_tools.py
+test_collaborative_pattern_engine.py
+test_collaborative_system_integration.py
+test_coordination_direct.py
+test_cross_agent_memory_handler.py
+test_faiss_compatibility_fix.py
+test_pattern_learning.py
+test_shared_session_manager.py
+test_workflow_audit_system.py
+
+# Data recovery and script artifacts
+scripts/data_recovery_audit.py
 
 # Docker/Deployment (keep source configs only)
 monitoring/

@@ -6,8 +6,8 @@ RED PHASE: These tests will FAIL until consolidation is implemented
 import pytest
 from ltms.tools.consolidated import (
     memory_action, chat_action, todo_action, blueprint_action, 
-    pattern_action, context_action, redis_action, documentation_action,
-    unix_action, sync_action
+    pattern_action, cache_action, documentation_action,
+    unix_action, sync_action, graph_action, config_action
 )
 
 class TestConsolidatedTools:

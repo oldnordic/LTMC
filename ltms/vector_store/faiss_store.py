@@ -201,9 +201,9 @@ def load_index(file_path: str, dimension: int) -> faiss.IndexFlatL2:
             # Load FAISS index from disk using FAISS native format
             index = faiss.read_index(abs_file_path)
             
-            # Verify this is IndexFlatL2 and dimension matches
-            if not isinstance(index, faiss.IndexFlatL2):
-                logger.warning(f"Loaded index is not IndexFlatL2, creating new index")
+            # Verify this is IndexFlat compatible (IndexFlatL2 serializes as IndexFlat in FAISS 1.7.4)
+            if not isinstance(index, faiss.IndexFlat):
+                logger.warning(f"Loaded index is not IndexFlat compatible, creating new index")
                 return create_faiss_index(dimension)
             
             if index.d != dimension:

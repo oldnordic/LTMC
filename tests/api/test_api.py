@@ -2,7 +2,7 @@ import tempfile
 import os
 import json
 from fastapi.testclient import TestClient
-from ltms.api.main import app
+from ltms.main import app
 
 
 def test_add_resource_endpoint_creates_resource():

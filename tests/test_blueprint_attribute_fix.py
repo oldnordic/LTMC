@@ -22,7 +22,7 @@ from ltms.models.task_blueprint import (
 )
 from ltms.services.blueprint_service import BlueprintManager
 from ltms.database.connection import get_db_connection
-from ltms.config import Config
+from ltms.config import LTMCConfig
 
 
 class TestTaskBlueprintAttributeAccess:
