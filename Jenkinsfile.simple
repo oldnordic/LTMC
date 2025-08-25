@@ -173,9 +173,11 @@ pipeline {
                     fi
                     
                     echo "Dependencies Status:"
-                    for dep in pydantic neo4j redis sqlite3 faiss; do
-                        python3 -c "import $dep; print(f'  ✅ $dep: {getattr($dep, \"__version__\", \"available\")}')" 2>/dev/null || echo "  ❌ $dep: MISSING"
-                    done
+                    python3 -c "import pydantic; print(f'  ✅ pydantic: {pydantic.__version__}')" 2>/dev/null || echo "  ❌ pydantic: MISSING"
+                    python3 -c "import neo4j; print(f'  ✅ neo4j: {neo4j.__version__}')" 2>/dev/null || echo "  ❌ neo4j: MISSING"  
+                    python3 -c "import redis; print(f'  ✅ redis: {redis.__version__}')" 2>/dev/null || echo "  ❌ redis: MISSING"
+                    python3 -c "import sqlite3; print('  ✅ sqlite3: built-in')" 2>/dev/null || echo "  ❌ sqlite3: MISSING"
+                    python3 -c "import faiss; print('  ✅ faiss: available')" 2>/dev/null || echo "  ❌ faiss: MISSING"
                     echo "=== END VALIDATION REPORT ==="
                 '''
             }
