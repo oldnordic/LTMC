@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from typing import Dict, Any, List, Tuple
 from pathlib import Path
 
-from ltms.config import get_config
+from ltms.config.json_config_loader import get_config
 from ltms.database.connection import get_db_connection, close_db_connection
 from ltms.database.dal import create_resource, get_next_vector_id, create_resource_chunks
 from ltms.database.schema import create_tables

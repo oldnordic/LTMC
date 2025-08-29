@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from typing import Dict, Any
 
 # LTMC MCP tool imports for real functionality
-from ltms.tools.consolidated import memory_action
+from ltms.tools.memory.memory_actions import memory_action
 
 
 class CoordinationReporting:
@@ -134,9 +134,19 @@ class CoordinationReporting:
             }
             
             # Store final report in LTMC using memory_action (Tool 1) - MANDATORY
+            # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+            # Generate dynamic file name based on coordination final report context and results
+            finalization_timestamp = final_report["finalization_timestamp"].replace(':', '_').replace('-', '_')
+            total_agents = final_report["total_agents"]
+            successful_agents = final_report["successful_agents"]
+            total_findings = final_report["total_findings"]
+            success_rate = f"{int((successful_agents/total_agents)*100)}pct" if total_agents > 0 else "0pct"
+            task_description_clean = self.task_description.replace(' ', '_').replace('/', '_').lower()[:15]  # Truncate long descriptions
+            dynamic_final_report_file_name = f"coordination_final_report_{self.task_id}_{task_description_clean}_{total_agents}agents_{success_rate}success_{total_findings}findings_{finalization_timestamp}.md"
+            
             memory_action(
                 action="store",
-                file_name=f"coordination_final_report_{self.task_id}.md",
+                file_name=dynamic_final_report_file_name,
                 content=f"# Final Coordination Report\n\n{json.dumps(final_report, indent=2)}",
                 tags=["coordination_complete", "final_report", self.task_id],
                 conversation_id=self.conversation_id,

@@ -17,7 +17,7 @@ from ltms.database.neo4j_manager import Neo4jManager
 from ltms.database.faiss_manager import FAISSManager
 from ltms.database.redis_manager import RedisManager
 from ltms.sync.sync_models import DocumentData
-from ltms.config import get_config
+from ltms.config.json_config_loader import get_config
 
 logger = logging.getLogger(__name__)
 
@@ -65,10 +65,10 @@ class AtomicMemoryManager:
             
             # Neo4j configuration
             neo4j_config = {
-                "uri": getattr(config, 'NEO4J_URI', 'bolt://localhost:7687'),
-                "user": getattr(config, 'NEO4J_USER', 'neo4j'),
-                "password": getattr(config, 'NEO4J_PASSWORD', 'password'),
-                "database": getattr(config, 'NEO4J_DATABASE', 'neo4j')
+                "uri": getattr(config, 'neo4j_uri', 'bolt://localhost:7687'),
+                "user": getattr(config, 'neo4j_user', 'neo4j'),
+                "password": getattr(config, 'neo4j_password', 'password'),
+                "database": getattr(config, 'neo4j_database', 'neo4j')
             }
             self._neo4j_manager = Neo4jManager(neo4j_config, test_mode=False)
             
@@ -77,10 +77,10 @@ class AtomicMemoryManager:
             
             # Redis configuration
             redis_config = {
-                "host": getattr(config, 'REDIS_HOST', 'localhost'),
-                "port": getattr(config, 'REDIS_PORT', 6382),
-                "db": getattr(config, 'REDIS_DB', 0),
-                "password": getattr(config, 'REDIS_PASSWORD', None)
+                "host": getattr(config, 'redis_host', 'localhost'),
+                "port": getattr(config, 'redis_port', 6382),
+                "db": getattr(config, 'redis_db', 0),
+                "password": getattr(config, 'redis_password', None)
             }
             self._redis_manager = RedisManager(redis_config, test_mode=False)
             
@@ -258,25 +258,38 @@ class AtomicMemoryManager:
                 'error': f'Document retrieval failed: {str(e)}'
             }
     
-    async def atomic_search(self, query: str, k: int = 5) -> Dict[str, Any]:
+    async def atomic_search(self, query: str, k: int = 5, conversation_id: str = None) -> Dict[str, Any]:
         """
-        Search for similar documents using FAISS vector similarity.
+        Search for similar documents using FAISS vector similarity with optional conversation filtering.
         
         Args:
             query: Search query
-            k: Number of results to return
+            k: Number of results to return  
+            conversation_id: Optional conversation ID to filter results
             
         Returns:
             Search results or error
         """
         try:
-            results = await self._faiss_manager.search_similar(query, k)
+            # Use enhanced search with conversation filtering
+            results = await self._faiss_manager.search_similar_with_conversation_filter(
+                query, k=k, conversation_id=conversation_id
+            )
+            
+            # If conversation filtering returns no results, fallback to unfiltered search
+            if not results and conversation_id:
+                logger.info(f"No results found with conversation filter '{conversation_id}', falling back to unfiltered search")
+                results = await self._faiss_manager.search_similar_with_conversation_filter(
+                    query, k=k, conversation_id=None
+                )
             
             return {
                 'success': True,
                 'results': results,
                 'query': query,
-                'result_count': len(results)
+                'conversation_id': conversation_id,
+                'result_count': len(results),
+                'fallback_used': not results and conversation_id is not None
             }
             
         except Exception as e:
@@ -286,43 +299,150 @@ class AtomicMemoryManager:
                 'error': f'Vector search failed: {str(e)}'
             }
     
-    async def get_system_health(self) -> Dict[str, Any]:
+    async def atomic_store_with_tiered_priority(self, file_name: str, content: str, 
+                                              resource_type: str = 'document', 
+                                              tags: List[str] = None,
+                                              conversation_id: str = 'default',
+                                              **metadata) -> Dict[str, Any]:
         """
-        Get comprehensive health status of all database systems.
+        Store document atomically with tiered database priority support.
+        Enhanced version that supports graceful degradation for optional databases.
         
+        Args:
+            file_name: Document filename/identifier
+            content: Document content
+            resource_type: Type of resource (default: 'document')
+            tags: List of document tags
+            conversation_id: Conversation identifier
+            **metadata: Additional metadata
+            
         Returns:
-            Health status for all systems
+            Enhanced result dictionary with degradation information
         """
         try:
-            sqlite_health = self._sqlite_manager.get_health_status()
-            neo4j_health = self._neo4j_manager.get_health_status()
-            faiss_health = self._faiss_manager.get_health_status()
-            redis_health = await self._redis_manager.get_health_status()
-            
-            overall_healthy = all([
-                sqlite_health.get('status') == 'healthy',
-                neo4j_health.get('status') == 'healthy',
-                faiss_health.get('status') == 'healthy',
-                redis_health.get('status') == 'healthy'
-            ])
-            
-            return {
-                'success': True,
-                'overall_status': 'healthy' if overall_healthy else 'degraded',
-                'systems': {
-                    'sqlite': sqlite_health,
-                    'neo4j': neo4j_health,
-                    'faiss': faiss_health,
-                    'redis': redis_health
-                },
-                'atomic_sync_available': self._sync_coordinator is not None
+            # Create document data
+            doc_metadata = {
+                'resource_type': resource_type,
+                'conversation_id': conversation_id,
+                **metadata
             }
+            
+            document = DocumentData(
+                id=file_name,
+                content=content,
+                tags=tags or [],
+                metadata=doc_metadata
+            )
+            
+            # Perform atomic store operation with tiered priority
+            sync_result = await self._sync_coordinator.atomic_store_document(document)
+            
+            # Convert sync result to enhanced response format
+            if sync_result.success:
+                response = {
+                    'success': True,
+                    'doc_id': sync_result.doc_id,
+                    'file_name': file_name,
+                    'resource_type': resource_type,
+                    'transaction_id': sync_result.transaction_id,
+                    'execution_time_ms': sync_result.execution_time_ms,
+                    'affected_databases': [db.value for db in sync_result.affected_databases],
+                    'consistency_validated': sync_result.consistency_report.is_consistent if sync_result.consistency_report else False,
+                    'system_status': getattr(sync_result, 'system_status', 'healthy')
+                }
+                
+                # Add degradation information if present
+                if hasattr(sync_result, 'degraded_services') and sync_result.degraded_services:
+                    response.update({
+                        'degraded_services': sync_result.degraded_services,
+                        'failed_optional_databases': getattr(sync_result, 'failed_optional_databases', []),
+                        'functionality_impact': getattr(sync_result, 'functionality_impact', 'Unknown impact'),
+                        'warning': f'Operating in degraded mode: {", ".join(sync_result.degraded_services)} unavailable'
+                    })
+                    response['message'] = f'Document stored with degraded services: {", ".join(sync_result.degraded_services)}'
+                else:
+                    response['message'] = 'Document stored atomically across all databases'
+                
+                return response
+            else:
+                response = {
+                    'success': False,
+                    'error': sync_result.error_message or 'Atomic store operation failed',
+                    'transaction_id': sync_result.transaction_id,
+                    'system_status': getattr(sync_result, 'system_status', 'unknown')
+                }
+                
+                # Include critical failure information
+                if hasattr(sync_result, 'critical_database_failures') and sync_result.critical_database_failures:
+                    response.update({
+                        'critical_database_failures': sync_result.critical_database_failures,
+                        'error_type': 'critical_failure'
+                    })
+                
+                return response
+                
+        except Exception as e:
+            logger.error(f"Tiered atomic store operation failed: {e}")
+            return {
+                'success': False,
+                'error': f'Tiered atomic store operation failed: {str(e)}',
+                'system_status': 'error'
+            }
+    
+    async def get_system_health(self) -> Dict[str, Any]:
+        """
+        Get comprehensive health status of all database systems with tiered priority awareness.
+        
+        Returns:
+            Enhanced health status including priority tiers and circuit breaker states
+        """
+        try:
+            if self._sync_coordinator:
+                # Use enhanced health status from sync coordinator
+                health_status = await self._sync_coordinator.get_unified_health_status()
+                
+                return {
+                    'success': True,
+                    'overall_status': health_status.get('coordinator_status', 'unknown'),
+                    'system_tier_status': health_status.get('system_tier_status', {}),
+                    'databases': health_status.get('databases', {}),
+                    'active_transactions': health_status.get('active_transactions', 0),
+                    'atomic_sync_available': True,
+                    'test_mode': health_status.get('test_mode', False)
+                }
+            else:
+                # Fallback to individual health checks
+                sqlite_health = self._sqlite_manager.get_health_status() if self._sqlite_manager else {"status": "unavailable"}
+                neo4j_health = self._neo4j_manager.get_health_status() if self._neo4j_manager else {"status": "unavailable"}
+                faiss_health = self._faiss_manager.get_health_status() if self._faiss_manager else {"status": "unavailable"}
+                redis_health = await self._redis_manager.get_health_status() if self._redis_manager else {"status": "unavailable"}
+                
+                overall_healthy = all([
+                    sqlite_health.get('status') == 'healthy',
+                    neo4j_health.get('status') == 'healthy',
+                    faiss_health.get('status') == 'healthy',
+                    redis_health.get('status') == 'healthy'
+                ])
+                
+                return {
+                    'success': True,
+                    'overall_status': 'healthy' if overall_healthy else 'degraded',
+                    'systems': {
+                        'sqlite': sqlite_health,
+                        'neo4j': neo4j_health,
+                        'faiss': faiss_health,
+                        'redis': redis_health
+                    },
+                    'atomic_sync_available': False,
+                    'warning': 'Sync coordinator not available - using fallback health checks'
+                }
             
         except Exception as e:
             logger.error(f"Health check failed: {e}")
             return {
                 'success': False,
-                'error': f'Health check failed: {str(e)}'
+                'error': f'Health check failed: {str(e)}',
+                'overall_status': 'error'
             }
 
 # Global instance
@@ -352,17 +472,15 @@ def atomic_memory_store(file_name: str, content: str, **params) -> Dict[str, Any
     try:
         manager = get_atomic_memory_manager()
         
-        # Run async operation in sync context
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        
-        try:
-            result = loop.run_until_complete(
-                manager.atomic_store(file_name, content, **params)
+        # Handle event loop properly - check if we're in an async context
+        if _is_event_loop_running():
+            # If we're already in an event loop, run in thread executor
+            return _run_in_thread(
+                lambda: asyncio.run(manager.atomic_store(file_name, content, **params))
             )
-            return result
-        finally:
-            loop.close()
+        else:
+            # If no event loop is running, use asyncio.run()
+            return asyncio.run(manager.atomic_store(file_name, content, **params))
             
     except Exception as e:
         logger.error(f"Atomic memory store failed: {e}")
@@ -384,17 +502,15 @@ def atomic_memory_retrieve(file_name: str) -> Dict[str, Any]:
     try:
         manager = get_atomic_memory_manager()
         
-        # Run async operation in sync context
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        
-        try:
-            result = loop.run_until_complete(
-                manager.atomic_retrieve(file_name)
+        # Handle event loop properly - check if we're in an async context
+        if _is_event_loop_running():
+            # If we're already in an event loop, run in thread executor
+            return _run_in_thread(
+                lambda: asyncio.run(manager.atomic_retrieve(file_name))
             )
-            return result
-        finally:
-            loop.close()
+        else:
+            # If no event loop is running, use asyncio.run()
+            return asyncio.run(manager.atomic_retrieve(file_name))
             
     except Exception as e:
         logger.error(f"Atomic memory retrieve failed: {e}")

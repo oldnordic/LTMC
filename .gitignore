@@ -204,8 +204,30 @@ redis_config/*.conf
 neo4j-standalone/
 
 # ===================================
-# Test and Development Artifacts  
+# Test and Development Artifacts (EXCLUDE FROM PRODUCTION)
 # ===================================
+
+# Entire test directory - not needed for production
+tests/
+test/
+
+# Development and utility directories - not needed for production
+jenkins_validation_scripts/
+backup/
+backups/
+backup_md_cleanup/
+misc/
+logs/
+data/
+config/
+infrastructure/
+examples/
+
+# Documentation directory with temporary/development files
+docs/
+# Exception: Keep only essential user-facing documentation 
+!docs/CONTRIBUTING.md
+!docs/guides/
 
 # Test result files
 *_test_results_*.json
@@ -213,12 +235,16 @@ neo4j-standalone/
 comprehensive_*.json
 mcp_test_results_*.json
 ltmc_*_results_*.json
+*_validation_*.json
+dynamic_method_*.json
 
 # Temporary test files
 test_stdio_*
 temp_*
 tmp_*
 debug_*
+*_test.py
+*_tdd.py
 
 # Node.js (from MCP SDK installations)
 node_modules/
@@ -298,30 +324,50 @@ internal/
 # Future planning directory (private documentation)
 future/
 
+# Development and utility scripts (not production code)
+*.py.bak
+run_*.py
+test_*.py
+validate_*.py
+comprehensive_*.py
+diagnostic_*.py
+debug_*.py
+ltmc_portable_validation.py
+*_validation.py
+py_code_graph.py
+
 # ===================================
 # IMPORTANT: WHAT SHOULD BE COMMITTED
 # ===================================
 #
-# COMMIT THESE (Source Code & Core Documentation):
+# COMMIT THESE (Production Code & Essential Documentation Only):
 # - README.md (main project documentation)
-# - LTMC_COMPREHENSIVE_APPLICATION_MAPPING_REPORT.md (architecture documentation)  
-# - CONTRIBUTING.md (contribution guidelines)
+# - DEPLOYMENT.md (deployment instructions)
+# - TECH_STACK.md (technical stack information)
+# - STATUS.md (current project status)
 # - CHANGELOG.md (version history)
-# - ltms/ (all source code in ltms directory)
-# - tests/ (only core test files, not diagnostic tests)
-# - examples/ (usage examples)
-# - docs/ (only core documentation, not temporary analysis)
+# - QUICK_START_GUIDE.md (user getting started guide)
+# - ARCHITECTURE_OVERVIEW.md (system architecture)
+# - ORCHESTRATION.md (orchestration documentation)
+# - PLAN.md (project roadmap)
+# - ltms/ (all production source code in ltms directory)
+# - examples/ (usage examples if any)
 # - requirements.txt, setup.py, pyproject.toml (package configuration)
 # - .gitignore, LICENSE (repository configuration)
+# - Jenkinsfile* (CI/CD pipeline configuration)
 #
 # DO NOT COMMIT:
-# - Temporary analysis documents
+# - tests/ directory (all test files excluded from production)
+# - backup_md_cleanup/ directory (organized backup files)
+# - Temporary analysis documents and reports
 # - Diagnostic and debugging files  
 # - Database files and indices
 # - Configuration files with secrets
 # - Build artifacts and binaries
 # - IDE and editor configuration
 # - Backup and temporary files
+# - Development utilities and validation scripts
+# - Session logs and implementation documentation
 #
 
 # ===================================
@@ -346,10 +392,13 @@ Cargo.lock
 ltmc-rust/
 
 # ===================================
-# Documentation and Analysis Files (NON-SOURCE)
+# Documentation and Analysis Files (EXCLUDE FROM PRODUCTION)
 # ===================================
 
-# Temporary analysis and diagnostic documents
+# Backup directory with all non-essential documentation
+backup_md_cleanup/
+
+# Temporary analysis and diagnostic documents  
 *_ANALYSIS.md
 *_REPORT.md  
 *_INVESTIGATION*.md
@@ -362,6 +411,18 @@ ltmc-rust/
 *_COMPETITIVE_*.md
 *_STRATEGIC_*.md
 *_MIGRATION_*.md
+*_IMPLEMENTATION_SESSION.md
+*_COMPREHENSIVE_*.md
+*_VALIDATION*.md
+*_EVIDENCE*.md
+*_TERMINAL_LOGS.md
+*_SYNTHESIS.md
+*_MANUAL*.md
+*_GUIDE_*.md
+*_TODO_*.md
+*_PLAN_*.md
+*_SESSION*.md
+*_SUMMARY*.md
 
 # Specific temporary documents that should not be committed
 JENKINS_GROOVY_REFACTOR_TDD_PLAN.md
@@ -433,3 +494,27 @@ simple_registry_validation.py
 *.sh.backup
 run_*.sh
 setup_*.sh
+
+# Session continuation files and chat logs
+*-continue*.txt
+*-this-session-is-being-continued*.txt
+chat.*.txt
+
+# Visualization and diagram files (development artifacts)
+*.dot
+*.png
+*.svg
+code_graph*
+
+# Example and demonstration files
+examples/unified_query_demo.py
+*_demo.py
+
+# Migration and change tracking files
+migration_plan_*.md
+*_change_history.md
+store_method_imports_mapping.md
+
+# UV environment and alternative package managers
+.venv-uv/
+start_*.sh

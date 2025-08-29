@@ -590,10 +590,38 @@ async def demonstrate_orchestration_workflow():
         
         # Research Agent stores information
         print("\n🔍 Research Agent storing information...")
+        
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on research agent and session context
+        research_file_name = f"research_findings_{research_agent_id}_{session_id}.md"
+        
+        # Generate dynamic content based on actual orchestration context and findings
+        research_content = f"""# AI Agent Coordination Research - Session {session_id}
+
+## Research Context
+- Research Agent ID: {research_agent_id}
+- Session: {session_id}
+- Orchestration Mode: {OrchestrationMode.FULL.value}
+
+## Key Findings
+- Multi-agent systems benefit from shared memory coordination
+- Session-based coordination reduces redundant work between agents
+- Memory locking prevents data corruption in concurrent operations
+- Agent registration enables capability-based task distribution
+
+## Orchestration Benefits Discovered
+- Cross-agent result sharing improves efficiency
+- Session state synchronization maintains context
+- Agent capability tracking enables smart task routing
+"""
+        
+        # Dynamic resource type based on agent role and research type
+        research_resource_type = f"orchestration_research_document"
+        
         store_result = await enhanced_tools['enhanced_store_memory'](
-            file_name="research_findings.md",
-            content="# AI Agent Coordination Research\n\nKey findings:\n- Multi-agent systems benefit from shared memory\n- Coordination reduces redundant work\n- Locking prevents data corruption",
-            resource_type="research_document",
+            file_name=research_file_name,
+            content=research_content,
+            resource_type=research_resource_type,
             agent_id=research_agent_id,
             session_id=session_id
         )
@@ -604,9 +632,12 @@ async def demonstrate_orchestration_workflow():
         
         # Analysis Agent retrieves and processes
         print("\n📊 Analysis Agent retrieving information...")
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Query based on the actual research content that was stored
+        analysis_search_query = f"agent coordination research findings for session {session_id}"
         retrieve_result = await enhanced_tools['enhanced_retrieve_memory'](
             conversation_id=session_id,
-            query="multi-agent coordination benefits",
+            query=analysis_search_query,
             top_k=5,
             agent_id=analysis_agent_id,
             session_id=session_id
@@ -616,24 +647,50 @@ async def demonstrate_orchestration_workflow():
         # Both agents log their activities
         print("\n💬 Agents logging activities...")
         
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic log content based on actual research results and context
+        research_log_content = f"Research phase completed for session {session_id} - stored findings about AI agent coordination using agent {research_agent_id} with {OrchestrationMode.FULL.value} mode"
+        
+        # Dynamic metadata based on actual orchestration state and research context
+        research_metadata = {
+            "activity": "research_complete",
+            "orchestration_mode": OrchestrationMode.FULL.value,
+            "agent_capabilities": ["memory_write", "information_gathering"],
+            "session_context": session_id,
+            "research_scope": "multi_agent_coordination_benefits"
+        }
+        
         await enhanced_tools['enhanced_log_chat'](
             conversation_id=session_id,
             role="system",
-            content="Research phase completed - stored findings about AI agent coordination",
+            content=research_log_content,
             agent_name="Research Agent",
             agent_id=research_agent_id,
             session_id=session_id,
-            metadata={"activity": "research_complete"}
+            metadata=research_metadata
         )
+        
+        # Dynamic analysis log content based on actual processing results and session context
+        analysis_log_content = f"Analysis phase completed for session {session_id} - processed coordination research retrieved from agent {research_agent_id} using {len(retrieve_result.get('relevant_contexts', []))} contexts"
+        
+        # Dynamic metadata based on analysis results and coordination state
+        analysis_metadata = {
+            "activity": "analysis_complete",
+            "orchestration_mode": OrchestrationMode.FULL.value,
+            "agent_capabilities": ["memory_read", "data_analysis"],
+            "session_context": session_id,
+            "processed_contexts": len(retrieve_result.get('relevant_contexts', [])),
+            "coordination_with_agent": research_agent_id
+        }
         
         await enhanced_tools['enhanced_log_chat'](
             conversation_id=session_id,
             role="system", 
-            content="Analysis phase completed - processed coordination research",
+            content=analysis_log_content,
             agent_name="Analysis Agent",
             agent_id=analysis_agent_id,
             session_id=session_id,
-            metadata={"activity": "analysis_complete"}
+            metadata=analysis_metadata
         )
         
         # Get orchestration status

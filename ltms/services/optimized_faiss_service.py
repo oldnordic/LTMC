@@ -16,7 +16,7 @@ from typing import Dict, Any, List, Optional, Tuple
 from dataclasses import dataclass
 from threading import RLock
 
-from ltms.config import get_config
+from ltms.config.json_config_loader import get_config
 from ltms.vector_store.faiss_store import create_faiss_index, save_index, load_index, search_vectors, add_vectors
 from ltms.vector_store.faiss_store import FAISS_AVAILABLE
 

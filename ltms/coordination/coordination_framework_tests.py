@@ -13,9 +13,9 @@ from datetime import datetime, timezone
 from typing import Dict, Any
 
 # Import coordination framework components
-from .agent_coordination_framework import LTMCAgentCoordinator
+from .agent_coordination_core import AgentCoordinationCore
 from .agent_state_manager import LTMCAgentStateManager
-from .mcp_communication_patterns import LTMCMessageBroker
+from .mcp_message_broker import LTMCMessageBroker
 
 
 class CoordinationFrameworkTests:
@@ -55,7 +55,7 @@ class CoordinationFrameworkTests:
         
         try:
             # Initialize coordinator
-            self.coordinator = LTMCAgentCoordinator(
+            self.coordinator = AgentCoordinationCore(
                 "coordination_framework_test_suite",
                 "coord_test_123"
             )

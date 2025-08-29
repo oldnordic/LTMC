@@ -1,3 +1,4 @@
+from ltms.tools.memory.memory_actions import MemoryTools
 """
 LTMC Tech Stack Validator - AST-based Pattern Validation
 
@@ -18,7 +19,8 @@ from dataclasses import dataclass
 from enum import Enum
 
 # Import LTMC tools
-from ltms.tools.consolidated import memory_action, pattern_action
+from ltms.tools.memory.memory_actions import memory_action
+from ltms.tools.patterns.pattern_actions import pattern_action
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -78,6 +80,7 @@ class TechStackValidator:
     
     async def _initialize_ltmc_patterns(self) -> None:
         """Initialize LTMC patterns for tech stack validation"""
+        memory_tools = MemoryTools()
         try:
             # Store known MCP patterns in LTMC memory
             mcp_patterns = {
@@ -89,8 +92,7 @@ class TechStackValidator:
             }
             
             for pattern_name, pattern_code in mcp_patterns.items():
-                await memory_action(
-                    action="store",
+                await memory_tools("store",
                     file_name=f"mcp_pattern_{pattern_name}",
                     content=f"MCP Pattern: {pattern_name} = {pattern_code}",
                     tags=["tech_stack", "mcp_pattern", "validation"],
@@ -105,6 +107,7 @@ class TechStackValidator:
     
     async def validate_python_mcp_sdk_pattern(self, file_path: Path) -> List[ValidationResult]:
         """
+        memory_tools = MemoryTools()
         Real AST-based validation of python-mcp-sdk patterns.
         No mocks - actual code analysis.
         """
@@ -142,8 +145,7 @@ class TechStackValidator:
             # Validate detected patterns against LTMC memory
             for pattern in mcp_patterns_found:
                 # Store detection in LTMC memory
-                ltmc_ref = await memory_action(
-                    action="store",
+                ltmc_ref = await memory_tools("store",
                     file_name=f"validation_result_{pattern['type']}_{int(time.time())}",
                     content=f"MCP pattern detected: {pattern['type']} in {file_path}",
                     tags=["validation", "mcp_detection", "pattern_found"],

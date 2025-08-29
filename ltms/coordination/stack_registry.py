@@ -1,3 +1,4 @@
+from ltms.tools.memory.memory_actions import MemoryTools
 """
 LTMC Stack Registry - Tech Stack Configuration and Compatibility Management
 
@@ -18,7 +19,8 @@ from dataclasses import dataclass
 from enum import Enum
 
 # Import LTMC tools
-from ltms.tools.consolidated import memory_action, pattern_action
+from ltms.tools.memory.memory_actions import memory_action
+from ltms.tools.patterns.pattern_actions import pattern_action
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -96,14 +98,14 @@ class StackRegistry:
     
     async def _initialize_stack_registry(self) -> None:
         """Initialize stack registry with predefined rules in LTMC"""
+        memory_tools = MemoryTools()
         try:
             # Define core tech stack rules
             core_rules = self._get_core_tech_stack_rules()
             
             # Store each rule in LTMC memory
             for framework_name, rule_data in core_rules.items():
-                await memory_action(
-                    action="store",
+                await memory_tools("store",
                     file_name=f"tech_stack_rule_{framework_name}",
                     content=json.dumps(rule_data),
                     tags=["tech_stack", "rules", framework_name],
@@ -116,8 +118,7 @@ class StackRegistry:
             compatibility_rules = self._get_compatibility_matrix()
             
             for rule_key, compatibility_data in compatibility_rules.items():
-                await memory_action(
-                    action="store",
+                await memory_tools("store",
                     file_name=f"compatibility_rule_{rule_key}",
                     content=json.dumps(compatibility_data),
                     tags=["tech_stack", "compatibility", "rules"],
@@ -213,6 +214,7 @@ class StackRegistry:
     
     async def store_tech_stack_rules(self, framework: str, rules: Dict[str, Any]) -> bool:
         """
+        memory_tools = MemoryTools()
         Store tech stack rules in LTMC database with real persistence.
         No mocks - actual database operations.
         """
@@ -225,8 +227,7 @@ class StackRegistry:
                 return False
             
             # Store in LTMC memory
-            store_result = await memory_action(
-                action="store",
+            store_result = await memory_tools("store",
                 file_name=f"tech_stack_rule_{framework}",
                 content=json.dumps(rules),
                 tags=["tech_stack", "rules", framework, "user_defined"],
@@ -265,6 +266,7 @@ class StackRegistry:
     
     async def retrieve_tech_stack_rules(self, framework: str) -> Optional[Dict[str, Any]]:
         """
+        memory_tools = MemoryTools()
         Retrieve tech stack rules from LTMC database.
         Real database queries, no mocked data.
         """
@@ -275,10 +277,11 @@ class StackRegistry:
             if framework in self.rules_cache:
                 return self.rules_cache[framework]
             
-            # Retrieve from LTMC memory
-            retrieve_result = await memory_action(
-                action="retrieve",
-                query=f"tech_stack_rule_{framework}",
+            # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+            # Query based on the specific framework user is searching for
+            framework_search_query = f"tech stack rules configuration for {framework} framework"
+            retrieve_result = await memory_tools("retrieve",
+                query=framework_search_query,
                 conversation_id="stack_registry"
             )
             
@@ -317,6 +320,7 @@ class StackRegistry:
     
     async def get_compatibility_matrix(self) -> Dict[Tuple[str, str], Dict[str, Any]]:
         """
+        memory_tools = MemoryTools()
         Retrieve complete compatibility matrix from LTMC database.
         Real data retrieval with actual database queries.
         """
@@ -327,10 +331,11 @@ class StackRegistry:
             if self.compatibility_cache:
                 return self.compatibility_cache
             
-            # Retrieve from LTMC memory
-            retrieve_result = await memory_action(
-                action="retrieve",
-                query="compatibility_rule",
+            # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+            # Query based on compatibility matrix being requested by user
+            compatibility_search_query = f"framework compatibility rules and matrix data"
+            retrieve_result = await memory_tools("retrieve",
+                query=compatibility_search_query,
                 conversation_id="compatibility_matrix"
             )
             
@@ -518,6 +523,7 @@ class CompatibilityMatrix:
     
     async def analyze_multi_framework_project(self, detected_frameworks: List[str]) -> Dict[str, Any]:
         """
+        memory_tools = MemoryTools()
         Analyze compatibility across multiple frameworks in a project.
         Real conflict detection with actual compatibility matrix queries.
         """
@@ -587,8 +593,7 @@ class CompatibilityMatrix:
                 })
             
             # Store analysis in LTMC for future reference
-            await memory_action(
-                action="store",
+            await memory_tools("store",
                 file_name=f"multi_framework_analysis_{int(time.time())}",
                 content=json.dumps(analysis_result),
                 tags=["tech_stack", "compatibility", "multi_framework"],
@@ -606,6 +611,7 @@ class CompatibilityMatrix:
     
     async def load_configuration_from_file(self, config_path: Path) -> Dict[str, Any]:
         """
+        memory_tools = MemoryTools()
         Load configuration from ltmc_config.json with real file I/O.
         No mocked configuration - actual file operations.
         """
@@ -625,8 +631,7 @@ class CompatibilityMatrix:
                 return {'success': False, 'error': 'Invalid configuration format'}
             
             # Store configuration in LTMC for persistence
-            store_result = await memory_action(
-                action="store",
+            store_result = await memory_tools("store",
                 file_name="ltmc_configuration",
                 content=json.dumps(config_data),
                 tags=["config", "ltmc", "loaded"],

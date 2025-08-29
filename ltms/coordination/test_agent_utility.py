@@ -15,23 +15,19 @@ from datetime import datetime, timezone
 from typing import Dict, List, Any
 
 # Import coordination framework components
-from .agent_coordination_framework import (
-    LTMCAgentCoordinator,
+from .agent_coordination_core import AgentCoordinationCore
+from .agent_coordination_models import (
     AgentStatus,
     AgentMessage
 )
-from .mcp_communication_patterns import (
-    LTMCMessageBroker,
-    MCPMessage,
-    create_request_response_message
-)
-from .agent_state_manager import (
-    LTMCAgentStateManager,
-    StateTransition
-)
+from .mcp_message_broker import LTMCMessageBroker
+from .mcp_message_models import MCPMessage
+from .mcp_communication_factory import create_request_response_message
+from .agent_state_manager import LTMCAgentStateManager
+from .agent_state_models import StateTransition
 
 # LTMC MCP tool imports for validation
-from ltms.tools.consolidated import memory_action
+from ltms.tools.memory.memory_actions import memory_action
 
 
 class TestAgent:
@@ -48,14 +44,14 @@ class TestAgent:
     Used for comprehensive testing of the LTMC agent coordination system.
     """
     
-    def __init__(self, agent_id: str, agent_type: str, coordinator: LTMCAgentCoordinator):
+    def __init__(self, agent_id: str, agent_type: str, coordinator: AgentCoordinationCore):
         """
         Initialize test agent with coordination framework.
         
         Args:
             agent_id: Unique identifier for this test agent
             agent_type: Type of agent being simulated (e.g., 'ltmc-planner')
-            coordinator: LTMCAgentCoordinator instance for registration and coordination
+            coordinator: AgentCoordinationCore instance for registration and coordination
         """
         self.agent_id = agent_id
         self.agent_type = agent_type
@@ -151,9 +147,18 @@ class TestAgent:
                 )
             
             # Store results in LTMC using real memory_action tool
+            # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+            # Generate dynamic file name based on test agent execution context, task, and result metrics
+            execution_timestamp = result["timestamp"].replace(':', '_').replace('-', '_')
+            task_name_clean = task_description.replace(' ', '_').replace('/', '_').lower()[:20]  # Truncate long task names
+            agent_type_clean = self.agent_type.replace('-', '_').lower()
+            result_status = result["status"]
+            success_rate = result["metrics"]["success_rate"].replace('%', 'pct')
+            dynamic_test_result_file_name = f"test_agent_result_{self.agent_id}_{agent_type_clean}_{task_name_clean}_{result_status}_{success_rate}_{execution_timestamp}.json"
+            
             memory_action(
                 action="store",
-                file_name=f"test_agent_result_{self.agent_id}_{int(time.time())}.json",
+                file_name=dynamic_test_result_file_name,
                 content=json.dumps(result, indent=2),
                 tags=["test_agent_result", self.agent_id, "coordination_test"],
                 conversation_id=self.coordinator.conversation_id,

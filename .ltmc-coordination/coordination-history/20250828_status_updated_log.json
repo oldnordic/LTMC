@@ -1,0 +1,38 @@
+[
+  {
+    "timestamp": "2025-08-28T09:03:38.916261+00:00",
+    "activity_type": "status_updated",
+    "activity_data": {
+      "workflow_id": "sprint_test_sprint_validation_standard_sprint_workflow",
+      "status": "planning",
+      "agent_id": "claude-validation"
+    }
+  },
+  {
+    "timestamp": "2025-08-28T09:04:51.668487+00:00",
+    "activity_type": "status_updated",
+    "activity_data": {
+      "workflow_id": "sprint_sprint_20250828_110451_standard_sprint_workflow",
+      "status": "planning",
+      "agent_id": "claude-validation"
+    }
+  },
+  {
+    "timestamp": "2025-08-28T09:04:51.669828+00:00",
+    "activity_type": "status_updated",
+    "activity_data": {
+      "workflow_id": "sprint_sprint_20250828_110451_standard_sprint_workflow",
+      "status": "planned",
+      "agent_id": "claude-validation"
+    }
+  },
+  {
+    "timestamp": "2025-08-28T09:04:51.672460+00:00",
+    "activity_type": "status_updated",
+    "activity_data": {
+      "workflow_id": "sprint_sprint_20250828_110451_standard_sprint_workflow",
+      "status": "active",
+      "agent_id": "claude-validation"
+    }
+  }
+]

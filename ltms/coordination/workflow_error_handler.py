@@ -17,10 +17,8 @@ from typing import Dict, Any
 from .agent_coordination_models import AgentStatus
 
 # Import LTMC tools - MANDATORY
-from ltms.tools.consolidated import (
-    chat_action,        # Tool 3 - Chat logging - MANDATORY
-    memory_action       # Tool 1 - Memory operations - MANDATORY
-)
+from ltms.tools.memory.chat_actions import chat_action        # Tool 3 - Chat logging - MANDATORY
+from ltms.tools.memory.memory_actions import memory_action       # Tool 1 - Memory operations - MANDATORY
 
 
 class WorkflowErrorHandler:
@@ -104,9 +102,15 @@ class WorkflowErrorHandler:
         }
         
         # Store error report using memory_action (Tool 1) - MANDATORY
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on workflow error context, phase, and timestamp
+        error_timestamp = error_report["error_timestamp"].replace(':', '_').replace('-', '_')
+        error_phase = error_report["error_phase"]
+        dynamic_error_report_file_name = f"workflow_error_report_{self.workflow_id}_{error_phase}_{error_timestamp}.json"
+        
         memory_action(
             action="store",
-            file_name=f"workflow_error_report_{self.workflow_id}.json",
+            file_name=dynamic_error_report_file_name,
             content=json.dumps(error_report, indent=2),
             tags=["workflow_error", "legacy_removal", "coordination_failure"],
             conversation_id=self.conversation_id,

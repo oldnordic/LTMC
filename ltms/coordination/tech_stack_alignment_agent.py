@@ -1,3 +1,5 @@
+from ltms.tools.graph.graph_actions import GraphTools
+from ltms.tools.memory.memory_actions import MemoryTools
 #!/usr/bin/env python3
 """
 LTMC Tech Stack Alignment Agent - Multi-Agent Coordination Wrapper
@@ -28,7 +30,10 @@ from concurrent.futures import ThreadPoolExecutor
 import uuid
 
 # Import LTMC tools and coordination components
-from ltms.tools.consolidated import memory_action, pattern_action, chat_action, graph_action
+from ltms.tools.memory.memory_actions import memory_action
+from ltms.tools.patterns.pattern_actions import pattern_action
+from ltms.tools.memory.chat_actions import chat_action
+from ltms.tools.graph.graph_actions import graph_action
 from ltms.coordination.tech_stack_alignment import TechStackValidator, ValidationResult, ValidationSeverity
 from ltms.coordination.event_loop_monitor import EventLoopMonitor, EventLoopConflict
 from ltms.coordination.stack_registry import StackRegistry
@@ -159,8 +164,7 @@ class TechStackAlignmentAgent:
             self.stack_registry = await StackRegistry.create_async()
             
             # Store initial coordination state
-            await memory_action(
-                action="store",
+            await memory_tools("store",
                 file_name=f"coordination_agent_{self.agent_id}_initialized",
                 content=json.dumps({
                     "agent_id": self.agent_id,
@@ -173,8 +177,7 @@ class TechStackAlignmentAgent:
             )
             
             # Initialize agent coordination patterns in graph
-            await graph_action(
-                action="link",
+            await graph_tools("link",
                 source_node=f"agent_{self.agent_id}",
                 target_node="tech_stack_alignment_system",
                 relationship_type="coordinates_with",
@@ -255,8 +258,7 @@ class TechStackAlignmentAgent:
             coordination_result["coordination_successful"] = coordination_time < self.sla_threshold_ms
             
             # Step 5: Store coordination results in LTMC
-            await memory_action(
-                action="store",
+            await memory_tools("store",
                 file_name=f"coordination_result_{coordination_id}",
                 content=json.dumps(coordination_result),
                 tags=["coordination", "multi_agent", "validation", "results"],
@@ -329,8 +331,7 @@ class TechStackAlignmentAgent:
             )
             
             # Store agent message in coordination queue
-            await memory_action(
-                action="store", 
+            await memory_tools("store", 
                 file_name=f"agent_message_{validation_message.message_id}",
                 content=json.dumps(asdict(validation_message)),
                 tags=["coordination", "agent_message", agent_id],
@@ -421,8 +422,7 @@ class TechStackAlignmentAgent:
             
             # Store resolution coordination messages
             for message in coordination_messages:
-                await memory_action(
-                    action="store",
+                await memory_tools("store",
                     file_name=f"resolution_message_{message.message_id}",
                     content=json.dumps(asdict(message)),
                     tags=["coordination", "resolution", "conflict"],
@@ -464,8 +464,7 @@ class TechStackAlignmentAgent:
                 logger.warning(f"Message handling exceeded SLA: {handler_time:.3f}ms > {self.sla_threshold_ms}ms")
             
             # Store message processing results
-            await memory_action(
-                action="store",
+            await memory_tools("store",
                 file_name=f"message_handled_{message.message_id}",
                 content=json.dumps({
                     "message_type": message.message_type.value,
@@ -598,8 +597,7 @@ class TechStackAlignmentAgent:
             
             # Store final coordination state
             final_status = await self.get_coordination_status()
-            await memory_action(
-                action="store",
+            await memory_tools("store",
                 file_name=f"coordination_agent_{self.agent_id}_final_state",
                 content=json.dumps(final_status),
                 tags=["coordination", "agent", "shutdown", self.agent_id],
@@ -619,6 +617,8 @@ class TechStackAlignmentAgent:
 # Coordination utilities
 
 async def create_coordination_network(agent_ids: List[str], 
+    graph_tools = GraphTools()
+    memory_tools = MemoryTools()
                                     project_root: Path,
                                     coordination_mode: CoordinationMode = CoordinationMode.PEER_TO_PEER) -> Dict[str, TechStackAlignmentAgent]:
     """
@@ -641,8 +641,7 @@ async def create_coordination_network(agent_ids: List[str],
         for source_agent in agent_ids:
             for target_agent in agent_ids:
                 if source_agent != target_agent:
-                    await graph_action(
-                        action="link",
+                    await graph_tools("link",
                         source_node=f"agent_{source_agent}",
                         target_node=f"agent_{target_agent}",
                         relationship_type="coordinates_with",
@@ -653,8 +652,7 @@ async def create_coordination_network(agent_ids: List[str],
                     )
         
         # Store network configuration
-        await memory_action(
-            action="store",
+        await memory_tools("store",
             file_name=f"coordination_network_{int(time.time())}",
             content=json.dumps({
                 "network_agents": agent_ids,

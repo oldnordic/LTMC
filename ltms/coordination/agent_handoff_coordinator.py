@@ -23,7 +23,7 @@ from datetime import datetime, timezone
 from typing import Dict, List, Optional, Any
 
 # LTMC MCP tool imports - REAL functionality only
-from ltms.tools.consolidated import memory_action, chat_action, todo_action, graph_action
+from ltms.tools.memory.memory_actions import memory_action, chat_action, todo_action, graph_action
 
 
 class AgentHandoffCoordinator:
@@ -51,9 +51,13 @@ class AgentHandoffCoordinator:
         }
         
         # Store coordinator initialization in LTMC
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on coordinator initialization context and session
+        dynamic_coordinator_init_file_name = f"handoff_coordinator_{self.session_id}_{self.task_id}_init_{self.coordinator_id}_{initialization_data['initialization_timestamp'].replace(':', '_').replace('-', '_')}.json"
+        
         memory_action(
             action="store",
-            file_name=f"agent_handoff_coordinator_init_{self.coordinator_id}.json",
+            file_name=dynamic_coordinator_init_file_name,
             content=json.dumps(initialization_data, indent=2),
             tags=["agent_handoff_coordinator", "initialization", self.coordinator_id, self.session_id],
             conversation_id=self.session_id,
@@ -84,9 +88,13 @@ class AgentHandoffCoordinator:
         }
         
         # Store handoff in LTMC using memory_action
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on handoff initiation context and participating agents
+        dynamic_handoff_init_file_name = f"handoff_initiation_{from_agent}_to_{to_agent}_{handoff_id}_{handoff_context.replace(' ', '_')[:20]}_{initiation_timestamp.replace(':', '_').replace('-', '_')}.json"
+        
         storage_result = memory_action(
             action="store",
-            file_name=f"agent_handoff_{handoff_id}.json",
+            file_name=dynamic_handoff_init_file_name,
             content=json.dumps(handoff_document, indent=2),
             tags=["agent_handoff", handoff_id, from_agent, to_agent, "initiated"],
             conversation_id=self.session_id,
@@ -155,9 +163,14 @@ class AgentHandoffCoordinator:
         }
         
         # Store validation result in LTMC
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on prerequisite validation context and checks
+        prerequisite_count = len(prerequisite_checks)
+        dynamic_validation_file_name = f"handoff_prerequisites_{handoff_id}_{prerequisite_count}checks_{validation_status}_{validation_timestamp.replace(':', '_').replace('-', '_')}.json"
+        
         memory_action(
             action="store",
-            file_name=f"handoff_validation_{handoff_id}_{int(time.time())}.json",
+            file_name=dynamic_validation_file_name,
             content=json.dumps(validation_result, indent=2),
             tags=["handoff_validation", handoff_id, "prerequisites_validation"],
             conversation_id=self.session_id,
@@ -191,9 +204,13 @@ class AgentHandoffCoordinator:
         }
         
         # Store execution result in LTMC
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on handoff execution context and executing agent
+        dynamic_execution_file_name = f"handoff_execution_{executing_agent}_{handoff_id}_{execution_context.replace(' ', '_') if execution_context else 'general_execution'}_{execution_timestamp.replace(':', '_').replace('-', '_')}.json"
+        
         memory_action(
             action="store",
-            file_name=f"handoff_execution_{handoff_id}_{int(time.time())}.json",
+            file_name=dynamic_execution_file_name,
             content=json.dumps(execution_result, indent=2),
             tags=["handoff_execution", handoff_id, executing_agent, "executed"],
             conversation_id=self.session_id,
@@ -234,9 +251,13 @@ class AgentHandoffCoordinator:
         }
         
         # Store confirmation in LTMC
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on handoff confirmation context and confirming agent
+        dynamic_confirmation_file_name = f"handoff_completion_{confirming_agent}_{handoff_id}_{completion_context.replace(' ', '_')[:20]}_{confirmation_timestamp.replace(':', '_').replace('-', '_')}.json"
+        
         memory_action(
             action="store",
-            file_name=f"handoff_confirmation_{handoff_id}_{int(time.time())}.json",
+            file_name=dynamic_confirmation_file_name,
             content=json.dumps(confirmation_result, indent=2),
             tags=["handoff_confirmation", handoff_id, confirming_agent, "completed"],
             conversation_id=self.session_id,
@@ -309,9 +330,13 @@ class AgentHandoffCoordinator:
         }
         
         # Store rollback in LTMC
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on rollback context and recovery reason
+        dynamic_rollback_file_name = f"handoff_rollback_{handoff_id}_{rollback_reason.replace(' ', '_')[:25]}_{rollback_context.replace(' ', '_')[:15]}_{rollback_timestamp.replace(':', '_').replace('-', '_')}.json"
+        
         memory_action(
             action="store",
-            file_name=f"handoff_rollback_{handoff_id}_{int(time.time())}.json",
+            file_name=dynamic_rollback_file_name,
             content=json.dumps(rollback_result, indent=2),
             tags=["handoff_rollback", handoff_id, "rolled_back"],
             conversation_id=self.session_id,
@@ -346,9 +371,13 @@ class AgentHandoffCoordinator:
         }
         
         # Store workflow in LTMC
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on multi-stage workflow context and name
+        dynamic_workflow_file_name = f"multistage_workflow_{workflow_name.replace(' ', '_')[:20]}_{workflow_id}_{len(workflow_stages)}stages_{workflow_document['creation_timestamp'].replace(':', '_').replace('-', '_')}.json"
+        
         memory_action(
             action="store",
-            file_name=f"handoff_workflow_{workflow_id}.json",
+            file_name=dynamic_workflow_file_name,
             content=json.dumps(workflow_document, indent=2),
             tags=["handoff_workflow", workflow_id, workflow_name, "multi_stage"],
             conversation_id=self.session_id,
@@ -375,9 +404,14 @@ class AgentHandoffCoordinator:
         }
         
         # Store stage execution in LTMC
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on workflow stage execution context and data
+        stage_data_keys = len(handoff_data) if handoff_data else 0
+        dynamic_stage_file_name = f"workflow_stage_{workflow_id}_{stage_name.replace(' ', '_')}_{stage_data_keys}keys_{stage_context.replace(' ', '_')[:15]}_{execution_timestamp.replace(':', '_').replace('-', '_')}.json"
+        
         memory_action(
             action="store",
-            file_name=f"workflow_stage_{workflow_id}_{stage_name}_{int(time.time())}.json",
+            file_name=dynamic_stage_file_name,
             content=json.dumps(stage_result, indent=2),
             tags=["workflow_stage", workflow_id, stage_name, "executed"],
             conversation_id=self.session_id,
@@ -470,10 +504,16 @@ class AgentHandoffCoordinator:
     
     def test_memory_action_integration(self) -> Dict[str, Any]:
         """Test memory_action integration - NO MOCKS."""
-        test_handoff = {"test": "memory_integration", "coordinator_id": self.coordinator_id}
+        test_timestamp = datetime.now(timezone.utc).isoformat()
+        test_handoff = {"test": "memory_integration", "coordinator_id": self.coordinator_id, "test_timestamp": test_timestamp}
+        
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on handoff coordinator test context and session
+        dynamic_test_file_name = f"handoff_coordinator_memory_test_{self.session_id}_{self.task_id}_{self.coordinator_id}_{test_timestamp.replace(':', '_').replace('-', '_')}.json"
+        
         store_result = memory_action(
             action="store",
-            file_name=f"handoff_memory_test_{self.coordinator_id}.json",
+            file_name=dynamic_test_file_name,
             content=json.dumps(test_handoff),
             tags=["memory_test", self.session_id],
             conversation_id=self.session_id,

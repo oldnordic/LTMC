@@ -16,17 +16,20 @@ def get_consolidated_tools() -> Dict[str, Dict[str, Any]]:
         Dictionary mapping tool names to their definitions
     """
     
-    # Import modular tool functions
-    from ltms.tools.actions.cache_action import cache_action
-    from ltms.tools.actions.graph_action import graph_action
-    from ltms.tools.actions.unix_action import unix_action
-    
-    # Import remaining consolidated tools (from original consolidated.py for now)
-    from ltms.tools.consolidated import (
-        memory_action, todo_action, chat_action,
-        pattern_action, blueprint_action, documentation_action,
-        sync_action, config_action
-    )
+    # Import all modular tool functions
+    from ltms.tools.monitoring.cache_actions import cache_action
+    from ltms.tools.graph.graph_actions import graph_action
+    from ltms.tools.unix.unix_actions import unix_action
+    from ltms.tools.memory.memory_actions import memory_action
+    from ltms.tools.todos.todo_actions import todo_action
+    from ltms.tools.memory.chat_actions import chat_action
+    from ltms.tools.patterns.pattern_actions import pattern_action
+    from ltms.tools.blueprints.blueprint_actions import blueprint_action
+    from ltms.tools.docs.documentation_actions import documentation_action
+    from ltms.tools.sync.sync_actions import sync_action
+    from ltms.tools.config.config_actions import config_action
+    from ltms.tools.coordination.coordination_actions import coordination_action
+    from ltms.tools.sprints.sprint_actions import sprint_action
     
     return {
         "memory_action": {
@@ -156,7 +159,7 @@ def get_consolidated_tools() -> Dict[str, Dict[str, Any]]:
                 "properties": {
                     "action": {
                         "type": "string",
-                        "enum": ["link", "query", "auto_link", "get_relationships"],
+                        "enum": ["link", "query", "auto_link", "get_relationships", "stats"],
                         "description": "Graph action to perform"
                     }
                 },
@@ -209,6 +212,40 @@ def get_consolidated_tools() -> Dict[str, Dict[str, Any]]:
                         "type": "string",
                         "enum": ["validate_config", "get_config_schema", "export_config"],
                         "description": "Config action to perform"
+                    }
+                },
+                "required": ["action"],
+                "additionalProperties": True
+            }
+        },
+        
+        "coordination_action": {
+            "handler": coordination_action,
+            "description": "Agent coordination with external file-based state: store_analysis, retrieve_handoff, update_status, list_pending, create_workflow",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "enum": ["store_analysis", "retrieve_handoff", "update_status", "list_pending", "create_workflow", "store_handoff", "get_workflow_state", "log_coordination_activity"],
+                        "description": "Coordination action to perform"
+                    }
+                },
+                "required": ["action"],
+                "additionalProperties": True
+            }
+        },
+        
+        "sprint_action": {
+            "handler": sprint_action,
+            "description": "Professional sprint management with LTMC integration: projects, sprints, stories, tasks, coordination",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "enum": ["create_project", "list_projects", "create_sprint", "list_sprints", "start_sprint", "complete_sprint", "create_story", "list_stories", "assign_story", "create_task", "complete_task", "get_sprint_dashboard", "create_sprint_workflow", "link_coordination", "transition_workflow_state", "get_workflow_state", "list_workflow_types"],
+                        "description": "Sprint management action to perform"
                     }
                 },
                 "required": ["action"],

@@ -79,8 +79,8 @@ async def generate_advanced_documentation(
             raise AdvancedMarkdownToolsError("file_path and project_id are required")
         
         # Security validation
-        isolation_manager = ProjectIsolationManager("/home/feanor/Projects/lmtc")
-        path_validator = SecurePathValidator("/home/feanor/Projects/lmtc")
+        isolation_manager = ProjectIsolationManager("/home/feanor/Projects/ltmc")
+        path_validator = SecurePathValidator("/home/feanor/Projects/ltmc")
         
         if not isolation_manager.validate_project_access(project_id, "read", file_path):
             raise AdvancedMarkdownToolsError(f"Project access denied: {project_id}")
@@ -350,8 +350,8 @@ async def commit_documentation_changes(
             raise AdvancedMarkdownToolsError("file_paths and project_id are required")
         
         # Security validation
-        isolation_manager = ProjectIsolationManager("/home/feanor/Projects/lmtc")
-        path_validator = SecurePathValidator("/home/feanor/Projects/lmtc")
+        isolation_manager = ProjectIsolationManager("/home/feanor/Projects/ltmc")
+        path_validator = SecurePathValidator("/home/feanor/Projects/ltmc")
         
         if not isolation_manager.validate_project_access(project_id, "write", "git"):
             raise AdvancedMarkdownToolsError(f"Project access denied: {project_id}")

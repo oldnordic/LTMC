@@ -14,7 +14,7 @@ import time
 from pathlib import Path
 from typing import List
 
-from ltms.tools.consolidated import pattern_action
+from ltms.tools.patterns.pattern_actions import pattern_action
 from .monitor import EventLoopConflict, ConflictSeverity
 
 # Configure logging

@@ -1,3 +1,4 @@
+from ltms.tools.memory.memory_actions import MemoryTools
 """
 LTMC Conflict Resolution Generator - Resolution Suggestions
 
@@ -12,7 +13,7 @@ import logging
 import time
 from typing import Dict, List, Any, Tuple
 
-from ltms.tools.consolidated import memory_action
+from ltms.tools.memory.memory_actions import memory_action
 from .monitor import EventLoopConflict
 
 # Configure logging
@@ -20,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 async def generate_resolutions(conflicts: List[EventLoopConflict]) -> Dict[str, Any]:
+    memory_tools = MemoryTools()
     """
     Suggest resolutions for detected conflicts.
     
@@ -70,8 +72,7 @@ async def generate_resolutions(conflicts: List[EventLoopConflict]) -> Dict[str, 
     suggestions["summary"]["resolution_patterns"] = list(suggestions["summary"]["resolution_patterns"])
     
     # Store resolution suggestions in LTMC
-    await memory_action(
-        action="store",
+    await memory_tools("store",
         file_name=f"conflict_resolution_suggestions_{int(time.time())}",
         content=f"Resolution suggestions for {len(conflicts)} conflicts: {suggestions['summary']['resolution_patterns']}",
         tags=["resolution", "suggestions", "conflict"],

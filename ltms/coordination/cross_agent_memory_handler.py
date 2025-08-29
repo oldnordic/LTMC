@@ -23,7 +23,10 @@ from datetime import datetime, timezone
 from typing import Dict, List, Optional, Any
 
 # LTMC MCP tool imports - REAL functionality only
-from ltms.tools.consolidated import memory_action, chat_action, todo_action, graph_action
+from ltms.tools.memory.memory_actions import memory_action
+from ltms.tools.memory.chat_actions import chat_action
+from ltms.tools.todos.todo_actions import todo_action
+from ltms.tools.graph.graph_actions import graph_action
 
 
 class CrossAgentMemoryHandler:
@@ -51,9 +54,13 @@ class CrossAgentMemoryHandler:
         }
         
         # Store handler initialization in LTMC
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on handler context and initialization purpose
+        dynamic_init_file_name = f"cross_agent_memory_handler_{self.session_id}_{self.task_id}_init_{self.handler_id}.json"
+        
         memory_action(
             action="store",
-            file_name=f"cross_agent_memory_handler_init_{self.handler_id}.json",
+            file_name=dynamic_init_file_name,
             content=json.dumps(initialization_data, indent=2),
             tags=["cross_agent_memory", "handler_initialization", self.handler_id, self.session_id],
             conversation_id=self.session_id,
@@ -81,10 +88,14 @@ class CrossAgentMemoryHandler:
         }
         
         # Store in LTMC using memory_action
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on actual agent interaction context
+        dynamic_output_file_name = f"agent_output_{agent_id}_{self.task_id}_{output_key}_{storage_timestamp.replace(':', '_').replace('-', '_')}.json"
+        
         storage_tags = ["cross_agent_output", agent_id, output_key, self.session_id] + (tags or [])
         storage_result = memory_action(
             action="store",
-            file_name=f"cross_agent_output_{agent_id}_{output_key}_{int(time.time())}.json",
+            file_name=dynamic_output_file_name,
             content=json.dumps(cross_agent_document, indent=2),
             tags=storage_tags,
             conversation_id=self.session_id,
@@ -188,9 +199,13 @@ class CrossAgentMemoryHandler:
         }
         
         # Store reference in LTMC
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on cross-agent reference context and dependency relationship
+        dynamic_reference_file_name = f"agent_ref_{referencing_agent}_to_{referenced_agent}_{dependency_type}_{reference_context.replace(' ', '_')[:20]}_{reference_timestamp.replace(':', '_').replace('-', '_')}.json"
+        
         reference_result = memory_action(
             action="store",
-            file_name=f"cross_agent_ref_{referencing_agent}_{referenced_agent}_{int(time.time())}.json",
+            file_name=dynamic_reference_file_name,
             content=json.dumps(reference_data, indent=2),
             tags=["cross_agent_reference", referencing_agent, referenced_agent, dependency_type],
             conversation_id=self.session_id,
@@ -246,9 +261,13 @@ class CrossAgentMemoryHandler:
         }
         
         # Store handoff in LTMC
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on handoff workflow context and participating agents
+        dynamic_handoff_file_name = f"workflow_handoff_{from_agent}_to_{to_agent}_{handoff_context.replace(' ', '_')[:15]}_{self.task_id}_{handoff_timestamp.replace(':', '_').replace('-', '_')}.json"
+        
         handoff_result = memory_action(
             action="store",
-            file_name=f"agent_handoff_{from_agent}_to_{to_agent}_{int(time.time())}.json",
+            file_name=dynamic_handoff_file_name,
             content=json.dumps(handoff_document, indent=2),
             tags=["agent_handoff", from_agent, to_agent, self.session_id],
             conversation_id=self.session_id,
@@ -436,10 +455,16 @@ class CrossAgentMemoryHandler:
     
     def test_memory_action_integration(self) -> Dict[str, Any]:
         """Test memory_action integration - NO MOCKS."""
-        test_data = {"test": "memory_integration", "timestamp": datetime.now(timezone.utc).isoformat()}
+        test_timestamp = datetime.now(timezone.utc).isoformat()
+        test_data = {"test": "memory_integration", "timestamp": test_timestamp}
+        
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on actual test context and handler session
+        dynamic_test_file_name = f"cross_agent_memory_integration_test_{self.session_id}_{self.handler_id}_{test_timestamp.replace(':', '_').replace('-', '_')}.json"
+        
         store_result = memory_action(
             action="store",
-            file_name=f"memory_test_{self.handler_id}.json",
+            file_name=dynamic_test_file_name,
             content=json.dumps(test_data),
             tags=["memory_test", self.session_id],
             conversation_id=self.session_id,

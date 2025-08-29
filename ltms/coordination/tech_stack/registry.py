@@ -1,3 +1,4 @@
+from ltms.tools.memory.memory_actions import MemoryTools
 """
 LTMC Stack Registry - Tech Stack Configuration Management
 
@@ -18,7 +19,8 @@ from dataclasses import dataclass
 from enum import Enum
 
 # Import LTMC tools
-from ltms.tools.consolidated import memory_action, pattern_action
+from ltms.tools.memory.memory_actions import memory_action
+from ltms.tools.patterns.pattern_actions import pattern_action
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -84,14 +86,14 @@ class StackRegistry:
     
     async def _initialize_stack_registry(self) -> None:
         """Initialize stack registry with predefined rules in LTMC"""
+        memory_tools = MemoryTools()
         try:
             # Define core tech stack rules
             core_rules = self._get_core_tech_stack_rules()
             
             # Store each rule in LTMC memory
             for framework_name, rule_data in core_rules.items():
-                await memory_action(
-                    action="store",
+                await memory_tools("store",
                     file_name=f"tech_stack_rule_{framework_name}",
                     content=json.dumps(rule_data),
                     tags=["tech_stack", "rules", framework_name],
@@ -104,8 +106,7 @@ class StackRegistry:
             compatibility_rules = self._get_compatibility_matrix()
             
             for rule_key, compatibility_data in compatibility_rules.items():
-                await memory_action(
-                    action="store",
+                await memory_tools("store",
                     file_name=f"compatibility_rule_{rule_key}",
                     content=json.dumps(compatibility_data),
                     tags=["tech_stack", "compatibility", "rules"],
@@ -201,6 +202,7 @@ class StackRegistry:
     
     async def store_tech_stack_rules(self, framework: str, rules: Dict[str, Any]) -> bool:
         """
+        memory_tools = MemoryTools()
         Store tech stack rules in LTMC database with real persistence.
         No mocks - actual database operations.
         """
@@ -213,8 +215,7 @@ class StackRegistry:
                 return False
             
             # Store in LTMC memory
-            store_result = await memory_action(
-                action="store",
+            store_result = await memory_tools("store",
                 file_name=f"tech_stack_rule_{framework}",
                 content=json.dumps(rules),
                 tags=["tech_stack", "rules", framework, "user_defined"],
@@ -242,6 +243,7 @@ class StackRegistry:
     
     async def retrieve_tech_stack_rules(self, framework: str) -> Optional[Dict[str, Any]]:
         """
+        memory_tools = MemoryTools()
         Retrieve tech stack rules from LTMC database.
         Real database queries, no mocked data.
         """
@@ -253,8 +255,7 @@ class StackRegistry:
                 return self.rules_cache[framework]
             
             # Retrieve from LTMC memory
-            retrieve_result = await memory_action(
-                action="retrieve",
+            retrieve_result = await memory_tools("retrieve",
                 query=f"tech_stack_rule_{framework}",
                 conversation_id="stack_registry"
             )

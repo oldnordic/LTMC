@@ -3,11 +3,8 @@ LTMC Configuration Package
 Unified configuration for the shared knowledge base used by all tools
 """
 
-from .centralized_config import ConfigManager, LTMCConfig, get_config, setup_ltmc_environment
+from .json_config_loader import get_config
 
 __all__ = [
-    "ConfigManager",
-    "LTMCConfig", 
-    "get_config",
-    "setup_ltmc_environment"
+    "get_config"
 ]

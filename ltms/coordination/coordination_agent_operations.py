@@ -20,7 +20,7 @@ from .agent_registration_manager import AgentRegistrationManager
 from .agent_message_handler import AgentMessageHandler
 
 # LTMC MCP tool imports for real functionality
-from ltms.tools.consolidated import graph_action
+from ltms.tools.graph.graph_actions import graph_action
 
 
 class CoordinationAgentOperations:

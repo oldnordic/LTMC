@@ -20,11 +20,11 @@ from enum import Enum
 import importlib.util
 import inspect
 
-# Import LTMC tools and coordination framework
-from ltms.tools.consolidated import (
-    memory_action, graph_action, pattern_action,
-    chat_action
-)
+# Import LTMC tools and coordination framework (class-based approach)
+from ltms.tools.memory.memory_actions import MemoryTools
+from ltms.tools.graph.graph_actions import GraphTools
+from ltms.tools.patterns.pattern_actions import PatternTools
+from ltms.tools.memory.chat_actions import ChatTools
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -80,6 +80,9 @@ class TechStackValidator:
     async def _initialize_ltmc_patterns(self) -> None:
         """Initialize LTMC patterns for tech stack validation"""
         try:
+            # Initialize tool instances for class-based approach
+            memory_tools = MemoryTools()
+            
             # Store known MCP patterns in LTMC memory
             mcp_patterns = {
                 "mcp_tool_decorator": "@mcp.tool",
@@ -90,8 +93,7 @@ class TechStackValidator:
             }
             
             for pattern_name, pattern_code in mcp_patterns.items():
-                await memory_action(
-                    action="store",
+                await memory_tools("store",
                     file_name=f"mcp_pattern_{pattern_name}",
                     content=f"MCP Pattern: {pattern_name} = {pattern_code}",
                     tags=["tech_stack", "mcp_pattern", "validation"],
@@ -106,8 +108,7 @@ class TechStackValidator:
             }
             
             for conflict_name, description in fastapi_conflicts.items():
-                await memory_action(
-                    action="store", 
+                await memory_tools("store",
                     file_name=f"fastapi_conflict_{conflict_name}",
                     content=f"FastAPI Conflict: {conflict_name} = {description}",
                     tags=["tech_stack", "fastapi_conflict", "validation"],
@@ -162,11 +163,13 @@ class TechStackValidator:
             # Real MCP pattern detection
             mcp_patterns_found = await self._detect_mcp_patterns(tree, file_path)
             
+            # Initialize tool instance for class-based approach
+            memory_tools = MemoryTools()
+            
             # Validate detected patterns against LTMC memory
             for pattern in mcp_patterns_found:
                 # Store detection in LTMC memory
-                ltmc_ref = await memory_action(
-                    action="store",
+                ltmc_ref = await memory_tools("store",
                     file_name=f"validation_result_{pattern['type']}_{int(time.time())}",
                     content=f"MCP pattern detected: {pattern['type']} in {file_path}",
                     tags=["validation", "mcp_detection", "pattern_found"],
@@ -359,9 +362,9 @@ class TechStackValidator:
             conflicts = await self._analyze_conflicts(fastapi_files, mcp_files)
             
             # Store conflict results in LTMC
+            memory_tools = MemoryTools()
             for conflict in conflicts:
-                ltmc_ref = await memory_action(
-                    action="store",
+                ltmc_ref = await memory_tools("store",
                     file_name=f"conflict_{conflict['type']}_{int(time.time())}",
                     content=f"Conflict detected: {conflict['type']} between {conflict['files']}",
                     tags=["tech_stack", "conflict", "fastapi_mcp"],
@@ -492,9 +495,9 @@ class AlignmentEnforcer:
             }
         }
         
+        memory_tools = MemoryTools()
         for rule_name, rule_config in rules.items():
-            await memory_action(
-                action="store",
+            await memory_tools("store",
                 file_name=f"enforcement_rule_{rule_name}",
                 content=f"Enforcement Rule: {rule_name} = {rule_config}",
                 tags=["tech_stack", "enforcement", "rules"],
@@ -522,8 +525,8 @@ class AlignmentEnforcer:
                 })
                 
                 # Store blocking action in LTMC
-                await memory_action(
-                    action="store", 
+                memory_tools = MemoryTools()
+                await memory_tools("store", 
                     file_name=f"blocked_action_{int(time.time())}",
                     content=f"BLOCKED: {result.message}",
                     tags=["enforcement", "blocked", "critical"],
@@ -603,8 +606,8 @@ class StackDriftDetector:
             return baseline
         
         # Store baseline in LTMC
-        baseline_ref = await memory_action(
-            action="store",
+        memory_tools = MemoryTools()
+        baseline_ref = await memory_tools("store",
             file_name=f"tech_stack_baseline_{int(time.time())}",
             content=f"Tech Stack Baseline: {baseline['file_count']} files, {len(baseline['mcp_patterns'])} MCP patterns",
             tags=["tech_stack", "baseline", "drift_detection"],
@@ -667,9 +670,9 @@ class StackDriftDetector:
             ))
         
         # Store drift analysis in LTMC
+        memory_tools = MemoryTools()
         for result in drift_results:
-            await memory_action(
-                action="store",
+            await memory_tools("store",
                 file_name=f"drift_detection_{int(time.time())}",
                 content=f"Drift Detection: {result.message}",
                 tags=["tech_stack", "drift", "monitoring"],

@@ -1,3 +1,4 @@
+from ltms.tools.memory.memory_actions import MemoryTools
 #!/usr/bin/env python3
 """
 LTMC Event Loop Monitor - Real-time conflict detection and prevention
@@ -32,7 +33,8 @@ except ImportError:
     psutil = None
 
 # Import LTMC tools
-from ltms.tools.consolidated import memory_action, pattern_action
+from ltms.tools.memory.memory_actions import memory_action
+from ltms.tools.patterns.pattern_actions import pattern_action
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -133,6 +135,7 @@ class EventLoopMonitor:
     
     async def _initialize_monitoring_patterns(self) -> None:
         """Initialize monitoring patterns and conflict signatures in LTMC"""
+        memory_tools = MemoryTools()
         try:
             # Store known event loop conflict patterns
             conflict_patterns = {
@@ -163,8 +166,7 @@ class EventLoopMonitor:
             }
             
             for pattern_name, pattern_data in conflict_patterns.items():
-                await memory_action(
-                    action="store",
+                await memory_tools("store",
                     file_name=f"event_loop_pattern_{pattern_name}",
                     content=json.dumps(pattern_data),
                     tags=["event_loop", "conflict_pattern", "monitoring"],
@@ -172,8 +174,7 @@ class EventLoopMonitor:
                 )
             
             # Initialize monitoring state
-            await memory_action(
-                action="store",
+            await memory_tools("store",
                 file_name="event_loop_monitor_initialized",
                 content=f"EventLoopMonitor initialized at {time.time()} with mode: {self.monitoring_mode.value}",
                 tags=["monitor", "initialization", "event_loop"],
@@ -188,6 +189,7 @@ class EventLoopMonitor:
     
     async def start_monitoring(self, check_interval: float = 1.0) -> None:
         """
+        memory_tools = MemoryTools()
         Start real-time event loop monitoring.
         
         Args:
@@ -223,8 +225,7 @@ class EventLoopMonitor:
                     logger.warning(f"Monitoring cycle exceeded SLA: {monitor_duration:.3f}s > 500ms")
                 
                 # Store monitoring cycle results
-                await memory_action(
-                    action="store",
+                await memory_tools("store",
                     file_name=f"monitor_cycle_{int(time.time())}",
                     content=json.dumps({
                         "monitoring_cycle": {
@@ -249,6 +250,7 @@ class EventLoopMonitor:
     
     async def stop_monitoring(self) -> None:
         """Stop event loop monitoring"""
+        memory_tools = MemoryTools()
         if not self.monitoring_active:
             logger.warning("Event loop monitoring not active")
             return
@@ -257,8 +259,7 @@ class EventLoopMonitor:
         self.monitoring_active = False
         
         # Store monitoring session summary
-        await memory_action(
-            action="store",
+        await memory_tools("store",
             file_name=f"monitoring_session_summary_{int(time.time())}",
             content=json.dumps({
                 "session_summary": {
@@ -491,11 +492,11 @@ class EventLoopMonitor:
     async def _handle_detected_conflict(self, conflict: EventLoopConflict) -> None:
         """Handle detected event loop conflict"""
         # Add to conflict history
+        memory_tools = MemoryTools()
         self.conflict_history.append(conflict)
         
         # Store conflict in LTMC memory
-        ltmc_ref = await memory_action(
-            action="store",
+        ltmc_ref = await memory_tools("store",
             file_name=f"event_loop_conflict_{conflict.conflict_type}_{int(time.time())}",
             content=json.dumps(asdict(conflict)),
             tags=["event_loop", "conflict", "detected", conflict.severity.value],
@@ -520,6 +521,7 @@ class EventLoopMonitor:
     
     async def _prevent_conflict(self, conflict: EventLoopConflict) -> None:
         """Attempt to prevent or mitigate detected conflict"""
+        memory_tools = MemoryTools()
         try:
             prevention_actions = {
                 "nested_asyncio_run": self._prevent_nested_asyncio_run,
@@ -532,8 +534,7 @@ class EventLoopMonitor:
                 await action_func(conflict)
                 
                 # Store prevention action
-                await memory_action(
-                    action="store",
+                await memory_tools("store",
                     file_name=f"prevention_action_{conflict.conflict_type}_{int(time.time())}",
                     content=f"Prevention action taken for {conflict.conflict_type}: {conflict.resolution_suggestion}",
                     tags=["prevention", "action", "event_loop"],
@@ -628,6 +629,7 @@ class EventLoopMonitor:
     
     async def suggest_conflict_resolution(self, conflicts: List[EventLoopConflict]) -> Dict[str, Any]:
         """
+        memory_tools = MemoryTools()
         Suggest resolutions for detected conflicts.
         
         Args:
@@ -677,8 +679,7 @@ class EventLoopMonitor:
         suggestions["summary"]["resolution_patterns"] = list(suggestions["summary"]["resolution_patterns"])
         
         # Store resolution suggestions in LTMC
-        await memory_action(
-            action="store",
+        await memory_tools("store",
             file_name=f"conflict_resolution_suggestions_{int(time.time())}",
             content=json.dumps(suggestions),
             tags=["resolution", "suggestions", "conflict"],

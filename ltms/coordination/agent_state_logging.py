@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 from typing import Dict, List, Optional, Any
 
 # LTMC MCP tool imports
-from ltms.tools.consolidated import memory_action
+from ltms.tools.memory.memory_actions import memory_action
 
 # Import state models and coordination framework types
 from .agent_state_models import StateTransition, StateTransitionLog
@@ -112,10 +112,16 @@ class AgentStateLogging:
         }
         
         # Store in LTMC memory with error handling
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on transition log context, agent, and timestamp
+        log_timestamp = log_entry.timestamp.replace(':', '_').replace('-', '_')
+        transition_result = "success" if log_entry.success else "failed"
+        dynamic_transition_log_file_name = f"transition_log_{agent_id}_{log_entry.from_status.value.lower()}_to_{log_entry.to_status.value.lower()}_{transition_result}_{log_entry.log_id}_{log_timestamp}.json"
+        
         try:
             memory_action(
                 action="store",
-                file_name=f"transition_log_{log_entry.log_id}.json",
+                file_name=dynamic_transition_log_file_name,
                 content=json.dumps(log_document, indent=2),
                 tags=["transition_log", agent_id, self.coordination_id],
                 conversation_id=self.conversation_id,

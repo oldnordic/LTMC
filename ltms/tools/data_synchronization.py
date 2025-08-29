@@ -13,7 +13,7 @@ import time
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 
-from ltms.config import get_config
+from ltms.config.json_config_loader import get_config
 from ltms.tools.atomic_memory_integration import get_atomic_memory_manager
 from ltms.sync.sync_models import DocumentData
 from ltms.database.sync_coordinator import DatabaseSyncCoordinator

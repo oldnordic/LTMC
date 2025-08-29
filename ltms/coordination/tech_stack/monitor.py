@@ -1,3 +1,4 @@
+from ltms.tools.memory.memory_actions import MemoryTools
 """
 LTMC Event Loop Monitor - Real-time Monitoring Core
 
@@ -19,7 +20,7 @@ from enum import Enum
 from concurrent.futures import ThreadPoolExecutor
 
 # Import LTMC tools
-from ltms.tools.consolidated import memory_action
+from ltms.tools.memory.memory_actions import memory_action
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -111,6 +112,7 @@ class EventLoopMonitor:
     
     async def _initialize_monitoring_patterns(self) -> None:
         """Initialize monitoring patterns and conflict signatures in LTMC"""
+        memory_tools = MemoryTools()
         try:
             # Store known event loop conflict patterns
             conflict_patterns = {
@@ -129,8 +131,7 @@ class EventLoopMonitor:
             }
             
             for pattern_name, pattern_data in conflict_patterns.items():
-                await memory_action(
-                    action="store",
+                await memory_tools("store",
                     file_name=f"event_loop_pattern_{pattern_name}",
                     content=f"Event Loop Pattern: {pattern_name} = {pattern_data}",
                     tags=["event_loop", "conflict_pattern", "monitoring"],
@@ -138,8 +139,7 @@ class EventLoopMonitor:
                 )
             
             # Initialize monitoring state
-            await memory_action(
-                action="store",
+            await memory_tools("store",
                 file_name="event_loop_monitor_initialized",
                 content=f"EventLoopMonitor initialized at {time.time()} with mode: {self.monitoring_mode.value}",
                 tags=["monitor", "initialization", "event_loop"],

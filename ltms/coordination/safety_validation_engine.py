@@ -20,14 +20,12 @@ from .agent_state_models import StateTransition
 from .safety_validation_utils import generate_next_steps, create_removal_recommendations
 
 # Import ALL LTMC tools - MANDATORY
-from ltms.tools.consolidated import (
-    memory_action,      # Tool 1 - Memory operations - MANDATORY
-    cache_action,       # Tool 7 - Cache operations - MANDATORY
-    graph_action,       # Tool 8 - Knowledge graph - MANDATORY
-    config_action,      # Tool 11 - Configuration - MANDATORY
-    blueprint_action,   # Tool 6 - Blueprint management - MANDATORY  
-    pattern_action      # Tool 5 - Code analysis - MANDATORY
-)
+from ltms.tools.memory.memory_actions import memory_action      # Tool 1 - Memory operations - MANDATORY
+from ltms.tools.monitoring.cache_actions import cache_action       # Tool 7 - Cache operations - MANDATORY
+from ltms.tools.graph.graph_actions import graph_action       # Tool 8 - Knowledge graph - MANDATORY
+from ltms.tools.config.config_actions import config_action      # Tool 11 - Configuration - MANDATORY
+from ltms.tools.blueprints.blueprint_actions import blueprint_action   # Tool 6 - Blueprint management - MANDATORY  
+from ltms.tools.patterns.pattern_actions import pattern_action      # Tool 5 - Code analysis - MANDATORY
 
 
 class SafetyValidationEngine:
@@ -191,9 +189,15 @@ class SafetyValidationEngine:
             }
             
             # Store validation report in LTMC memory (Tool 1) - MANDATORY
+            # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+            # Generate dynamic file name based on safety validation context, score, and recommendation
+            validation_timestamp = self.core.validation_report["validation_timestamp"].replace(':', '_').replace('-', '_')
+            safety_score_int = int(safety_score)
+            dynamic_safety_report_file_name = f"safety_validation_report_{recommendation.lower()}_{safety_score_int}score_{risk_level.lower()}_task{self.core.coordinator.task_id}_{validation_timestamp}.json"
+            
             memory_result = memory_action(
                 action="store",
-                file_name=f"safety_validation_report_{self.core.coordinator.task_id}_{int(time.time())}.json",
+                file_name=dynamic_safety_report_file_name,
                 content=json.dumps(self.core.validation_report, indent=2),
                 tags=["safety_validation", "removal_approval", self.core.coordinator.task_id, risk_level.lower()],
                 conversation_id=self.core.coordinator.conversation_id,

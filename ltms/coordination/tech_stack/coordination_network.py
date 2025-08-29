@@ -1,3 +1,5 @@
+from ltms.tools.graph.graph_actions import GraphTools
+from ltms.tools.memory.memory_actions import MemoryTools
 """
 LTMC Coordination Network - Multi-Agent Network Utilities
 
@@ -15,7 +17,8 @@ import time
 from pathlib import Path
 from typing import Dict, List
 
-from ltms.tools.consolidated import memory_action, graph_action
+from ltms.tools.memory.memory_actions import memory_action
+from ltms.tools.graph.graph_actions import graph_action
 from .alignment_agent import TechStackAlignmentAgent, CoordinationMode
 
 # Configure logging
@@ -23,6 +26,8 @@ logger = logging.getLogger(__name__)
 
 
 async def create_coordination_network(agent_ids: List[str], 
+    graph_tools = GraphTools()
+    memory_tools = MemoryTools()
                                     project_root: Path,
                                     coordination_mode: CoordinationMode = CoordinationMode.PEER_TO_PEER) -> Dict[str, TechStackAlignmentAgent]:
     """
@@ -45,8 +50,7 @@ async def create_coordination_network(agent_ids: List[str],
         for source_agent in agent_ids:
             for target_agent in agent_ids:
                 if source_agent != target_agent:
-                    await graph_action(
-                        action="link",
+                    await graph_tools("link",
                         source_node=f"agent_{source_agent}",
                         target_node=f"agent_{target_agent}",
                         relationship_type="coordinates_with",
@@ -57,8 +61,7 @@ async def create_coordination_network(agent_ids: List[str],
                     )
         
         # Store network configuration
-        await memory_action(
-            action="store",
+        await memory_tools("store",
             file_name=f"coordination_network_{int(time.time())}",
             content=json.dumps({
                 "network_agents": agent_ids,

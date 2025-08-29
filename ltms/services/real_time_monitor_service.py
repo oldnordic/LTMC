@@ -21,8 +21,8 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler, FileModifiedEvent, FileCreatedEvent, FileDeletedEvent
 
 # Local imports
-from ltms.config import get_config
-from ltms.tools.consolidated import documentation_action
+from ltms.config.json_config_loader import get_config
+from ltms.tools.docs.documentation_actions import documentation_action
 
 logger = logging.getLogger(__name__)
 

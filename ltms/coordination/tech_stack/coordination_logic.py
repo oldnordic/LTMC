@@ -1,3 +1,4 @@
+from ltms.tools.memory.memory_actions import MemoryTools
 """
 LTMC Coordination Logic - Multi-Agent Coordination Implementation
 
@@ -16,7 +17,7 @@ from pathlib import Path
 from typing import Dict, List, Any
 import uuid
 
-from ltms.tools.consolidated import memory_action
+from ltms.tools.memory.memory_actions import memory_action
 from .validator import ValidationSeverity
 
 # Configure logging
@@ -24,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 async def coordinate_validation_across_agents(agent, target_files: List[Path], participating_agents: List[str]) -> Dict[str, Any]:
+    memory_tools = MemoryTools()
     """
     Coordinate tech stack validation across multiple agents.
     Real multi-agent coordination with conflict detection and resolution.
@@ -89,8 +91,7 @@ async def coordinate_validation_across_agents(agent, target_files: List[Path], p
         coordination_result["coordination_successful"] = coordination_time < agent.sla_threshold_ms
         
         # Step 5: Store coordination results in LTMC
-        await memory_action(
-            action="store",
+        await memory_tools("store",
             file_name=f"coordination_result_{coordination_id}",
             content=json.dumps({
                 "coordination_id": coordination_id,

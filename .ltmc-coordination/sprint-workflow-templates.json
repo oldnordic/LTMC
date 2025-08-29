@@ -1,0 +1,315 @@
+{
+  "sprint_workflow_templates": {
+    "description": "Comprehensive sprint workflow state templates for professional project management with LTMC integration",
+    "created_at": "2025-08-28T10:57:00Z",
+    "created_by": "claude-sonnet-4",
+    
+    "standard_sprint_workflow": {
+      "template_name": "Standard Sprint Workflow",
+      "description": "Standard 2-week sprint workflow with comprehensive lifecycle management",
+      "default_duration_days": 14,
+      "states": {
+        "initialized": {
+          "name": "Sprint Initialized",
+          "description": "Sprint created, waiting for planning",
+          "required_actions": ["schedule_planning", "prepare_backlog"],
+          "transitions": ["planning"],
+          "automation": {
+            "auto_transition": false,
+            "notifications": ["scrum_master", "product_owner"]
+          }
+        },
+        "planning": {
+          "name": "Sprint Planning",
+          "description": "Sprint planning in progress, stories being estimated and assigned",
+          "required_actions": ["estimate_stories", "assign_tasks", "set_capacity"],
+          "transitions": ["planned", "cancelled"],
+          "automation": {
+            "auto_transition": false,
+            "notifications": ["team_members"]
+          }
+        },
+        "planned": {
+          "name": "Sprint Planned",
+          "description": "Sprint fully planned, ready to start",
+          "required_actions": ["finalize_sprint_backlog"],
+          "transitions": ["active", "cancelled"],
+          "automation": {
+            "auto_transition": false,
+            "notifications": ["all_stakeholders"]
+          }
+        },
+        "active": {
+          "name": "Sprint Active",
+          "description": "Sprint in progress, daily standups and development ongoing",
+          "required_actions": ["daily_standups", "track_progress", "update_burndown"],
+          "transitions": ["in_review", "cancelled"],
+          "automation": {
+            "auto_transition": false,
+            "daily_checks": true,
+            "burndown_tracking": true,
+            "notifications": ["team_members"]
+          }
+        },
+        "in_review": {
+          "name": "Sprint Review",
+          "description": "Sprint development complete, review and retrospective in progress",
+          "required_actions": ["sprint_review", "retrospective", "demo_preparation"],
+          "transitions": ["completed", "extended"],
+          "automation": {
+            "auto_transition": false,
+            "notifications": ["stakeholders", "team_members"]
+          }
+        },
+        "completed": {
+          "name": "Sprint Completed",
+          "description": "Sprint successfully completed with all ceremonies done",
+          "required_actions": ["velocity_calculation", "lessons_learned", "next_sprint_preparation"],
+          "transitions": [],
+          "automation": {
+            "auto_transition": false,
+            "final_reports": true,
+            "velocity_tracking": true
+          }
+        },
+        "cancelled": {
+          "name": "Sprint Cancelled",
+          "description": "Sprint was cancelled before completion",
+          "required_actions": ["document_cancellation_reason", "reassign_incomplete_work"],
+          "transitions": [],
+          "automation": {
+            "auto_transition": false,
+            "notifications": ["all_stakeholders"]
+          }
+        },
+        "extended": {
+          "name": "Sprint Extended",
+          "description": "Sprint extended due to incomplete work",
+          "required_actions": ["extend_timeline", "reassess_scope", "communicate_extension"],
+          "transitions": ["active", "in_review"],
+          "automation": {
+            "auto_transition": false,
+            "notifications": ["all_stakeholders"]
+          }
+        }
+      }
+    },
+    
+    "agile_kanban_workflow": {
+      "template_name": "Agile Kanban Continuous Flow",
+      "description": "Continuous flow Kanban-style workflow for ongoing development",
+      "default_duration_days": null,
+      "states": {
+        "backlog": {
+          "name": "Product Backlog",
+          "description": "Stories ready for development, prioritized backlog",
+          "required_actions": ["prioritize_backlog", "estimate_effort"],
+          "transitions": ["in_progress"],
+          "automation": {
+            "auto_transition": false,
+            "capacity_monitoring": true
+          }
+        },
+        "in_progress": {
+          "name": "In Development",
+          "description": "Stories actively being developed",
+          "required_actions": ["daily_updates", "track_progress"],
+          "transitions": ["code_review", "blocked", "backlog"],
+          "automation": {
+            "wip_limits": true,
+            "progress_tracking": true
+          }
+        },
+        "code_review": {
+          "name": "Code Review",
+          "description": "Code complete, undergoing peer review",
+          "required_actions": ["peer_review", "security_review"],
+          "transitions": ["testing", "in_progress"],
+          "automation": {
+            "review_reminders": true,
+            "quality_gates": true
+          }
+        },
+        "testing": {
+          "name": "Testing",
+          "description": "Feature testing and quality assurance",
+          "required_actions": ["unit_tests", "integration_tests", "user_acceptance"],
+          "transitions": ["done", "in_progress"],
+          "automation": {
+            "test_automation": true,
+            "quality_metrics": true
+          }
+        },
+        "done": {
+          "name": "Done",
+          "description": "Feature complete and deployed",
+          "required_actions": ["deployment", "monitoring_setup"],
+          "transitions": [],
+          "automation": {
+            "deployment_tracking": true,
+            "success_metrics": true
+          }
+        },
+        "blocked": {
+          "name": "Blocked",
+          "description": "Work blocked by external dependencies",
+          "required_actions": ["identify_blockers", "escalate_if_needed"],
+          "transitions": ["in_progress", "backlog"],
+          "automation": {
+            "blocker_alerts": true,
+            "escalation_timers": true
+          }
+        }
+      }
+    },
+    
+    "research_spike_workflow": {
+      "template_name": "Research Spike Workflow",
+      "description": "Time-boxed research and investigation workflow",
+      "default_duration_days": 5,
+      "states": {
+        "research_planned": {
+          "name": "Research Planned",
+          "description": "Research spike planned with clear objectives",
+          "required_actions": ["define_research_questions", "set_timebox"],
+          "transitions": ["research_active"],
+          "automation": {
+            "timebox_tracking": true
+          }
+        },
+        "research_active": {
+          "name": "Research Active",
+          "description": "Research in progress, investigation ongoing",
+          "required_actions": ["daily_findings", "document_progress"],
+          "transitions": ["findings_review", "research_extended"],
+          "automation": {
+            "daily_check_ins": true,
+            "progress_documentation": true
+          }
+        },
+        "findings_review": {
+          "name": "Findings Review",
+          "description": "Research complete, findings being reviewed",
+          "required_actions": ["compile_findings", "recommendations", "next_steps"],
+          "transitions": ["completed", "additional_research"],
+          "automation": {
+            "findings_compilation": true
+          }
+        },
+        "completed": {
+          "name": "Research Completed",
+          "description": "Research spike completed with actionable outcomes",
+          "required_actions": ["knowledge_sharing", "implementation_planning"],
+          "transitions": [],
+          "automation": {
+            "knowledge_base_update": true
+          }
+        },
+        "research_extended": {
+          "name": "Research Extended",
+          "description": "Research requires additional time",
+          "required_actions": ["justify_extension", "revise_timebox"],
+          "transitions": ["research_active", "findings_review"],
+          "automation": {
+            "extension_notifications": true
+          }
+        },
+        "additional_research": {
+          "name": "Additional Research Required",
+          "description": "Initial research revealed need for deeper investigation",
+          "required_actions": ["scope_additional_work", "resource_planning"],
+          "transitions": ["research_active", "completed"],
+          "automation": {
+            "scope_documentation": true
+          }
+        }
+      }
+    },
+    
+    "coordination_patterns": {
+      "ltmc_integration": {
+        "description": "LTMC-specific coordination patterns for agent collaboration",
+        "agent_handoffs": {
+          "story_assignment": {
+            "trigger": "story_assigned",
+            "source_agent": "sprint_system",
+            "target_agent": "assignee",
+            "handoff_data": ["story_details", "acceptance_criteria", "context"],
+            "validation_required": true
+          },
+          "code_review": {
+            "trigger": "code_review_ready",
+            "source_agent": "developer",
+            "target_agent": "reviewer",
+            "handoff_data": ["code_changes", "test_results", "documentation"],
+            "validation_required": true
+          },
+          "deployment_ready": {
+            "trigger": "deployment_ready",
+            "source_agent": "developer",
+            "target_agent": "devops",
+            "handoff_data": ["deployment_package", "configuration", "rollback_plan"],
+            "validation_required": true
+          }
+        },
+        "context_sharing": {
+          "project_context": {
+            "scope": "project",
+            "shared_data": ["project_goals", "constraints", "stakeholders"],
+            "update_frequency": "daily"
+          },
+          "sprint_context": {
+            "scope": "sprint",
+            "shared_data": ["sprint_goal", "capacity", "impediments"],
+            "update_frequency": "daily"
+          },
+          "story_context": {
+            "scope": "story", 
+            "shared_data": ["requirements", "progress", "blockers"],
+            "update_frequency": "real_time"
+          }
+        },
+        "intelligence_patterns": {
+          "velocity_tracking": {
+            "pattern_type": "performance_metric",
+            "data_points": ["completed_story_points", "sprint_duration", "team_capacity"],
+            "analysis_frequency": "per_sprint"
+          },
+          "blocker_identification": {
+            "pattern_type": "risk_detection",
+            "data_points": ["blocked_tasks", "blocker_duration", "resolution_patterns"],
+            "analysis_frequency": "daily"
+          },
+          "quality_metrics": {
+            "pattern_type": "quality_assessment",
+            "data_points": ["defect_rates", "review_cycles", "test_coverage"],
+            "analysis_frequency": "continuous"
+          }
+        }
+      }
+    },
+    
+    "notification_templates": {
+      "sprint_start": {
+        "subject": "Sprint Started: {{sprint_name}}",
+        "template": "Sprint '{{sprint_name}}' has started. Goal: {{sprint_goal}}. Duration: {{duration}} days. Team capacity: {{capacity}} points.",
+        "recipients": ["team_members", "stakeholders"]
+      },
+      "story_assigned": {
+        "subject": "Story Assigned: {{story_title}}",
+        "template": "You have been assigned story '{{story_title}}' ({{story_points}} points). Sprint: {{sprint_name}}. Due: {{due_date}}.",
+        "recipients": ["assignee"]
+      },
+      "sprint_completion": {
+        "subject": "Sprint Completed: {{sprint_name}}",
+        "template": "Sprint '{{sprint_name}}' completed. Velocity: {{velocity}} points. Completed stories: {{completed_stories}}/{{total_stories}}.",
+        "recipients": ["team_members", "stakeholders", "management"]
+      },
+      "blocker_alert": {
+        "subject": "Blocker Alert: {{story_title}}",
+        "template": "Story '{{story_title}}' is blocked. Reason: {{blocker_reason}}. Duration: {{blocked_duration}} hours. Requires attention.",
+        "recipients": ["scrum_master", "assignee", "stakeholders"]
+      }
+    }
+  }
+}

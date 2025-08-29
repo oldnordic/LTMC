@@ -205,18 +205,22 @@ class BehavioralEnforcementEngine:
         
         return result
     
-    def store_behavioral_pattern_in_ltmc(self, pattern_name: str, pattern_data: Dict[str, Any]) -> bool:
+    async def store_behavioral_pattern_in_ltmc(self, pattern_name: str, pattern_data: Dict[str, Any]) -> bool:
         """Store behavioral pattern in LTMC memory for permanent enforcement."""
         try:
-            from ltms.tools.consolidated import memory_action
+            from ltms.tools.memory.memory_actions import memory_action
             
-            # Store pattern in memory
-            memory_result = memory_action(
+            # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES  
+            # Generate dynamic resource type based on pattern name and enforcement level
+            dynamic_rule_resource_type = f"behavioral_rule_{pattern_name}_{pattern_data.get('enforcement_level', 'standard')}"
+            
+            # Store pattern in memory - properly await the async memory_action call
+            memory_result = await memory_action(
                 action="store",
                 conversation_id="behavioral_enforcement_patterns",
                 file_name=f"behavioral_pattern_{pattern_name}",
                 content=json.dumps(pattern_data, indent=2),
-                resource_type="behavioral_rule"
+                resource_type=dynamic_rule_resource_type
             )
             
             return memory_result.get('success', False)
@@ -224,16 +228,18 @@ class BehavioralEnforcementEngine:
             self.logger.error(f"Failed to store behavioral pattern in LTMC: {e}")
             return False
     
-    def load_behavioral_patterns_from_ltmc(self) -> Dict[str, Any]:
+    async def load_behavioral_patterns_from_ltmc(self) -> Dict[str, Any]:
         """Load stored behavioral patterns from LTMC memory."""
         try:
-            from ltms.tools.consolidated import memory_action
+            from ltms.tools.memory.memory_actions import memory_action
             
-            # Retrieve patterns from memory
-            memory_result = memory_action(
+            # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+            # Query based on specific behavioral enforcement context being loaded
+            patterns_search_query = f"behavioral enforcement patterns and rules for system compliance verification"
+            memory_result = await memory_action(
                 action="retrieve",
                 conversation_id="behavioral_enforcement_patterns",
-                query="behavioral patterns enforcement rules",
+                query=patterns_search_query,
                 top_k=10
             )
             
@@ -252,7 +258,7 @@ class BehavioralEnforcementEngine:
         
         return {}
     
-    def create_source_truth_behavioral_rule(self) -> Dict[str, Any]:
+    async def create_source_truth_behavioral_rule(self) -> Dict[str, Any]:
         """Create and store the core source truth behavioral rule."""
         rule = {
             "rule_name": "mandatory_source_verification",
@@ -276,8 +282,8 @@ class BehavioralEnforcementEngine:
             "applies_to": "all_agents_and_subagents"
         }
         
-        # Store in LTMC memory
-        stored = self.store_behavioral_pattern_in_ltmc("source_truth_verification", rule)
+        # Store in LTMC memory - properly await the async call
+        stored = await self.store_behavioral_pattern_in_ltmc("source_truth_verification", rule)
         
         if stored:
             self.logger.info("Source truth behavioral rule stored in LTMC memory")
@@ -359,62 +365,68 @@ class BehavioralEnforcementEngine:
 # Global enforcement instance
 _enforcement_engine = None
 
-def get_enforcement_engine() -> BehavioralEnforcementEngine:
+async def get_enforcement_engine() -> BehavioralEnforcementEngine:
     """Get global behavioral enforcement engine instance."""
     global _enforcement_engine
     if _enforcement_engine is None:
         _enforcement_engine = BehavioralEnforcementEngine()
         
-        # Load existing patterns from LTMC
-        _enforcement_engine.load_behavioral_patterns_from_ltmc()
+        # Load existing patterns from LTMC - properly await async call
+        await _enforcement_engine.load_behavioral_patterns_from_ltmc()
         
-        # Create core rule if not exists
+        # Create core rule if not exists - properly await async call
         if "source_truth_verification" not in _enforcement_engine.behavioral_patterns:
-            _enforcement_engine.create_source_truth_behavioral_rule()
+            await _enforcement_engine.create_source_truth_behavioral_rule()
     
     return _enforcement_engine
 
 
-def enforce_source_truth(text: str, context: str = "") -> Dict[str, Any]:
+async def enforce_source_truth(text: str, context: str = "") -> Dict[str, Any]:
     """
     Main function to enforce source truth verification on any text.
     
     Usage: Call this function before outputting any text containing claims.
     """
-    engine = get_enforcement_engine()
+    engine = await get_enforcement_engine()
     return engine.enforce_pre_execution_rules(text, context)
 
 
 if __name__ == "__main__":
     # Test the behavioral enforcement system
-    engine = BehavioralEnforcementEngine()
+    import asyncio
     
-    print("LTMC Behavioral Enforcement Rules Testing")
-    print("=" * 50)
-    
-    # Test cases with violations
-    test_texts = [
-        "LTMC has 30 tools in the consolidated system",  # FALSE - should be blocked
-        "I found 126+ @mcp.tool decorators in the codebase",  # FALSE - should be blocked  
-        "LTMC has 11 tools in the consolidated system",  # CORRECT - should pass
-        "The codebase probably has many functions",  # ASSUMPTION - should warn
-    ]
-    
-    for i, text in enumerate(test_texts, 1):
-        print(f"\nTest {i}: {text}")
-        result = engine.enforce_pre_execution_rules(text, "testing_context")
+    async def test_behavioral_enforcement():
+        engine = BehavioralEnforcementEngine()
         
-        if result["allowed_to_proceed"]:
-            print("✅ ALLOWED - No violations detected")
-        else:
-            print(f"🚫 BLOCKED - {result['critical_violations']} critical violations")
-            for violation in result["violations"]:
-                print(f"   - {violation['violation_type']}: {violation['claim_text']}")
-                print(f"     Fix: {violation['suggested_fix']}")
+        print("LTMC Behavioral Enforcement Rules Testing")
+        print("=" * 50)
+        
+        # Test cases with violations
+        test_texts = [
+            "LTMC has 30 tools in the consolidated system",  # FALSE - should be blocked
+            "I found 126+ @mcp.tool decorators in the codebase",  # FALSE - should be blocked  
+            "LTMC has 11 tools in the consolidated system",  # CORRECT - should pass
+            "The codebase probably has many functions",  # ASSUMPTION - should warn
+        ]
+        
+        for i, text in enumerate(test_texts, 1):
+            print(f"\nTest {i}: {text}")
+            result = engine.enforce_pre_execution_rules(text, "testing_context")
+            
+            if result["allowed_to_proceed"]:
+                print("✅ ALLOWED - No violations detected")
+            else:
+                print(f"🚫 BLOCKED - {result['critical_violations']} critical violations")
+                for violation in result["violations"]:
+                    print(f"   - {violation['violation_type']}: {violation['claim_text']}")
+                    print(f"     Fix: {violation['suggested_fix']}")
+        
+        # Create and store behavioral rule - properly await async call
+        rule = await engine.create_source_truth_behavioral_rule()
+        print(f"\n✅ Created behavioral rule: {rule['rule_name']}")
+        
+        print("\n" + "=" * 50)
+        print("Behavioral Enforcement System: OPERATIONAL")
     
-    # Create and store behavioral rule
-    rule = engine.create_source_truth_behavioral_rule()
-    print(f"\n✅ Created behavioral rule: {rule['rule_name']}")
-    
-    print("\n" + "=" * 50)
-    print("Behavioral Enforcement System: OPERATIONAL")
+    # Run the async test
+    asyncio.run(test_behavioral_enforcement())

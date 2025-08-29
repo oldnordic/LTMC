@@ -14,12 +14,10 @@ from datetime import datetime, timezone
 from typing import Dict, Any
 
 # Import LTMC tools - MANDATORY
-from ltms.tools.consolidated import (
-    documentation_action,   # Tool 9 - Documentation - MANDATORY
-    sync_action,           # Tool 10 - Doc synchronization - MANDATORY
-    cache_action,          # Tool 7 - Cache operations - MANDATORY
-    memory_action          # Tool 1 - Memory operations - MANDATORY
-)
+from ltms.tools.docs.documentation_actions import documentation_action   # Tool 9 - Documentation - MANDATORY
+from ltms.tools.sync.sync_actions import sync_action           # Tool 10 - Doc synchronization - MANDATORY
+from ltms.tools.monitoring.cache_actions import cache_action          # Tool 7 - Cache operations - MANDATORY
+from ltms.tools.memory.memory_actions import memory_action          # Tool 1 - Memory operations - MANDATORY
 
 
 class WorkflowPhaseExecutorLate:

@@ -78,7 +78,7 @@ def _get_project_manager() -> ProjectIsolationManager:
     if _project_manager is None:
         from pathlib import Path
         # Use project root as project root
-        project_root = Path(__file__).parent.parent.parent  # /home/feanor/Projects/lmtc
+        project_root = Path(__file__).parent.parent.parent  # /home/feanor/Projects/ltmc
         _project_manager = ProjectIsolationManager(project_root)
     return _project_manager
 
@@ -89,7 +89,7 @@ def _get_path_validator() -> SecurePathValidator:
     if _path_validator is None:
         from pathlib import Path
         # Use project root as secure root
-        secure_root = Path(__file__).parent.parent.parent  # /home/feanor/Projects/lmtc
+        secure_root = Path(__file__).parent.parent.parent  # /home/feanor/Projects/ltmc
         _path_validator = SecurePathValidator(secure_root)
     return _path_validator
 

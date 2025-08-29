@@ -18,7 +18,7 @@ from typing import Dict, List, Optional, Any, Set
 from .agent_coordination_models import AgentMessage
 
 # LTMC MCP tool imports for real functionality
-from ltms.tools.consolidated import memory_action
+from ltms.tools.memory.memory_actions import memory_action
 
 
 class AgentMessageHandler:
@@ -141,9 +141,12 @@ class AgentMessageHandler:
     def get_broadcast_messages(self) -> List[Dict[str, Any]]:
         """Get all broadcast messages in the conversation."""
         try:
+            # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+            # Query based on the specific broadcast communication context
+            broadcast_search_query = f"agent communication broadcast messages for task {self.task_id}"
             result = memory_action(
                 action="retrieve", 
-                query="agent communication broadcast",
+                query=broadcast_search_query,
                 conversation_id=self.conversation_id,
                 role="system"
             )
@@ -173,10 +176,12 @@ class AgentMessageHandler:
     def get_message_statistics(self) -> Dict[str, Any]:
         """Get comprehensive message handling statistics."""
         try:
-            # Get all communication messages
+            # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+            # Get all communication messages with dynamic query based on context
+            statistics_search_query = f"agent communication statistics for task {self.task_id} conversation {self.conversation_id}"
             result = memory_action(
                 action="retrieve",
-                query="agent communication",
+                query=statistics_search_query,
                 conversation_id=self.conversation_id,
                 role="system"
             )

@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 from typing import Dict, Any, Optional
 
 # LTMC MCP tool imports
-from ltms.tools.consolidated import memory_action
+from ltms.tools.memory.memory_actions import memory_action
 
 # Import state models
 from .agent_state_models import StateSnapshot
@@ -95,9 +95,16 @@ class AgentStatePersistence:
             }
             
             # Store checkpoint in LTMC memory
+            # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+            # Generate dynamic file name based on checkpoint context, agent count, and metrics
+            checkpoint_timestamp = checkpoint_data["timestamp"].replace(':', '_').replace('-', '_')
+            agent_count = checkpoint_data["total_agents"]
+            checkpoint_id = checkpoint_data["checkpoint_id"][:8]  # Short ID for filename
+            dynamic_checkpoint_file_name = f"state_checkpoint_{self.coordination_id}_{agent_count}agents_{checkpoint_id}_{checkpoint_timestamp}.json"
+            
             result = memory_action(
                 action="store",
-                file_name=f"state_checkpoint_{self.coordination_id}_{int(time.time())}.json",
+                file_name=dynamic_checkpoint_file_name,
                 content=json.dumps(checkpoint_data, indent=2),
                 tags=["state_checkpoint", self.coordination_id, "checkpoint"],
                 conversation_id=self.conversation_id,

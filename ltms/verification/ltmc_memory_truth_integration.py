@@ -1,3 +1,4 @@
+from ltms.tools.memory.memory_actions import MemoryTools
 #!/usr/bin/env python3
 """
 LTMC Memory Integration for Source Code Truth Verification
@@ -158,6 +159,7 @@ class LTMCTruthIntegrationManager:
     
     async def record_behavioral_violation(self, violation: BehavioralViolation) -> bool:
         """Record a behavioral violation in LTMC memory for pattern analysis."""
+        memory_tools = MemoryTools()
         violation_record = {
             "violation_id": f"violation_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}",
             "violation_type": violation.violation_type,
@@ -171,14 +173,17 @@ class LTMCTruthIntegrationManager:
         }
         
         try:
-            from ltms.tools.consolidated import memory_action
+            from ltms.tools.memory.memory_actions import memory_action
             
-            result = await memory_action(
-                action="store",
+            # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+            # Generate dynamic resource type based on violation severity and type
+            dynamic_resource_type = f"behavioral_violation_{violation.severity.value}_{violation.violation_type}"
+            
+            result = await memory_tools("store",
                 conversation_id=self.VIOLATION_HISTORY_CONVERSATION_ID,
                 file_name=f"violation_{violation_record['violation_id']}",
                 content=json.dumps(violation_record, indent=2),
-                resource_type="behavioral_violation"
+                resource_type=dynamic_resource_type
             )
             
             return result.get('success', False)
@@ -189,13 +194,13 @@ class LTMCTruthIntegrationManager:
     
     async def retrieve_verification_history(self, claim_type: str = None) -> List[TruthVerificationRecord]:
         """Retrieve verification history from LTMC memory."""
+        memory_tools = MemoryTools()
         try:
-            from ltms.tools.consolidated import memory_action
+            from ltms.tools.memory.memory_actions import memory_action
             
             query = claim_type if claim_type else "truth verification records"
             
-            result = await memory_action(
-                action="retrieve",
+            result = await memory_tools("retrieve",
                 conversation_id=self.VERIFICATION_CONVERSATION_ID,
                 query=query,
                 top_k=20
@@ -319,18 +324,22 @@ class LTMCTruthIntegrationManager:
     
     async def _store_verification_in_ltmc(self, record: TruthVerificationRecord) -> bool:
         """Store a verification record in LTMC memory."""
+        memory_tools = MemoryTools()
         try:
-            from ltms.tools.consolidated import memory_action
+            from ltms.tools.memory.memory_actions import memory_action
             
             record_data = asdict(record)
             record_data['verified_at'] = record.verified_at.isoformat()
             
-            result = await memory_action(
-                action="store",
+            # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+            # Generate dynamic resource type based on verification method and result type
+            dynamic_verification_resource_type = f"truth_verification_{record.verification_method}_{record.claim_text.replace(' ', '_').lower()}"
+            
+            result = await memory_tools("store",
                 conversation_id=record.ltmc_conversation_id,
                 file_name=f"verification_{record.verification_id}",
                 content=json.dumps(record_data, indent=2),
-                resource_type="truth_verification"
+                resource_type=dynamic_verification_resource_type
             )
             
             if result.get('success') and 'resource_id' in result:
@@ -344,19 +353,23 @@ class LTMCTruthIntegrationManager:
     
     async def _store_pattern_in_ltmc(self, pattern: BehavioralPattern) -> bool:
         """Store a behavioral pattern in LTMC memory."""
+        memory_tools = MemoryTools()
         try:
-            from ltms.tools.consolidated import memory_action
+            from ltms.tools.memory.memory_actions import memory_action
             
             pattern_data = asdict(pattern)
             pattern_data['created_at'] = pattern.created_at.isoformat()
             pattern_data['last_updated'] = pattern.last_updated.isoformat()
             
-            result = await memory_action(
-                action="store",
+            # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+            # Generate dynamic resource type based on pattern name and enforcement actions
+            dynamic_pattern_resource_type = f"behavioral_pattern_{pattern.pattern_name}_{len(pattern.enforcement_actions)}_actions"
+            
+            result = await memory_tools("store",
                 conversation_id=self.BEHAVIORAL_PATTERN_CONVERSATION_ID,
                 file_name=f"pattern_{pattern.pattern_id}",
                 content=json.dumps(pattern_data, indent=2),
-                resource_type="behavioral_pattern"
+                resource_type=dynamic_pattern_resource_type
             )
             
             return result.get('success', False)

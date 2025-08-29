@@ -17,10 +17,8 @@ from .agent_coordination_models import AgentStatus
 from .agent_state_models import StateTransition
 
 # Import LTMC tools - MANDATORY
-from ltms.tools.consolidated import (
-    chat_action,        # Tool 3 - Chat logging - MANDATORY
-    todo_action         # Tool 2 - Todo management - MANDATORY
-)
+from ltms.tools.memory.chat_actions import chat_action        # Tool 3 - Chat logging - MANDATORY
+from ltms.tools.todos.todo_actions import todo_action         # Tool 2 - Todo management - MANDATORY
 
 
 class AgentStateRecovery:

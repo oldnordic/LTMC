@@ -18,7 +18,8 @@ from typing import Dict, List, Optional, Any, Set, Callable
 from .mcp_message_models import MCPMessage, MCPResponse, CommunicationProtocol, MessagePriority
 
 # LTMC MCP tool imports for real functionality
-from ltms.tools.consolidated import memory_action, graph_action
+from ltms.tools.memory.memory_actions import memory_action
+from ltms.tools.graph.graph_actions import graph_action
 
 
 class LTMCMessageBroker:
@@ -72,9 +73,17 @@ class LTMCMessageBroker:
                 tags.append(message.recipient_agent_id)
             
             # Store in LTMC
+            # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+            # Generate dynamic file name based on message context, protocol, priority, and timestamp
+            msg_timestamp = message.timestamp.replace(':', '_').replace('-', '_') if message.timestamp else 'no_timestamp'
+            protocol_type = message.protocol.value.lower()
+            priority_level = message.priority.value.lower()
+            message_type_clean = message.message_type.replace(' ', '_').replace('/', '_').lower()
+            dynamic_mcp_message_file_name = f"mcp_message_{message.sender_agent_id}_to_{message.recipient_agent_id or 'broadcast'}_{protocol_type}_{priority_level}_{message_type_clean}_{message.message_id}_{msg_timestamp}.json"
+            
             result = memory_action(
                 action="store",
-                file_name=f"mcp_message_{message.message_id}.json",
+                file_name=dynamic_mcp_message_file_name,
                 content=json.dumps(message_doc, indent=2),
                 tags=tags,
                 conversation_id=self.conversation_id,
@@ -193,9 +202,16 @@ class LTMCMessageBroker:
                 "task_id": response.task_id
             }
             
+            # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+            # Generate dynamic file name based on response context, success status, and timestamp
+            response_timestamp = response.timestamp.replace(':', '_').replace('-', '_') if response.timestamp else 'no_timestamp'
+            response_status = "success" if response.success else "error"
+            original_msg_id = response.original_message_id[:8] if response.original_message_id else "no_original"
+            dynamic_mcp_response_file_name = f"mcp_response_{response.sender_agent_id}_to_{response.recipient_agent_id}_{response_status}_orig{original_msg_id}_{response.response_id}_{response_timestamp}.json"
+            
             result = memory_action(
                 action="store",
-                file_name=f"mcp_response_{response.response_id}.json",
+                file_name=dynamic_mcp_response_file_name,
                 content=json.dumps(response_doc, indent=2),
                 tags=[
                     "mcp_response",

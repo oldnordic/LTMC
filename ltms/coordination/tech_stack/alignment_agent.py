@@ -1,3 +1,5 @@
+from ltms.tools.graph.graph_actions import GraphTools
+from ltms.tools.memory.memory_actions import MemoryTools
 """
 LTMC Tech Stack Alignment Agent - Multi-Agent Coordination
 
@@ -21,7 +23,8 @@ from concurrent.futures import ThreadPoolExecutor
 import uuid
 
 # Import LTMC tools and coordination components
-from ltms.tools.consolidated import memory_action, graph_action
+from ltms.tools.memory.memory_actions import memory_action
+from ltms.tools.graph.graph_actions import graph_action
 from .validator import TechStackValidator, ValidationResult, ValidationSeverity
 from .monitor import EventLoopMonitor
 from .registry import StackRegistry
@@ -120,13 +123,14 @@ class TechStackAlignmentAgent:
     
     async def _initialize_coordination_state(self) -> None:
         """Initialize coordination state in LTMC memory"""
+        graph_tools = GraphTools()
+        memory_tools = MemoryTools()
         try:
             # Initialize StackRegistry with async factory pattern
             self.stack_registry = await StackRegistry.create_async()
             
             # Store initial coordination state
-            await memory_action(
-                action="store",
+            await memory_tools("store",
                 file_name=f"coordination_agent_{self.agent_id}_initialized",
                 content=json.dumps({
                     "agent_id": self.agent_id,
@@ -139,8 +143,7 @@ class TechStackAlignmentAgent:
             )
             
             # Initialize agent coordination patterns in graph
-            await graph_action(
-                action="link",
+            await graph_tools("link",
                 source_node=f"agent_{self.agent_id}",
                 target_node="tech_stack_alignment_system",
                 relationship_type="coordinates_with",
@@ -285,6 +288,7 @@ class TechStackAlignmentAgent:
     
     async def close(self) -> None:
         """Clean up coordination agent resources"""
+        memory_tools = MemoryTools()
         try:
             # Close monitoring components
             if self.monitor:
@@ -292,8 +296,7 @@ class TechStackAlignmentAgent:
             
             # Store final coordination state
             final_status = await self.get_coordination_status()
-            await memory_action(
-                action="store",
+            await memory_tools("store",
                 file_name=f"coordination_agent_{self.agent_id}_final_state",
                 content=json.dumps(final_status),
                 tags=["coordination", "agent", "shutdown", self.agent_id],

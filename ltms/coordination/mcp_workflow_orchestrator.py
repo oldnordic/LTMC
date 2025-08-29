@@ -19,8 +19,8 @@ from typing import Dict, List, Optional, Any
 from .mcp_message_models import MCPMessage, CommunicationProtocol, MessagePriority
 from .mcp_message_broker import LTMCMessageBroker
 
-# LTMC MCP tool imports for real functionality
-from ltms.tools.consolidated import memory_action
+# LTMC MCP tool imports for real functionality (Updated imports after reindexing)
+from ltms.tools.memory.memory_actions import memory_action
 
 
 class WorkflowOrchestrator:

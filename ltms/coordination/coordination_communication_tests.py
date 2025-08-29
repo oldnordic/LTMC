@@ -13,11 +13,11 @@ from datetime import datetime, timezone
 from typing import Dict, Any, List
 
 # Import coordination framework components
-from .agent_coordination_framework import LTMCAgentCoordinator
+from .agent_coordination_core import AgentCoordinationCore
 from .agent_state_manager import LTMCAgentStateManager
-from .mcp_communication_patterns import (
-    LTMCMessageBroker,
-    WorkflowOrchestrator,
+from .mcp_message_broker import LTMCMessageBroker
+from .mcp_workflow_orchestrator import WorkflowOrchestrator
+from .mcp_communication_factory import (
     create_request_response_message,
     create_broadcast_message
 )
@@ -45,7 +45,7 @@ class CoordinationCommunicationTests:
         self.coordinator = None
         self.message_broker = None
     
-    def setup_test_agents(self, coordinator: LTMCAgentCoordinator, 
+    def setup_test_agents(self, coordinator: AgentCoordinationCore, 
                          state_manager: LTMCAgentStateManager, 
                          message_broker: LTMCMessageBroker) -> bool:
         """

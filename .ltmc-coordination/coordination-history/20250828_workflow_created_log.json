@@ -1,0 +1,122 @@
+[
+  {
+    "timestamp": "2025-08-28T08:42:34.851345+00:00",
+    "activity_type": "workflow_created",
+    "activity_data": {
+      "workflow_id": "sprint_management_001",
+      "created_by": "implementation_agent"
+    }
+  },
+  {
+    "timestamp": "2025-08-28T08:56:31.916924+00:00",
+    "activity_type": "workflow_created",
+    "activity_data": {
+      "workflow_id": "project_proj_20250828_105631",
+      "created_by": "claude-sonnet-4"
+    }
+  },
+  {
+    "timestamp": "2025-08-28T08:56:31.918531+00:00",
+    "activity_type": "workflow_created",
+    "activity_data": {
+      "workflow_id": "sprint_sprint_20250828_105631",
+      "created_by": "claude-sonnet-4"
+    }
+  },
+  {
+    "timestamp": "2025-08-28T09:00:19.086360+00:00",
+    "activity_type": "workflow_created",
+    "activity_data": {
+      "workflow_id": "project_proj_20250828_110019",
+      "created_by": "workflow-test-system"
+    }
+  },
+  {
+    "timestamp": "2025-08-28T09:00:19.087987+00:00",
+    "activity_type": "workflow_created",
+    "activity_data": {
+      "workflow_id": "sprint_sprint_20250828_110019",
+      "created_by": "workflow-test-system"
+    }
+  },
+  {
+    "timestamp": "2025-08-28T09:03:38.914514+00:00",
+    "activity_type": "workflow_created",
+    "activity_data": {
+      "workflow_id": "sprint_test_sprint_validation_standard_sprint_workflow",
+      "created_by": "claude-validation"
+    }
+  },
+  {
+    "timestamp": "2025-08-28T09:03:57.025756+00:00",
+    "activity_type": "workflow_created",
+    "activity_data": {
+      "workflow_id": "project_proj_20250828_110357",
+      "created_by": "claude-validation"
+    }
+  },
+  {
+    "timestamp": "2025-08-28T09:03:57.027465+00:00",
+    "activity_type": "workflow_created",
+    "activity_data": {
+      "workflow_id": "sprint_sprint_20250828_110357",
+      "created_by": "claude-validation"
+    }
+  },
+  {
+    "timestamp": "2025-08-28T09:03:57.028339+00:00",
+    "activity_type": "workflow_created",
+    "activity_data": {
+      "workflow_id": "sprint_sprint_20250828_110357_standard_sprint_workflow",
+      "created_by": "claude-validation"
+    }
+  },
+  {
+    "timestamp": "2025-08-28T09:04:51.662895+00:00",
+    "activity_type": "workflow_created",
+    "activity_data": {
+      "workflow_id": "project_proj_20250828_110451",
+      "created_by": "claude-validation"
+    }
+  },
+  {
+    "timestamp": "2025-08-28T09:04:51.664591+00:00",
+    "activity_type": "workflow_created",
+    "activity_data": {
+      "workflow_id": "sprint_sprint_20250828_110451",
+      "created_by": "claude-validation"
+    }
+  },
+  {
+    "timestamp": "2025-08-28T09:04:51.665544+00:00",
+    "activity_type": "workflow_created",
+    "activity_data": {
+      "workflow_id": "sprint_sprint_20250828_110451_standard_sprint_workflow",
+      "created_by": "claude-validation"
+    }
+  },
+  {
+    "timestamp": "2025-08-28T13:06:59.516685+00:00",
+    "activity_type": "workflow_created",
+    "activity_data": {
+      "workflow_id": "project_proj_20250828_150659",
+      "created_by": "system"
+    }
+  },
+  {
+    "timestamp": "2025-08-28T13:07:12.515232+00:00",
+    "activity_type": "workflow_created",
+    "activity_data": {
+      "workflow_id": "sprint_sprint_20250828_150712",
+      "created_by": "system"
+    }
+  },
+  {
+    "timestamp": "2025-08-28T19:47:47.003875+00:00",
+    "activity_type": "workflow_created",
+    "activity_data": {
+      "workflow_id": "sprint_sprint_20250828_214747",
+      "created_by": "system"
+    }
+  }
+]

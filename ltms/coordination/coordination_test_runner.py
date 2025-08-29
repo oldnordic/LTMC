@@ -20,7 +20,7 @@ from .coordination_communication_tests import CoordinationCommunicationTests
 from .coordination_integration_tests import CoordinationIntegrationTests
 
 # LTMC MCP tool imports
-from ltms.tools.consolidated import memory_action
+from ltms.tools.memory.memory_actions import memory_action
 
 
 class CoordinationTestRunner:
@@ -45,7 +45,7 @@ class CoordinationTestRunner:
         self.communication_tests = CoordinationCommunicationTests()
         self.integration_tests = CoordinationIntegrationTests()
     
-    def run_complete_test_suite(self) -> Dict[str, Any]:
+    async def run_complete_test_suite(self) -> Dict[str, Any]:
         """
         Run complete coordination framework test suite.
         
@@ -115,17 +115,17 @@ class CoordinationTestRunner:
             if not integration_setup_success:
                 raise Exception("Failed to setup components for integration testing")
             
-            integration_result = self.integration_tests.test_integration_validation()
+            integration_result = await self.integration_tests.test_integration_validation()
             self.test_results["integration_validation"] = integration_result
             
             # Generate final report
-            return self.generate_test_report()
+            return await self.generate_test_report()
             
         except Exception as e:
             print(f"❌ Test suite failed: {e}")
             return {"error": str(e), "test_results": self.test_results}
     
-    def generate_test_report(self) -> Dict[str, Any]:
+    async def generate_test_report(self) -> Dict[str, Any]:
         """
         Generate comprehensive test report.
         
@@ -172,9 +172,18 @@ class CoordinationTestRunner:
         task_id = self.framework_tests.coordinator.task_id
         conversation_id = self.framework_tests.coordinator.conversation_id
         
-        memory_action(
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on test report context and execution results
+        report_timestamp = test_report["timestamp"].replace(':', '_').replace('-', '_')
+        overall_status = test_report["execution_summary"]["overall_status"].lower()
+        success_rate_clean = test_report["execution_summary"]["success_rate"].replace('.', '_').replace('%', 'pct')
+        total_tests = test_report["execution_summary"]["total_tests"]
+        passed_tests = test_report["execution_summary"]["passed_tests"]
+        dynamic_test_report_file_name = f"coordination_test_report_{task_id}_{overall_status}_{success_rate_clean}_{passed_tests}of{total_tests}passed_{report_timestamp}.json"
+        
+        await memory_action(
             action="store",
-            file_name=f"coordination_test_report_{task_id}.json",
+            file_name=dynamic_test_report_file_name,
             content=json.dumps(test_report, indent=2),
             tags=["coordination_test", "framework_validation", "test_report"],
             conversation_id=conversation_id,

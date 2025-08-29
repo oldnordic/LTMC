@@ -18,10 +18,8 @@ from .agent_coordination_models import AgentStatus
 from .agent_state_models import StateSnapshot
 
 # Import LTMC tools - MANDATORY
-from ltms.tools.consolidated import (
-    memory_action,      # Tool 1 - Memory operations - MANDATORY
-    graph_action        # Tool 8 - Knowledge graph - MANDATORY  
-)
+from ltms.tools.memory.memory_actions import memory_action      # Tool 1 - Memory operations - MANDATORY
+from ltms.tools.graph.graph_actions import graph_action        # Tool 8 - Knowledge graph - MANDATORY
 
 
 class AgentStateCore:
@@ -75,9 +73,15 @@ class AgentStateCore:
             }
             
             # Store initialization in LTMC memory (Tool 1) - MANDATORY
+            # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+            # Generate dynamic file name based on state manager initialization context and version
+            initialization_timestamp = init_doc["initialization_time"].replace(':', '_').replace('-', '_')
+            framework_version = init_doc["framework_version"].replace('.', '_')
+            dynamic_state_manager_init_file_name = f"state_manager_init_{self.coordination_id}_v{framework_version}_{initialization_timestamp}.json"
+            
             memory_action(
                 action="store",
-                file_name=f"state_manager_init_{self.coordination_id}.json",
+                file_name=dynamic_state_manager_init_file_name,
                 content=json.dumps(init_doc, indent=2),
                 tags=["state_management", "initialization", self.coordination_id],
                 conversation_id=self.conversation_id,

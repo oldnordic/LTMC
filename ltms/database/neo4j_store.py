@@ -55,6 +55,67 @@ class Neo4jGraphStore:
         """Check if Neo4j is available and connected."""
         return self.driver is not None and NEO4J_AVAILABLE
     
+    def health_check(self) -> Dict[str, Any]:
+        """Perform comprehensive health check of Neo4j connection.
+        
+        Returns:
+            Dictionary with health status, connection info, and basic stats
+        """
+        if not NEO4J_AVAILABLE:
+            return {
+                "success": False,
+                "error": "Neo4j driver not available",
+                "status": "unavailable"
+            }
+        
+        if not self.driver:
+            return {
+                "success": False,
+                "error": "Neo4j driver not initialized",
+                "status": "disconnected"
+            }
+        
+        try:
+            with self.driver.session() as session:
+                # Test basic connectivity
+                result = session.run("RETURN 'Neo4j health check' AS message")
+                message = result.single()["message"]
+                
+                # Get basic database statistics
+                stats_result = session.run("""
+                    MATCH (n)
+                    RETURN count(n) AS total_nodes
+                """)
+                total_nodes = stats_result.single()["total_nodes"]
+                
+                # Get relationship count
+                rel_result = session.run("""
+                    MATCH ()-[r]->()
+                    RETURN count(r) AS total_relationships
+                """)
+                total_relationships = rel_result.single()["total_relationships"]
+                
+                return {
+                    "success": True,
+                    "status": "healthy",
+                    "message": message,
+                    "database_stats": {
+                        "total_nodes": total_nodes,
+                        "total_relationships": total_relationships
+                    },
+                    "connection_info": {
+                        "uri": self.config["uri"],
+                        "database": self.config.get("database", "neo4j")
+                    }
+                }
+                
+        except Exception as e:
+            return {
+                "success": False,
+                "error": str(e),
+                "status": "unhealthy"
+            }
+    
     def create_document_node(self, doc_id: str, properties: Dict[str, Any]) -> Dict[str, Any]:
         """Create a document node in the graph.
         
@@ -398,12 +459,12 @@ async def get_neo4j_graph_store() -> Neo4jGraphStore:
     global _neo4j_store
     if not _neo4j_store:
         # Load configuration from ltmc_config.json
-        from ltms.config import get_config
+        from ltms.config.json_config_loader import get_config
         ltmc_config = get_config()
         
         config = {
             "uri": ltmc_config.neo4j_uri,
-            "user": ltmc_config.neo4j_username,
+            "user": ltmc_config.neo4j_user,
             "password": ltmc_config.neo4j_password,
             "database": "neo4j"  # Using default database name from ltmc_config.json
         }

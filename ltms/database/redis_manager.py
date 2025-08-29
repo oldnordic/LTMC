@@ -13,7 +13,7 @@ from typing import Dict, List, Any, Optional
 from datetime import datetime, timedelta
 
 from ltms.services.redis_service import RedisConnectionManager
-from ltms.config import get_config
+from ltms.config.json_config_loader import get_config
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +76,28 @@ class RedisManager:
     
     def is_available(self) -> bool:
         """Check if Redis is available."""
-        return self._is_available or self.test_mode
+        if self.test_mode:
+            return True
+        
+        # If not yet initialized, try to establish connection
+        if not self._is_available and self._connection_manager is not None:
+            # Attempt synchronous availability check
+            try:
+                # Use asyncio.run to check connection if we're not in an async context
+                import asyncio
+                try:
+                    # Get current event loop if available
+                    loop = asyncio.get_running_loop()
+                    # We're in an async context, can't use asyncio.run
+                    return self._is_available
+                except RuntimeError:
+                    # No running loop, safe to use asyncio.run
+                    return asyncio.run(self._ensure_connection())
+            except Exception as e:
+                logger.error(f"Failed to check Redis availability: {e}")
+                return False
+        
+        return self._is_available
     
     def _generate_cache_key(self, doc_id: str, key_type: str = "doc") -> str:
         """Generate cache key for document."""

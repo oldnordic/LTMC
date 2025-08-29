@@ -18,6 +18,46 @@ class DatabaseType(Enum):
     FAISS = "faiss"
     REDIS = "redis"
 
+class DatabasePriority(Enum):
+    """Database priority tiers for failure handling."""
+    CRITICAL = "critical"    # SQLite, FAISS - must succeed
+    OPTIONAL = "optional"    # Neo4j, Redis - can fail gracefully
+
+class CircuitBreakerState(Enum):
+    """Circuit breaker states for optional database protection."""
+    CLOSED = "closed"        # Normal operation
+    OPEN = "open"           # Circuit open, operations failing fast
+    HALF_OPEN = "half_open"  # Testing recovery
+
+class DatabaseRole(Enum):
+    """Define specific roles and priorities for each database."""
+    PRIMARY_TRANSACTIONAL = ("sqlite", DatabasePriority.CRITICAL)
+    VECTOR_SEARCH = ("faiss", DatabasePriority.CRITICAL) 
+    GRAPH_RELATIONS = ("neo4j", DatabasePriority.OPTIONAL)
+    CACHE_REALTIME = ("redis", DatabasePriority.OPTIONAL)
+    
+    def __init__(self, db_name: str, priority: DatabasePriority):
+        self.db_name = db_name
+        self.priority = priority
+    
+    @classmethod
+    def get_database_priority(cls, db_type: DatabaseType) -> DatabasePriority:
+        """Get priority for a database type."""
+        for role in cls:
+            if role.db_name == db_type.value:
+                return role.priority
+        return DatabasePriority.OPTIONAL  # Default to optional for safety
+    
+    @classmethod
+    def get_critical_databases(cls) -> List[DatabaseType]:
+        """Get list of critical database types."""
+        return [DatabaseType(role.db_name) for role in cls if role.priority == DatabasePriority.CRITICAL]
+    
+    @classmethod
+    def get_optional_databases(cls) -> List[DatabaseType]:
+        """Get list of optional database types."""
+        return [DatabaseType(role.db_name) for role in cls if role.priority == DatabasePriority.OPTIONAL]
+
 class TransactionStatus(Enum):
     """Transaction status enumeration."""
     PENDING = "pending"
@@ -196,8 +236,8 @@ class ConsistencyReport:
 @dataclass
 class SyncResult:
     """
-    Result of synchronization operation with comprehensive details.
-    Used for operation feedback and debugging.
+    Enhanced result of synchronization operation with tiered database support.
+    Used for operation feedback and debugging with graceful degradation information.
     """
     success: bool
     doc_id: Optional[str] = None
@@ -207,6 +247,13 @@ class SyncResult:
     affected_databases: List[DatabaseType] = field(default_factory=list)
     consistency_report: Optional[ConsistencyReport] = None
     operation_details: Dict[str, Any] = field(default_factory=dict)
+    
+    # Tiered database support fields
+    degraded_services: List[str] = field(default_factory=list)
+    failed_optional_databases: List[str] = field(default_factory=list)
+    critical_database_failures: List[str] = field(default_factory=list)
+    system_status: str = "healthy"  # healthy, degraded, critical_failure
+    functionality_impact: Optional[str] = None
     
     def add_operation_detail(self, key: str, value: Any):
         """Add operation detail to result."""
@@ -218,6 +265,29 @@ class SyncResult:
         self.error_message = error_message
         if error_code:
             self.add_operation_detail("error_code", error_code)
+    
+    def add_degraded_service(self, service_name: str):
+        """Add a degraded service to tracking."""
+        if service_name not in self.degraded_services:
+            self.degraded_services.append(service_name)
+            self.system_status = "degraded"
+    
+    def add_failed_optional_database(self, db_name: str):
+        """Add a failed optional database."""
+        if db_name not in self.failed_optional_databases:
+            self.failed_optional_databases.append(db_name)
+            self.add_degraded_service(db_name)
+    
+    def add_critical_database_failure(self, db_name: str):
+        """Add a critical database failure."""
+        if db_name not in self.critical_database_failures:
+            self.critical_database_failures.append(db_name)
+            self.system_status = "critical_failure"
+            self.success = False
+    
+    def set_functionality_impact(self, impact_description: str):
+        """Set description of functionality impact."""
+        self.functionality_impact = impact_description
 
 @dataclass
 class RecoveryResult:

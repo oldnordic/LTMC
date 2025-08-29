@@ -12,7 +12,7 @@ from datetime import datetime
 import json
 
 from .neo4j_store import Neo4jGraphStore
-from ltms.config import get_config
+from ltms.config.json_config_loader import get_config
 
 logger = logging.getLogger(__name__)
 
@@ -40,10 +40,10 @@ class Neo4jManager:
             if config is None:
                 app_config = get_config()
                 config = {
-                    "uri": app_config.NEO4J_URI,
-                    "user": app_config.NEO4J_USER,
-                    "password": app_config.NEO4J_PASSWORD,
-                    "database": app_config.NEO4J_DATABASE
+                    "uri": app_config.neo4j_uri,
+                    "user": app_config.neo4j_user,
+                    "password": app_config.neo4j_password,
+                    "database": getattr(app_config, 'neo4j_database', 'neo4j')
                 }
             
             self.graph_store = Neo4jGraphStore(config)

@@ -1,1 +1,0 @@
-# Tests for LTMC Coordination Test Framework components

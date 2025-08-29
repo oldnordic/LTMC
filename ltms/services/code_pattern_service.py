@@ -326,11 +326,24 @@ def get_code_patterns_by_query(
     Returns:
         List of pattern dictionaries
     """
-    # For now, return basic SQL results
-    # TODO: Implement proper vector similarity search
+    # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+    # Generate dynamic query based on user's search context and filters
+    filter_parts = []
+    if result_filter:
+        filter_parts.append(f"result:{result_filter}")
+    if function_name:
+        filter_parts.append(f"function:{function_name}")
+    if file_name:
+        filter_parts.append(f"file:{file_name}")
+    if module_name:
+        filter_parts.append(f"module:{module_name}")
+    
+    dynamic_query = " ".join(filter_parts) if filter_parts else "code patterns"
+    
+    # TODO: Implement proper vector similarity search using query_embedding
     result = retrieve_code_patterns(
         conn=conn,
-        query="",  # Empty query for basic retrieval
+        query=dynamic_query,  # Dynamic query based on user filters
         result_filter=result_filter,
         function_name=function_name,
         file_name=file_name,

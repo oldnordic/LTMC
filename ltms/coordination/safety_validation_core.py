@@ -16,7 +16,7 @@ from .agent_coordination_models import AgentStatus
 from .mcp_message_broker import LTMCMessageBroker
 
 # Import LTMC chat tool for initialization logging - MANDATORY
-from ltms.tools.consolidated import chat_action
+from ltms.tools.memory.chat_actions import chat_action
 
 
 class SafetyValidationCore:

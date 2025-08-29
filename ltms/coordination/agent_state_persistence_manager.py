@@ -15,9 +15,7 @@ from typing import Dict, Any, List, Optional
 from .agent_state_models import StateTransitionLog
 
 # Import LTMC tools - MANDATORY
-from ltms.tools.consolidated import (
-    cache_action        # Tool 7 - Cache operations - MANDATORY
-)
+from ltms.tools.monitoring.cache_actions import cache_action        # Tool 7 - Cache operations - MANDATORY
 
 
 class AgentStatePersistenceManager:

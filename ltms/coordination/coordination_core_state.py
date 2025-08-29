@@ -18,7 +18,7 @@ from typing import Dict, Optional
 from .agent_coordination_models import CoordinationState
 
 # LTMC MCP tool imports for real functionality
-from ltms.tools.consolidated import memory_action
+from ltms.tools.memory.memory_actions import memory_action
 
 
 class CoordinationCoreState:
@@ -88,9 +88,16 @@ class CoordinationCoreState:
             }
             
             # Use actual LTMC memory_action tool (Tool 1) - MANDATORY
+            # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+            # Generate dynamic file name based on coordination initialization context and framework version
+            init_timestamp = coordination_doc["timestamp"].replace(':', '_').replace('-', '_')
+            framework_version = self.state["coordination_metadata"]["framework_version"].replace('.', '_')
+            task_description_clean = self.task_description.replace(' ', '_').replace('/', '_').lower()[:15]  # Truncate long descriptions
+            dynamic_coordination_init_file_name = f"coordination_init_{self.task_id}_{task_description_clean}_framework{framework_version}_{init_timestamp}.md"
+            
             memory_action(
                 action="store",
-                file_name=f"coordination_init_{self.task_id}.md",
+                file_name=dynamic_coordination_init_file_name,
                 content=f"# Agent Coordination Initialized\n\n{json.dumps(coordination_doc, indent=2)}",
                 tags=["coordination", "initialization", self.task_id],
                 conversation_id=self.conversation_id,

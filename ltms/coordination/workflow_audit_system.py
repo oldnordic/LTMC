@@ -24,7 +24,10 @@ from datetime import datetime, timezone
 from typing import Dict, List, Optional, Any
 
 # LTMC MCP tool imports - REAL functionality only
-from ltms.tools.consolidated import memory_action, chat_action, todo_action, graph_action
+from ltms.tools.memory.memory_actions import memory_action
+from ltms.tools.memory.chat_actions import chat_action
+from ltms.tools.todos.todo_actions import todo_action
+from ltms.tools.graph.graph_actions import graph_action
 
 
 class WorkflowAuditSystem:
@@ -52,9 +55,14 @@ class WorkflowAuditSystem:
         }
         
         # Store audit system initialization in LTMC
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on audit system initialization context and session
+        initialization_timestamp = initialization_data['initialization_timestamp'].replace(':', '_').replace('-', '_')
+        dynamic_audit_init_file_name = f"workflow_audit_system_{self.session_id}_{self.task_id}_init_{self.audit_system_id}_{initialization_timestamp}.json"
+        
         memory_action(
             action="store",
-            file_name=f"workflow_audit_system_init_{self.audit_system_id}.json",
+            file_name=dynamic_audit_init_file_name,
             content=json.dumps(initialization_data, indent=2),
             tags=["workflow_audit_system", "initialization", self.audit_system_id, self.session_id],
             conversation_id=self.session_id,
@@ -85,9 +93,13 @@ class WorkflowAuditSystem:
         }
         
         # Store audit result in LTMC using memory_action
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on workflow audit context and depth
+        dynamic_audit_result_file_name = f"workflow_audit_{workflow_id}_{audit_depth}_{len(participating_agents)}agents_{len(workflow_stages)}stages_{audit_timestamp.replace(':', '_').replace('-', '_')}.json"
+        
         memory_action(
             action="store",
-            file_name=f"workflow_audit_{workflow_id}_{int(time.time())}.json",
+            file_name=dynamic_audit_result_file_name,
             content=json.dumps({
                 "audit_result": audit_result,
                 "workflow_data": workflow_data
@@ -143,9 +155,14 @@ class WorkflowAuditSystem:
         }
         
         # Store coordination analysis in LTMC
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on coordination detection context and analysis results
+        coordination_status = "coordinated" if coordination_detected else "isolated"
+        dynamic_coordination_file_name = f"coordination_analysis_{workflow_id}_{coordination_status}_{cross_agent_references}refs_{len(dependency_chains)}chains_{detection_timestamp.replace(':', '_').replace('-', '_')}.json"
+        
         memory_action(
             action="store",
-            file_name=f"coordination_analysis_{workflow_id}_{int(time.time())}.json",
+            file_name=dynamic_coordination_file_name,
             content=json.dumps(coordination_result, indent=2),
             tags=["coordination_analysis", workflow_id, "cross_agent_detection"],
             conversation_id=self.session_id,
@@ -189,9 +206,15 @@ class WorkflowAuditSystem:
         }
         
         # Store audit report in LTMC
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on audit report context and analysis format
+        agent_count = len(agent_performance)
+        recommendations_count = len(audit_report.get("improvement_recommendations", []))
+        dynamic_report_file_name = f"audit_report_{workflow_id}_{report_format}_{agent_count}agents_{recommendations_count}recs_{report_timestamp.replace(':', '_').replace('-', '_')}.json"
+        
         memory_action(
             action="store",
-            file_name=f"audit_report_{workflow_id}_{int(time.time())}.json",
+            file_name=dynamic_report_file_name,
             content=json.dumps(audit_report, indent=2),
             tags=["audit_report", workflow_id, report_format],
             conversation_id=self.session_id,
@@ -238,9 +261,15 @@ class WorkflowAuditSystem:
         }
         
         # Store compliance validation in LTMC
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on compliance validation context and results
+        compliance_status = "compliant" if compliance_result["compliance_validated"] else "violations"
+        compliance_score_percentage = int(compliance_score * 100)
+        dynamic_compliance_file_name = f"compliance_validation_{workflow_id}_{compliance_status}_{compliance_score_percentage}pct_{len(violations)}violations_{validation_timestamp.replace(':', '_').replace('-', '_')}.json"
+        
         memory_action(
             action="store",
-            file_name=f"compliance_validation_{workflow_id}_{int(time.time())}.json",
+            file_name=dynamic_compliance_file_name,
             content=json.dumps(compliance_result, indent=2),
             tags=["compliance_validation", workflow_id, "standards_validation"],
             conversation_id=self.session_id,
@@ -278,9 +307,15 @@ class WorkflowAuditSystem:
         }
         
         # Store metrics in LTMC
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on workflow metrics tracking context and scores
+        overall_score_percentage = int(overall_workflow_score * 100)
+        performance_score_percentage = int(performance_score * 100)
+        dynamic_metrics_file_name = f"workflow_metrics_{workflow_id}_overall{overall_score_percentage}_perf{performance_score_percentage}_{tracking_timestamp.replace(':', '_').replace('-', '_')}.json"
+        
         memory_action(
             action="store",
-            file_name=f"workflow_metrics_{workflow_id}_{int(time.time())}.json",
+            file_name=dynamic_metrics_file_name,
             content=json.dumps(metrics_result, indent=2),
             tags=["workflow_metrics", workflow_id, "performance_tracking"],
             conversation_id=self.session_id,
@@ -311,9 +346,15 @@ class WorkflowAuditSystem:
         }
         
         # Store monitoring configuration in LTMC
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on real-time monitoring context and configuration
+        config_keys_count = len(monitoring_config)
+        alert_status = "alerts_active" if monitoring_result["alert_system_active"] else "alerts_inactive"
+        dynamic_monitoring_file_name = f"workflow_monitoring_{workflow_id}_{alert_status}_{config_keys_count}configs_{monitoring_timestamp.replace(':', '_').replace('-', '_')}.json"
+        
         memory_action(
             action="store",
-            file_name=f"workflow_monitoring_{workflow_id}_{int(time.time())}.json",
+            file_name=dynamic_monitoring_file_name,
             content=json.dumps(monitoring_result, indent=2),
             tags=["workflow_monitoring", workflow_id, "realtime_monitoring"],
             conversation_id=self.session_id,
@@ -424,9 +465,17 @@ class WorkflowAuditSystem:
         }
         
         # Store recommendations in LTMC
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on workflow improvement recommendations context and scope
+        coord_recommendations_count = len(coordination_improvements)
+        perf_recommendations_count = len(performance_improvements)
+        ltmc_recommendations_count = len(ltmc_integration_improvements)
+        total_recommendations = coord_recommendations_count + perf_recommendations_count + ltmc_recommendations_count
+        dynamic_recommendations_file_name = f"workflow_recommendations_{workflow_id}_{total_recommendations}total_coord{coord_recommendations_count}_perf{perf_recommendations_count}_ltmc{ltmc_recommendations_count}_{recommendations_timestamp.replace(':', '_').replace('-', '_')}.json"
+        
         memory_action(
             action="store",
-            file_name=f"workflow_recommendations_{workflow_id}_{int(time.time())}.json",
+            file_name=dynamic_recommendations_file_name,
             content=json.dumps(recommendations, indent=2),
             tags=["workflow_recommendations", workflow_id, "improvement_suggestions"],
             conversation_id=self.session_id,
@@ -449,10 +498,16 @@ class WorkflowAuditSystem:
     
     def test_memory_action_integration(self) -> Dict[str, Any]:
         """Test memory_action integration - NO MOCKS."""
-        test_audit = {"test": "memory_integration", "audit_system_id": self.audit_system_id}
+        test_timestamp = datetime.now(timezone.utc).isoformat()
+        test_audit = {"test": "memory_integration", "audit_system_id": self.audit_system_id, "test_timestamp": test_timestamp}
+        
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on audit system test context and session
+        dynamic_audit_test_file_name = f"audit_memory_test_{self.session_id}_{self.task_id}_{self.audit_system_id}_{test_timestamp.replace(':', '_').replace('-', '_')}.json"
+        
         store_result = memory_action(
             action="store",
-            file_name=f"audit_memory_test_{self.audit_system_id}.json",
+            file_name=dynamic_audit_test_file_name,
             content=json.dumps(test_audit),
             tags=["memory_test", self.session_id],
             conversation_id=self.session_id,

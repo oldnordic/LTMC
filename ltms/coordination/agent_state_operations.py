@@ -19,10 +19,8 @@ from .agent_coordination_models import AgentStatus
 from .agent_state_models import StateTransition, StateSnapshot
 
 # Import LTMC tools - MANDATORY
-from ltms.tools.consolidated import (
-    memory_action,      # Tool 1 - Memory operations - MANDATORY
-    graph_action        # Tool 8 - Knowledge graph - MANDATORY
-)
+from ltms.tools.memory.memory_actions import memory_action      # Tool 1 - Memory operations - MANDATORY
+from ltms.tools.graph.graph_actions import graph_action        # Tool 8 - Knowledge graph - MANDATORY
 
 
 class AgentStateOperations:
@@ -126,9 +124,14 @@ class AgentStateOperations:
             }
             
             # Store in LTMC memory (Tool 1) - MANDATORY
+            # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+            # Generate dynamic file name based on agent state creation context and status
+            state_timestamp = snapshot.timestamp.replace(':', '_').replace('-', '_')
+            dynamic_agent_state_file_name = f"agent_state_create_{agent_id}_{initial_status.value.lower()}_{snapshot.snapshot_id}_{state_timestamp}.json"
+            
             memory_action(
                 action="store",
-                file_name=f"agent_state_{agent_id}_{snapshot.snapshot_id}.json",
+                file_name=dynamic_agent_state_file_name,
                 content=json.dumps(state_doc, indent=2),
                 tags=["agent_state", agent_id, initial_status.value, self.core.coordination_id],
                 conversation_id=self.core.conversation_id,
@@ -246,9 +249,14 @@ class AgentStateOperations:
             }
             
             # Store transition in LTMC memory (Tool 1) - MANDATORY
+            # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+            # Generate dynamic file name based on state transition context and type
+            transition_timestamp = new_snapshot.timestamp.replace(':', '_').replace('-', '_')
+            dynamic_transition_file_name = f"state_transition_{agent_id}_{current_status.value.lower()}_to_{new_status.value.lower()}_{transition_type.value.lower()}_{new_snapshot.snapshot_id}_{transition_timestamp}.json"
+            
             memory_action(
                 action="store",
-                file_name=f"state_transition_{agent_id}_{new_snapshot.snapshot_id}.json",
+                file_name=dynamic_transition_file_name,
                 content=json.dumps(transition_doc, indent=2),
                 tags=["state_transition", agent_id, new_status.value, transition_type.value, self.core.coordination_id],
                 conversation_id=self.core.conversation_id,

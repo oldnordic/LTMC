@@ -1,0 +1,41 @@
+{
+    "database": {
+        "db_path": "/home/feanor/Projects/Data/ltmc.db",
+        "faiss_index_path": "/home/feanor/Projects/Data/faiss_index",
+        "embedding_model": "all-MiniLM-L6-v2",
+        "vector_dimension": 384
+    },
+    "redis": {
+        "host": "localhost",
+        "port": 6382,
+        "password": "ltmc_password_2025",
+        "db": 0
+    },
+    "neo4j": {
+        "uri": "bolt://localhost:7689",
+        "user": "neo4j",
+        "password": "ltmc_password_2025",
+        "database": "neo4j"
+    },
+    "logging": {
+        "level": "INFO",
+        "transport": "stdio"
+    },
+    "environment": {
+        "data_directory": "/home/feanor/Projects/Data"
+    },
+    "features": {
+        "real_time_monitoring": false,
+        "emoji_support": true,
+        "mind_graph_tracking": true,
+        "atomic_transactions": true,
+        "performance_monitoring": true,
+        "circuit_breaker": true
+    },
+    "paths": {
+        "log_dir": "/home/feanor/Projects/ltmc/logs",
+        "backup_dir": "/home/feanor/Projects/ltmc/backups",
+        "temp_dir": "/tmp/ltmc",
+        "cache_dir": "/home/feanor/Projects/Data/cache"
+    }
+}

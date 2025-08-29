@@ -1,0 +1,10 @@
+[
+  {
+    "timestamp": "2025-08-29T09:58:16.667272+00:00",
+    "activity_type": "workflow_created",
+    "activity_data": {
+      "workflow_id": "project_proj_20250829_115816",
+      "created_by": "system"
+    }
+  }
+]

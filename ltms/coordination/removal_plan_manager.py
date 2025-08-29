@@ -15,11 +15,9 @@ from datetime import datetime, timezone
 from typing import Dict, Any, List
 
 # Import LTMC tools - MANDATORY
-from ltms.tools.consolidated import (
-    blueprint_action,   # Tool 6 - Blueprint management - MANDATORY
-    todo_action,        # Tool 2 - Todo management - MANDATORY  
-    memory_action       # Tool 1 - Memory operations - MANDATORY
-)
+from ltms.tools.blueprints.blueprint_actions import blueprint_action   # Tool 6 - Blueprint management - MANDATORY
+from ltms.tools.todos.todo_actions import todo_action        # Tool 2 - Todo management - MANDATORY  
+from ltms.tools.memory.memory_actions import memory_action       # Tool 1 - Memory operations - MANDATORY
 
 
 class RemovalPlanManager:

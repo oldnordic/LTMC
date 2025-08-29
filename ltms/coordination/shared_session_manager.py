@@ -21,7 +21,7 @@ from datetime import datetime, timezone
 from typing import Dict, List, Optional, Any, Set
 
 # LTMC MCP tool imports - REAL functionality only
-from ltms.tools.consolidated import memory_action, chat_action, todo_action
+from ltms.tools.memory.memory_actions import memory_action, chat_action, todo_action
 
 
 class SharedSessionManager:
@@ -46,9 +46,15 @@ class SharedSessionManager:
         }
         
         # Store manager initialization in LTMC
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on manager initialization context and timestamp
+        init_timestamp = initialization_data["initialization_timestamp"].replace(':', '_').replace('-', '_')
+        capabilities_count = len(initialization_data["capabilities"])
+        dynamic_manager_init_file_name = f"session_manager_init_{self.manager_id}_{capabilities_count}caps_{init_timestamp}.json"
+        
         memory_action(
             action="store",
-            file_name=f"session_manager_init_{self.manager_id}.json",
+            file_name=dynamic_manager_init_file_name,
             content=json.dumps(initialization_data, indent=2),
             tags=["session_manager", "initialization", self.manager_id],
             conversation_id=f"session_manager_{self.manager_id}",
@@ -79,9 +85,15 @@ class SharedSessionManager:
         self.active_sessions[session_id] = session_data
         
         # Persist session in LTMC using memory_action
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on shared session context and metadata
+        creation_timestamp = session_data["created_timestamp"].replace(':', '_').replace('-', '_')
+        session_name_clean = session_data["session_name"].replace(' ', '_').replace('/', '_').lower()
+        dynamic_shared_session_file_name = f"shared_session_{session_id}_{session_name_clean}_{creation_timestamp}.json"
+        
         memory_action(
             action="store",
-            file_name=f"shared_session_{session_id}.json",
+            file_name=dynamic_shared_session_file_name,
             content=f"# Shared Session: {session_name}\n\n{json.dumps(session_data, indent=2)}",
             tags=["shared_session", session_id, "session_creation", self.manager_id],
             conversation_id=session_id,
@@ -132,9 +144,15 @@ class SharedSessionManager:
             "ltmc_todo_tracking": True
         }
         
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on agent registration context and capabilities
+        join_timestamp = agent_registration["join_timestamp"].replace(':', '_').replace('-', '_')
+        capabilities_count = len(agent_registration["capabilities"])
+        dynamic_agent_registration_file_name = f"agent_registration_{agent_id}_{agent_type}_{session_id}_{capabilities_count}caps_{join_timestamp}.json"
+        
         memory_action(
             action="store",
-            file_name=f"agent_registration_{agent_id}_{session_id}.json",
+            file_name=dynamic_agent_registration_file_name,
             content=json.dumps(agent_registration, indent=2),
             tags=["agent_registration", agent_id, session_id, agent_type],
             conversation_id=session_id,
@@ -188,9 +206,16 @@ class SharedSessionManager:
             "ltmc_todo_tracking": True
         }
         
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on session data context, author, and data type
+        storage_timestamp = data_document["storage_timestamp"].replace(':', '_').replace('-', '_')
+        data_key_clean = data_key.replace(' ', '_').replace('/', '_').lower()
+        author_clean = author_agent.replace(' ', '_').replace('/', '_').lower()
+        dynamic_session_data_file_name = f"session_data_{session_id}_{data_key_clean}_by_{author_clean}_{storage_timestamp}.json"
+        
         memory_action(
             action="store",
-            file_name=f"session_data_{session_id}_{data_key}_{int(time.time())}.json",
+            file_name=dynamic_session_data_file_name,
             content=json.dumps(data_document, indent=2),
             tags=["session_data", session_id, data_key, author_agent],
             conversation_id=session_id,
@@ -330,9 +355,14 @@ class SharedSessionManager:
         test_data = {"test": "memory_integration", "timestamp": datetime.now(timezone.utc).isoformat()}
         
         # Test store
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on memory test context and timestamp
+        test_timestamp = test_data["timestamp"].replace(':', '_').replace('-', '_')
+        dynamic_memory_test_file_name = f"memory_test_{session_id}_integration_test_{test_timestamp}.json"
+        
         store_result = memory_action(
             action="store",
-            file_name=f"memory_test_{session_id}.json",
+            file_name=dynamic_memory_test_file_name,
             content=json.dumps(test_data),
             tags=["memory_test", session_id],
             conversation_id=session_id,

@@ -65,6 +65,14 @@ kubectl (for Kubernetes)
 # 1. Clone and setup LTMC
 git clone https://github.com/your-org/ltmc.git
 cd ltmc
+
+# UV method (recommended - 3-50x faster)
+uv venv venv --python 3.11.9
+source venv/bin/activate
+uv pip install -r requirements.txt
+uv pip install -e .
+
+# Traditional method (fallback)
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
@@ -178,9 +186,14 @@ RUN apt-get update && apt-get install -y \
 
 COPY requirements.txt .
 RUN pip install -r requirements.txt
+# For UV optimization (add UV installation step before this):
+# RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+# RUN /root/.local/bin/uv pip install -r requirements.txt
 
 COPY . .
 RUN pip install -e .
+# UV alternative:
+# RUN /root/.local/bin/uv pip install -e .
 
 CMD ["python", "-m", "ltms"]
 EOF
@@ -452,6 +465,9 @@ RUN apt-get update \
 # Install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+# UV alternative (faster builds):
+# RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+# RUN /root/.local/bin/uv pip install --no-cache -r requirements.txt
 
 # Copy application code
 COPY ltms/ ltms/
@@ -459,6 +475,8 @@ COPY ltmc_config.json .
 
 # Install LTMC
 RUN pip install -e .
+# UV alternative:
+# RUN /root/.local/bin/uv pip install -e .
 
 # Create non-root user
 RUN adduser --disabled-password --gecos '' ltmc

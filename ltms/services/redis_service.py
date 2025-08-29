@@ -112,6 +112,18 @@ class RedisConnectionManager:
             raise RuntimeError("Redis client not initialized or disconnected")
         return self._client
     
+    @asynccontextmanager
+    async def get_connection(self):
+        """Get Redis connection as async context manager."""
+        if not self._is_connected or not self._client:
+            await self.initialize()
+        
+        try:
+            yield self._client
+        except Exception as e:
+            logger.error(f"Redis operation failed: {e}")
+            raise
+    
     async def health_check(self) -> bool:
         """Check Redis connection health."""
         try:

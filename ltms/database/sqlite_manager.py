@@ -9,6 +9,7 @@ Purpose: SQLite operations for atomic cross-database synchronization
 import sqlite3
 import logging
 import json
+import threading
 from typing import Dict, List, Any, Optional
 from contextlib import contextmanager
 from datetime import datetime
@@ -16,7 +17,7 @@ from datetime import datetime
 from .connection import get_db_connection, close_db_connection
 from .dal import create_resource
 from .schema import create_tables
-from ltms.config import get_config
+from ltms.config.json_config_loader import get_config
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +26,10 @@ class SQLiteManager:
     SQLite database manager for atomic document operations.
     Provides transaction-safe document storage and retrieval.
     """
+    
+    # Class-level connection for test mode to persist in-memory database
+    _test_connection: Optional[sqlite3.Connection] = None
+    _test_connection_lock = threading.Lock()
     
     def __init__(self, db_path: Optional[str] = None, test_mode: bool = False):
         """Initialize SQLite manager with database connection.
@@ -45,9 +50,8 @@ class SQLiteManager:
         
         self._connection: Optional[sqlite3.Connection] = None
         
-        # Initialize database schema
-        if not test_mode:
-            self._ensure_schema()
+        # Initialize database schema (always create schema, even in test mode)
+        self._ensure_schema()
             
         logger.info(f"SQLiteManager initialized (test_mode={test_mode}, db_path={self.db_path})")
     
@@ -63,18 +67,61 @@ class SQLiteManager:
     @contextmanager
     def get_connection(self):
         """Get database connection context manager."""
-        conn = None
-        try:
-            conn = get_db_connection(self.db_path)
-            yield conn
-        except Exception as e:
-            if conn:
-                conn.rollback()
-            logger.error(f"Database connection error: {e}")
-            raise
-        finally:
-            if conn:
-                close_db_connection(conn)
+        if self.test_mode:
+            # Use shared connection for test mode to persist in-memory database
+            if SQLiteManager._test_connection is None:
+                SQLiteManager._test_connection = sqlite3.connect(":memory:")
+            yield SQLiteManager._test_connection
+        else:
+            # Standard file-based connection for production
+            conn = None
+            try:
+                conn = get_db_connection(self.db_path)
+                yield conn
+            except Exception as e:
+                if conn:
+                    conn.rollback()
+                logger.error(f"Database connection error: {e}")
+                raise
+            finally:
+                if conn:
+                    close_db_connection(conn)
+    
+    def _get_next_vector_id(self, cursor: sqlite3.Cursor) -> int:
+        """Get next available vector ID from sequence table.
+        
+        Args:
+            cursor: Database cursor within active transaction
+            
+        Returns:
+            Next available vector ID
+        """
+        # Get current vector ID and increment it atomically
+        cursor.execute("SELECT last_vector_id FROM VectorIdSequence WHERE id = 1")
+        row = cursor.fetchone()
+        
+        if row:
+            current_id = row[0]
+            next_id = current_id + 1
+        else:
+            # Initialize sequence if it doesn't exist
+            next_id = 1
+        
+        # Update the sequence
+        cursor.execute(
+            "UPDATE VectorIdSequence SET last_vector_id = ? WHERE id = 1",
+            (next_id,)
+        )
+        
+        # Verify update worked
+        if cursor.rowcount == 0:
+            # Insert if update failed (shouldn't happen with schema initialization)
+            cursor.execute(
+                "INSERT OR REPLACE INTO VectorIdSequence (id, last_vector_id) VALUES (1, ?)",
+                (next_id,)
+            )
+        
+        return next_id
     
     def store_document(self, doc_id: str, content: str, tags: List[str] = None, 
                       metadata: Dict[str, Any] = None) -> bool:
@@ -90,9 +137,6 @@ class SQLiteManager:
         Returns:
             True if storage successful, False otherwise
         """
-        if self.test_mode:
-            # Test mode implementation
-            return True
             
         try:
             with self.get_connection() as conn:
@@ -108,25 +152,47 @@ class SQLiteManager:
                 tags_json = json.dumps(tags or [])
                 metadata_json = json.dumps(metadata or {})
                 
-                if cursor.fetchone():
-                    # Update existing document
-                    cursor.execute("""
-                        UPDATE Resources 
-                        SET content = ?, tags = ?, metadata = ?, updated_at = ?
-                        WHERE file_name = ?
-                    """, (content, tags_json, metadata_json, current_time, doc_id))
+                existing_row = cursor.fetchone()
+                if existing_row:
+                    resource_id = existing_row[0]
                     
-                    logger.info(f"Updated document {doc_id} in SQLite")
+                    # Get existing vector_id for this resource to reuse it
+                    cursor.execute(
+                        "SELECT vector_id FROM ResourceChunks WHERE resource_id = ? LIMIT 1",
+                        (resource_id,)
+                    )
+                    existing_chunk = cursor.fetchone()
+                    
+                    if existing_chunk:
+                        # Reuse existing vector_id for updates
+                        vector_id = existing_chunk[0]
+                        cursor.execute("DELETE FROM ResourceChunks WHERE resource_id = ?", (resource_id,))
+                    else:
+                        # Generate new vector_id if no chunks exist
+                        vector_id = self._get_next_vector_id(cursor)
+                    
+                    cursor.execute("""
+                        INSERT INTO ResourceChunks (resource_id, chunk_text, vector_id) 
+                        VALUES (?, ?, ?)
+                    """, (resource_id, content, vector_id))
+                    
+                    logger.info(f"Updated document {doc_id} in SQLite with vector_id {vector_id}")
                 else:
-                    # Create new document
+                    # Create new document - insert into Resources, then ResourceChunks
                     cursor.execute("""
-                        INSERT INTO Resources 
-                        (file_name, type, content, tags, metadata, created_at, updated_at) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?)
-                    """, (doc_id, "document", content, tags_json, metadata_json, 
-                         current_time, current_time))
+                        INSERT INTO Resources (file_name, type, created_at) 
+                        VALUES (?, ?, ?)
+                    """, (doc_id, "document", current_time))
                     
-                    logger.info(f"Created document {doc_id} in SQLite")
+                    resource_id = cursor.lastrowid
+                    vector_id = self._get_next_vector_id(cursor)
+                    
+                    cursor.execute("""
+                        INSERT INTO ResourceChunks (resource_id, chunk_text, vector_id) 
+                        VALUES (?, ?, ?)
+                    """, (resource_id, content, vector_id))
+                    
+                    logger.info(f"Created document {doc_id} in SQLite with vector_id {vector_id}")
                 
                 conn.commit()
                 return True
@@ -145,34 +211,36 @@ class SQLiteManager:
         Returns:
             Document data dictionary or None if not found
         """
-        if self.test_mode:
-            return {
-                "id": doc_id,
-                "content": "test content",
-                "tags": ["test"],
-                "metadata": {}
-            }
-            
         try:
             with self.get_connection() as conn:
                 cursor = conn.cursor()
                 cursor.execute("""
-                    SELECT file_name, content, tags, metadata, created_at, updated_at
-                    FROM Resources 
-                    WHERE file_name = ?
+                    SELECT r.id, r.file_name, r.created_at
+                    FROM Resources r
+                    WHERE r.file_name = ?
                 """, (doc_id,))
                 
                 row = cursor.fetchone()
                 if row:
-                    file_name, content, tags, metadata, created_at, updated_at = row
+                    resource_id, file_name, created_at = row
+                    
+                    # Get content from ResourceChunks
+                    cursor.execute("""
+                        SELECT chunk_text FROM ResourceChunks 
+                        WHERE resource_id = ? 
+                        ORDER BY id
+                    """, (resource_id,))
+                    
+                    chunks = cursor.fetchall()
+                    content = ''.join(chunk[0] for chunk in chunks) if chunks else ""
                     
                     return {
                         "id": file_name,
-                        "content": content or "",
-                        "tags": json.loads(tags) if tags else [],
-                        "metadata": json.loads(metadata) if metadata else {},
+                        "content": content,
+                        "tags": [],  # Tags not in current schema
+                        "metadata": {},  # Metadata not in current schema
                         "created_at": created_at,
-                        "updated_at": updated_at
+                        "updated_at": created_at  # No updated_at in current schema
                     }
                     
                 return None
@@ -260,23 +328,33 @@ class SQLiteManager:
             with self.get_connection() as conn:
                 cursor = conn.cursor()
                 cursor.execute("""
-                    SELECT file_name, content, tags, metadata, created_at, updated_at
-                    FROM Resources 
-                    ORDER BY created_at DESC
+                    SELECT r.id, r.file_name, r.created_at
+                    FROM Resources r
+                    ORDER BY r.created_at DESC
                     LIMIT ? OFFSET ?
                 """, (limit, offset))
                 
                 documents = []
                 for row in cursor.fetchall():
-                    file_name, content, tags, metadata, created_at, updated_at = row
+                    resource_id, file_name, created_at = row
+                    
+                    # Get content from ResourceChunks for each resource
+                    cursor.execute("""
+                        SELECT chunk_text FROM ResourceChunks 
+                        WHERE resource_id = ? 
+                        ORDER BY id
+                    """, (resource_id,))
+                    
+                    chunks = cursor.fetchall()
+                    content = ''.join(chunk[0] for chunk in chunks) if chunks else ""
                     
                     documents.append({
                         "id": file_name,
-                        "content": content or "",
-                        "tags": json.loads(tags) if tags else [],
-                        "metadata": json.loads(metadata) if metadata else {},
+                        "content": content,
+                        "tags": [],
+                        "metadata": {},
                         "created_at": created_at,
-                        "updated_at": updated_at
+                        "updated_at": created_at
                     })
                 
                 return documents

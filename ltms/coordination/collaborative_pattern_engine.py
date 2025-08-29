@@ -22,7 +22,10 @@ from datetime import datetime, timezone
 from typing import Dict, List, Optional, Any
 
 # LTMC MCP tool imports - REAL functionality only
-from ltms.tools.consolidated import memory_action, chat_action, todo_action, graph_action
+from ltms.tools.memory.memory_actions import memory_action
+from ltms.tools.memory.chat_actions import chat_action
+from ltms.tools.todos.todo_actions import todo_action
+from ltms.tools.graph.graph_actions import graph_action
 
 # Import coordination components for orchestration
 try:
@@ -66,9 +69,13 @@ class CollaborativePatternEngine:
         }
         
         # Store engine initialization in LTMC
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on engine initialization context and session
+        dynamic_engine_init_file_name = f"pattern_engine_{self.session_id}_{self.task_id}_init_{initialization_data['initialization_timestamp'].replace(':', '_').replace('-', '_')}.json"
+        
         memory_action(
             action="store",
-            file_name=f"collaborative_pattern_engine_init_{self.engine_id}.json",
+            file_name=dynamic_engine_init_file_name,
             content=json.dumps(initialization_data, indent=2),
             tags=["collaborative_pattern_engine", "initialization", self.engine_id, self.session_id],
             conversation_id=self.session_id,
@@ -104,9 +111,13 @@ class CollaborativePatternEngine:
         }
         
         # Store orchestration in LTMC
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on workflow orchestration context and participating agents
+        dynamic_orchestration_file_name = f"workflow_orchestration_{workflow_id}_{orchestration_mode}_{len(participating_agents)}agents_{orchestration_timestamp.replace(':', '_').replace('-', '_')}.json"
+        
         memory_action(
             action="store",
-            file_name=f"collaborative_workflow_orchestration_{workflow_id}.json",
+            file_name=dynamic_orchestration_file_name,
             content=json.dumps({
                 "orchestration_result": orchestration_result,
                 "workflow_definition": workflow_definition
@@ -229,9 +240,13 @@ class CollaborativePatternEngine:
             })
         
         # Store execution result in LTMC
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on pattern execution context and workflow stages
+        dynamic_execution_file_name = f"pattern_execution_{workflow_id}_{pattern_type}_{execution_mode}_{len(workflow_stages)}stages_{execution_timestamp.replace(':', '_').replace('-', '_')}.json"
+        
         memory_action(
             action="store",
-            file_name=f"workflow_pattern_execution_{workflow_id}_{int(time.time())}.json",
+            file_name=dynamic_execution_file_name,
             content=json.dumps(execution_result, indent=2),
             tags=["workflow_pattern_execution", workflow_id, pattern_type, execution_mode],
             conversation_id=self.session_id,
@@ -271,9 +286,13 @@ class CollaborativePatternEngine:
             lifecycle_result["monitoring_active"] = True
         
         # Store lifecycle action in LTMC
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on lifecycle management context and workflow state
+        dynamic_lifecycle_file_name = f"lifecycle_management_{workflow_id}_{lifecycle_action}_{workflow_state}_{lifecycle_context.replace(' ', '_')[:15]}_{lifecycle_timestamp.replace(':', '_').replace('-', '_')}.json"
+        
         memory_action(
             action="store",
-            file_name=f"workflow_lifecycle_{workflow_id}_{lifecycle_action}_{int(time.time())}.json",
+            file_name=dynamic_lifecycle_file_name,
             content=json.dumps(lifecycle_result, indent=2),
             tags=["workflow_lifecycle", workflow_id, lifecycle_action, workflow_state],
             conversation_id=self.session_id,
@@ -359,9 +378,13 @@ class CollaborativePatternEngine:
         }
         
         # Store adaptation in LTMC
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on adaptive workflow context and optimization triggers
+        dynamic_adaptation_file_name = f"workflow_adaptation_{workflow_id}_{len(adaptation_triggers)}triggers_{len(optimization_goals)}goals_{adaptation_timestamp.replace(':', '_').replace('-', '_')}.json"
+        
         memory_action(
             action="store",
-            file_name=f"workflow_adaptation_{workflow_id}_{int(time.time())}.json",
+            file_name=dynamic_adaptation_file_name,
             content=json.dumps(adaptation_result, indent=2),
             tags=["workflow_adaptation", workflow_id, "dynamic_optimization"],
             conversation_id=self.session_id,
@@ -393,9 +416,13 @@ class CollaborativePatternEngine:
         }
         
         # Store monitoring configuration in LTMC
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on real-time monitoring context and configuration
+        dynamic_monitoring_file_name = f"realtime_monitoring_{workflow_id}_{len(monitoring_config)}configs_{monitoring_timestamp.replace(':', '_').replace('-', '_')}.json"
+        
         memory_action(
             action="store",
-            file_name=f"realtime_monitoring_{workflow_id}_{int(time.time())}.json",
+            file_name=dynamic_monitoring_file_name,
             content=json.dumps(monitoring_result, indent=2),
             tags=["realtime_monitoring", workflow_id, "intervention_system"],
             conversation_id=self.session_id,
@@ -477,9 +504,14 @@ class CollaborativePatternEngine:
         }
         
         # Store execution report in LTMC
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on execution report context and performance metrics
+        performance_score = performance_metrics.get("quality_score", 0.9)
+        dynamic_report_file_name = f"execution_report_{workflow_id}_{report_format}_score{int(performance_score*100)}_{report_timestamp.replace(':', '_').replace('-', '_')}.json"
+        
         memory_action(
             action="store",
-            file_name=f"workflow_execution_report_{workflow_id}_{int(time.time())}.json",
+            file_name=dynamic_report_file_name,
             content=json.dumps(execution_report, indent=2),
             tags=["workflow_execution_report", workflow_id, report_format],
             conversation_id=self.session_id,
@@ -504,10 +536,16 @@ class CollaborativePatternEngine:
     
     def test_memory_action_integration(self) -> Dict[str, Any]:
         """Test memory_action integration - NO MOCKS."""
-        test_orchestration = {"test": "memory_integration", "engine_id": self.engine_id}
+        test_timestamp = datetime.now(timezone.utc).isoformat()
+        test_orchestration = {"test": "memory_integration", "engine_id": self.engine_id, "timestamp": test_timestamp}
+        
+        # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+        # Generate dynamic file name based on orchestration test context and engine session
+        dynamic_test_file_name = f"pattern_engine_memory_test_{self.session_id}_{self.task_id}_{self.engine_id}_{test_timestamp.replace(':', '_').replace('-', '_')}.json"
+        
         store_result = memory_action(
             action="store",
-            file_name=f"orchestration_memory_test_{self.engine_id}.json",
+            file_name=dynamic_test_file_name,
             content=json.dumps(test_orchestration),
             tags=["memory_test", self.session_id],
             conversation_id=self.session_id,

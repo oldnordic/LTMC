@@ -1,3 +1,4 @@
+from ltms.tools.memory.memory_actions import MemoryTools
 """
 LTMC Tech Stack Conflict Detector - Framework Conflict Analysis
 
@@ -13,7 +14,7 @@ import time
 from pathlib import Path
 from typing import Dict, List, Any
 
-from ltms.tools.consolidated import memory_action
+from ltms.tools.memory.memory_actions import memory_action
 from .validator import ValidationResult, ValidationSeverity
 
 # Configure logging
@@ -21,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 async def detect_framework_conflicts(validator, directory: Path) -> List[ValidationResult]:
+    memory_tools = MemoryTools()
     """
     Real FastAPI/MCP conflict detection with actual import analysis.
     Detects event loop conflicts, import conflicts, and port binding issues.
@@ -56,8 +58,7 @@ async def detect_framework_conflicts(validator, directory: Path) -> List[Validat
         
         # Store conflict results in LTMC
         for conflict in conflicts:
-            ltmc_ref = await memory_action(
-                action="store",
+            ltmc_ref = await memory_tools("store",
                 file_name=f"conflict_{conflict['type']}_{int(time.time())}",
                 content=f"Conflict detected: {conflict['type']} between {conflict['files']}",
                 tags=["tech_stack", "conflict", "fastapi_mcp"],

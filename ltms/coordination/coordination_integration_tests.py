@@ -13,11 +13,12 @@ from datetime import datetime, timezone
 from typing import Dict, Any
 
 # Import coordination framework components
-from .agent_coordination_framework import LTMCAgentCoordinator
+from .agent_coordination_core import AgentCoordinationCore
 from .agent_state_manager import LTMCAgentStateManager
 
-# LTMC MCP tool imports for validation
-from ltms.tools.consolidated import memory_action, graph_action
+# LTMC MCP tool imports for validation (Updated imports after reindexing)
+from ltms.tools.memory.memory_actions import memory_action
+from ltms.tools.graph.graph_actions import graph_action
 
 
 class CoordinationIntegrationTests:
@@ -40,7 +41,7 @@ class CoordinationIntegrationTests:
         self.coordinator = None
         self.state_manager = None
     
-    def setup_integration_components(self, coordinator: LTMCAgentCoordinator, 
+    def setup_integration_components(self, coordinator: AgentCoordinationCore, 
                                    state_manager: LTMCAgentStateManager) -> bool:
         """
         Setup components for integration testing.
@@ -56,7 +57,7 @@ class CoordinationIntegrationTests:
         self.state_manager = state_manager
         return True
     
-    def test_integration_validation(self) -> Dict[str, Any]:
+    async def test_integration_validation(self) -> Dict[str, Any]:
         """
         Test LTMC integration validation functionality.
         
@@ -77,20 +78,24 @@ class CoordinationIntegrationTests:
             ltmc_validation = {}
             
             # Test memory retrieval
-            memory_result = memory_action(
+            memory_result = await memory_action(
                 action="retrieve",
                 query=f"coordination test_suite {self.coordinator.task_id}",
                 conversation_id=self.coordinator.conversation_id,
-                role="system"
+                k=5
             )
+            
+            # Check correct data structure - memory retrieval returns data.documents
+            data = memory_result.get('data', {})
+            documents = data.get('documents', []) or data.get('results', [])
             
             ltmc_validation["memory_integration"] = {
                 "success": memory_result.get('success', False),
-                "documents_found": len(memory_result.get('documents', []))
+                "documents_found": len(documents)
             }
             
             # Test graph relationships
-            graph_result = graph_action(
+            graph_result = await graph_action(
                 action="query",
                 query_text=f"coordination_{self.coordinator.task_id}",
                 return_paths=True

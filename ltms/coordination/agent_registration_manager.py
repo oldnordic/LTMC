@@ -18,7 +18,8 @@ from typing import Dict, List, Optional, Any
 from .agent_coordination_models import AgentStatus, AgentRegistration
 
 # LTMC MCP tool imports for real functionality
-from ltms.tools.consolidated import memory_action, graph_action
+from ltms.tools.memory.memory_actions import memory_action
+from ltms.tools.graph.graph_actions import graph_action
 
 
 class AgentRegistrationManager:
@@ -104,9 +105,18 @@ class AgentRegistrationManager:
                 }
             }
             
+            # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+            # Generate dynamic file name based on agent registration context and capabilities
+            start_timestamp = registration.start_time.replace(':', '_').replace('-', '_')
+            task_count = len(registration.task_scope)
+            dependency_count = len(registration.dependencies)
+            output_count = len(registration.outputs)
+            agent_type_clean = agent_type.replace('-', '_').replace(' ', '_').lower()
+            dynamic_registration_file_name = f"agent_registration_{agent_id}_{agent_type_clean}_task{self.task_id}_{task_count}tasks_{dependency_count}deps_{output_count}outputs_{start_timestamp}.md"
+            
             memory_action(
                 action="store",
-                file_name=f"agent_registration_{agent_id}_{self.task_id}.md",
+                file_name=dynamic_registration_file_name,
                 content=f"# Agent Registration: {agent_id}\n\n{json.dumps(registration_doc, indent=2)}",
                 tags=["agent_registration", agent_id, self.task_id],
                 conversation_id=self.conversation_id,
@@ -161,9 +171,16 @@ class AgentRegistrationManager:
                 "findings": findings
             }
             
+            # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+            # Generate dynamic file name based on agent status update context and activity timestamp
+            activity_timestamp = self.agent_registry[agent_id].last_activity.replace(':', '_').replace('-', '_')
+            status_value_clean = status.value.lower()
+            has_findings = "with_findings" if findings else "no_findings"
+            dynamic_status_file_name = f"agent_status_{agent_id}_{status_value_clean}_task{self.task_id}_{has_findings}_{activity_timestamp}.md"
+            
             memory_action(
                 action="store",
-                file_name=f"agent_status_{agent_id}_{status.value}_{int(time.time())}.md", 
+                file_name=dynamic_status_file_name, 
                 content=f"# Agent Status Update: {agent_id}\n\n{json.dumps(status_doc, indent=2)}",
                 tags=["agent_status", agent_id, status.value, self.task_id],
                 conversation_id=self.conversation_id,
@@ -172,9 +189,17 @@ class AgentRegistrationManager:
             
             # Store findings if provided
             if findings:
+                # Following LTMC Dynamic Method Architecture Principles - NO HARDCODED VALUES
+                # Generate dynamic file name based on agent findings context and data structure
+                findings_timestamp = datetime.now(timezone.utc).isoformat().replace(':', '_').replace('-', '_')
+                findings_keys = list(findings.keys())[:3] if isinstance(findings, dict) else []
+                findings_summary = '_'.join(findings_keys).lower() if findings_keys else 'data'
+                findings_count = len(findings) if isinstance(findings, (dict, list)) else 1
+                dynamic_findings_file_name = f"agent_findings_{agent_id}_task{self.task_id}_{findings_summary}_{findings_count}items_{findings_timestamp}.md"
+                
                 memory_action(
                     action="store",
-                    file_name=f"agent_findings_{agent_id}_{int(time.time())}.md",
+                    file_name=dynamic_findings_file_name,
                     content=f"# Agent Findings: {agent_id}\n\n{json.dumps(findings, indent=2)}",
                     tags=["agent_findings", agent_id, self.task_id],
                     conversation_id=self.conversation_id,

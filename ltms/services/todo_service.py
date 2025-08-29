@@ -4,7 +4,7 @@ import sqlite3
 from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional
 
-from ltms.config import get_config
+from ltms.config.json_config_loader import get_config
 from ltms.database.connection import get_db_connection, close_db_connection
 from ltms.database.schema import create_tables
 

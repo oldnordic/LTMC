@@ -13,11 +13,9 @@ from datetime import datetime, timezone
 from typing import Dict, Any
 
 # Import LTMC tools - MANDATORY
-from ltms.tools.consolidated import (
-    todo_action,            # Tool 2 - Task management - MANDATORY
-    chat_action,            # Tool 3 - Chat logging - MANDATORY
-    graph_action            # Tool 8 - Knowledge graph - MANDATORY
-)
+from ltms.tools.todos.todo_actions import todo_action            # Tool 2 - Task management - MANDATORY
+from ltms.tools.memory.chat_actions import chat_action            # Tool 3 - Chat logging - MANDATORY
+from ltms.tools.graph.graph_actions import graph_action            # Tool 8 - Knowledge graph - MANDATORY
 
 
 class WorkflowPhaseExecutorEarly:

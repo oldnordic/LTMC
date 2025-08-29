@@ -1,1 +1,0 @@
-# Tests package initialization for LTMC database synchronization

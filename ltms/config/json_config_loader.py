@@ -157,6 +157,10 @@ class LTMCJsonConfig:
     def orchestration_mode(self) -> str:
         return self._config_data.get("features", {}).get("orchestration_mode", "basic")
     
+    @property
+    def emoji_support_enabled(self) -> bool:
+        return self._config_data.get("features", {}).get("emoji_support", False)
+    
     # Paths
     @property
     def data_dir(self) -> str:

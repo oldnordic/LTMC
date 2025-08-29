@@ -43,6 +43,13 @@ class Config:
     HTTP_PORT: int = int(os.getenv("HTTP_PORT", "5050"))
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
     
+    # Neo4j configuration
+    NEO4J_URI: str = os.getenv("NEO4J_URI", "bolt://localhost:7687")
+    NEO4J_USER: str = os.getenv("NEO4J_USER", "neo4j")
+    NEO4J_PASSWORD: str = os.getenv("NEO4J_PASSWORD", "password")
+    NEO4J_DATABASE: str = os.getenv("NEO4J_DATABASE", "ltmc")
+    NEO4J_ENABLED: bool = os.getenv("NEO4J_ENABLED", "true").lower() == "true"
+    
     # Redis configuration
     REDIS_HOST: str = os.getenv("REDIS_HOST", "localhost")
     REDIS_PORT: int = int(os.getenv("REDIS_PORT", "6382"))
@@ -115,6 +122,15 @@ class Config:
         except Exception as e:
             issues.append(f"FAISS_INDEX_PATH validation failed: {e}")
         
+        # Check Neo4j configuration if enabled
+        if cls.NEO4J_ENABLED:
+            if not cls.NEO4J_URI:
+                issues.append("NEO4J_URI is empty but Neo4j is enabled")
+            if not cls.NEO4J_USER:
+                issues.append("NEO4J_USER is empty but Neo4j is enabled")
+            if not cls.NEO4J_PASSWORD:
+                issues.append("NEO4J_PASSWORD is empty but Neo4j is enabled")
+        
         # Check Redis configuration if enabled
         if cls.REDIS_ENABLED:
             if not cls.REDIS_HOST:
@@ -128,6 +144,9 @@ class Config:
             "config": {
                 "DB_PATH": cls.DB_PATH,
                 "FAISS_INDEX_PATH": cls.FAISS_INDEX_PATH,
+                "NEO4J_ENABLED": cls.NEO4J_ENABLED,
+                "NEO4J_URI": cls.NEO4J_URI,
+                "NEO4J_USER": cls.NEO4J_USER,
                 "REDIS_ENABLED": cls.REDIS_ENABLED,
                 "REDIS_HOST": cls.REDIS_HOST,
                 "REDIS_PORT": cls.REDIS_PORT,
@@ -144,6 +163,10 @@ class Config:
         logger.info(f"HTTP_HOST: {cls.HTTP_HOST}")
         logger.info(f"HTTP_PORT: {cls.HTTP_PORT}")
         logger.info(f"LOG_LEVEL: {cls.LOG_LEVEL}")
+        logger.info(f"NEO4J_ENABLED: {cls.NEO4J_ENABLED}")
+        if cls.NEO4J_ENABLED:
+            logger.info(f"NEO4J_URI: {cls.NEO4J_URI}")
+            logger.info(f"NEO4J_USER: {cls.NEO4J_USER}")
         logger.info(f"REDIS_ENABLED: {cls.REDIS_ENABLED}")
         if cls.REDIS_ENABLED:
             logger.info(f"REDIS_HOST: {cls.REDIS_HOST}")

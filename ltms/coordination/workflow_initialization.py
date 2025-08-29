@@ -23,10 +23,8 @@ from .legacy_code_analyzer import LegacyCodeAnalyzer
 from .safety_validator import SafetyValidator
 
 # Import LTMC tools - MANDATORY
-from ltms.tools.consolidated import (
-    todo_action,        # Tool 2 - Task management - MANDATORY
-    chat_action         # Tool 3 - Chat logging - MANDATORY
-)
+from ltms.tools.todos.todo_actions import todo_action        # Tool 2 - Task management - MANDATORY
+from ltms.tools.memory.chat_actions import chat_action         # Tool 3 - Chat logging - MANDATORY
 
 
 class WorkflowInitialization:
