@@ -272,5 +272,74 @@ def create_tables(conn: sqlite3.Connection) -> None:
             # Re-raise if it's not a duplicate column error
             raise
         # Column already exists, continue
+
+    # =====================================
+    # MINDGRAPH INTELLIGENCE TRACKING TABLES
+    # =====================================
+    
+    # Create MindGraph_Agents table for tracking AI agents
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS MindGraph_Agents (
+            agent_id TEXT PRIMARY KEY,
+            agent_name TEXT NOT NULL,
+            agent_type TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            last_active_at TEXT,
+            session_count INTEGER DEFAULT 0,
+            total_changes INTEGER DEFAULT 0,
+            metadata TEXT  -- JSON object
+        )
+    """)
+    
+    # Create MindGraph_Changes table for tracking changes made by agents
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS MindGraph_Changes (
+            change_id TEXT PRIMARY KEY,
+            agent_id TEXT NOT NULL,
+            change_type TEXT NOT NULL,
+            file_path TEXT,
+            lines_changed INTEGER,
+            change_summary TEXT NOT NULL,
+            change_details TEXT,
+            timestamp TEXT NOT NULL,
+            session_id TEXT,
+            conversation_id TEXT,
+            impact_score REAL DEFAULT 0.0,
+            metadata TEXT,  -- JSON object
+            FOREIGN KEY (agent_id) REFERENCES MindGraph_Agents (agent_id)
+        )
+    """)
+    
+    # Create MindGraph_Reasons table for tracking reasoning chains
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS MindGraph_Reasons (
+            reason_id TEXT PRIMARY KEY,
+            reason_type TEXT NOT NULL,
+            description TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            priority_level INTEGER DEFAULT 1,
+            confidence_score REAL DEFAULT 1.0,
+            context TEXT,  -- JSON object
+            reasoning_chain_id TEXT,
+            metadata TEXT  -- JSON object
+        )
+    """)
+    
+    # Create MindGraph_Relationships table for linking changes to reasons
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS MindGraph_Relationships (
+            relationship_id TEXT PRIMARY KEY,
+            source_type TEXT NOT NULL,
+            source_id TEXT NOT NULL,
+            target_type TEXT NOT NULL,
+            target_id TEXT NOT NULL,
+            relationship_type TEXT NOT NULL,
+            strength REAL DEFAULT 1.0,
+            confidence REAL DEFAULT 1.0,
+            created_at TEXT NOT NULL,
+            is_active BOOLEAN DEFAULT TRUE,
+            metadata TEXT  -- JSON object
+        )
+    """)
     
     conn.commit()

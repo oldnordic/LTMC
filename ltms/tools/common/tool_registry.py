@@ -31,7 +31,11 @@ def get_consolidated_tools() -> Dict[str, Dict[str, Any]]:
     from ltms.tools.coordination.coordination_actions import coordination_action
     from ltms.tools.sprints.sprint_actions import sprint_action
     
-    return {
+    # Import Sequential MCP tools
+    from ltms.integrations.sequential_thinking import get_sequential_mcp_tools
+    
+    # Get base consolidated tools
+    base_tools = {
         "memory_action": {
             "handler": memory_action,
             "description": "Memory operations with real SQLite+FAISS implementation: store, retrieve, build_context",
@@ -253,6 +257,12 @@ def get_consolidated_tools() -> Dict[str, Dict[str, Any]]:
             }
         }
     }
+    
+    # Add Sequential MCP tools to the registry
+    sequential_tools = get_sequential_mcp_tools()
+    base_tools.update(sequential_tools)
+    
+    return base_tools
 
 
 # Legacy alias for backward compatibility

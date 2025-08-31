@@ -342,6 +342,85 @@ class DatabaseManager:
             self._faiss_manager = None
             logger.info("FAISS manager reference cleared")
     
+    # Atomic transaction interface compatibility methods
+    def store_document(self, doc_id: str, content: str, tags: List[str] = None, 
+                      metadata: Dict[str, Any] = None) -> bool:
+        """Store document in SQLite - adapter method for atomic transaction compatibility."""
+        try:
+            tags_json = json.dumps(tags) if tags else "[]"
+            metadata_json = json.dumps(metadata) if metadata else "{}"
+            
+            query = """
+                INSERT OR REPLACE INTO documents (id, content, tags, metadata, created_at, updated_at)
+                VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))
+            """
+            
+            rowcount = self.execute_sqlite(
+                query, 
+                (doc_id, content, tags_json, metadata_json)
+            )
+            
+            logger.debug(f"Stored document {doc_id} in SQLite: {rowcount} rows affected")
+            return rowcount > 0
+            
+        except Exception as e:
+            logger.error(f"Failed to store document {doc_id} in SQLite: {e}")
+            return False
+    
+    def delete_document(self, doc_id: str) -> bool:
+        """Delete document from SQLite - adapter method for atomic transaction compatibility."""
+        try:
+            query = "DELETE FROM documents WHERE id = ?"
+            rowcount = self.execute_sqlite(query, (doc_id,))
+            
+            logger.debug(f"Deleted document {doc_id} from SQLite: {rowcount} rows affected")
+            return rowcount > 0
+            
+        except Exception as e:
+            logger.error(f"Failed to delete document {doc_id} from SQLite: {e}")
+            return False
+    
+    def document_exists(self, doc_id: str) -> bool:
+        """Check if document exists in SQLite - adapter method for atomic transaction compatibility."""
+        try:
+            query = "SELECT 1 FROM documents WHERE id = ? LIMIT 1"
+            result = self.execute_sqlite(query, (doc_id,), fetch='one')
+            return result is not None
+            
+        except Exception as e:
+            logger.error(f"Failed to check document existence {doc_id} in SQLite: {e}")
+            return False
+
+    def retrieve_document(self, doc_id: str) -> Optional[Dict[str, Any]]:
+        """Retrieve document from SQLite - adapter method for atomic transaction compatibility."""
+        try:
+            query = "SELECT id, content, tags, metadata, created_at, updated_at FROM documents WHERE id = ?"
+            result = self.execute_sqlite(query, (doc_id,), fetch='one')
+            
+            if result:
+                # Parse JSON fields and return structured document
+                tags = json.loads(result[2]) if result[2] else []
+                metadata = json.loads(result[3]) if result[3] else {}
+                
+                document = {
+                    'id': result[0],
+                    'content': result[1],
+                    'tags': tags,
+                    'metadata': metadata,
+                    'created_at': result[4],
+                    'updated_at': result[5]
+                }
+                
+                logger.debug(f"Retrieved document {doc_id} from SQLite")
+                return document
+            else:
+                logger.debug(f"Document {doc_id} not found in SQLite")
+                return None
+            
+        except Exception as e:
+            logger.error(f"Failed to retrieve document {doc_id} from SQLite: {e}")
+            return None
+
     def __del__(self):
         """Cleanup connections on object deletion."""
         try:

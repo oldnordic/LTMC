@@ -337,6 +337,23 @@ class Neo4jManager:
             logger.error(f"Failed to create document relationship: {e}")
             return False
     
+    async def create_relationship(self, source_id: str, target_id: str, 
+                                relationship_type: str, properties: Dict[str, Any] = None) -> bool:
+        """
+        Create relationship between two nodes (alias for create_document_relationship).
+        
+        Args:
+            source_id: Source node identifier
+            target_id: Target node identifier
+            relationship_type: Type of relationship (e.g., "NEXT", "REFERENCES")
+            properties: Relationship properties
+            
+        Returns:
+            True if relationship created successfully, False otherwise
+        """
+        # Alias to create_document_relationship for compatibility
+        return await self.create_document_relationship(source_id, target_id, relationship_type, properties)
+    
     def get_health_status(self) -> Dict[str, Any]:
         """
         Get health status of Neo4j graph store.

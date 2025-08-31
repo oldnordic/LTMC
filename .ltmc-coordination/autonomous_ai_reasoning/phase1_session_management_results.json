@@ -1,0 +1,490 @@
+{
+  "session_management_metadata": {
+    "design_date": "2025-08-30",
+    "agent_type": "Session Management Agent",
+    "target_file": "/home/feanor/Projects/ltmc/ltms/integrations/sequential_thinking/mcp_tools.py",
+    "design_scope": "Autonomous session management and conversation_id extraction for AI reasoning chains",
+    "quality_standard": "Production-ready implementation with atomic transaction consistency"
+  },
+
+  "session_architecture_design": {
+    "core_components": {
+      "SessionContextExtractor": {
+        "purpose": "Extract and generate session context from multiple sources",
+        "location": "/home/feanor/Projects/ltmc/ltms/integrations/sequential_thinking/session_context.py",
+        "responsibilities": [
+          "Extract session_id from MCP request context",
+          "Detect conversation_id from request metadata",
+          "Generate intelligent defaults when context missing",
+          "Maintain session continuity across reasoning chains"
+        ]
+      },
+      
+      "ConversationTracker": {
+        "purpose": "Track and manage conversation state across agent interactions",
+        "location": "Integrated into SessionContextExtractor",
+        "responsibilities": [
+          "Map MCP client sessions to conversation IDs",
+          "Track conversation flow across multiple tool calls",
+          "Preserve conversation context during handoffs",
+          "Generate conversation IDs for new interactions"
+        ]
+      },
+      
+      "ReasoningChainManager": {
+        "purpose": "Manage autonomous reasoning chain continuity",
+        "location": "Enhanced within SequentialMCPTools",
+        "responsibilities": [
+          "Auto-link thoughts within reasoning chains",
+          "Detect and recover broken chains",
+          "Generate previous_thought_id automatically",
+          "Calculate step numbers from chain state"
+        ]
+      }
+    },
+
+    "context_extraction_hierarchy": {
+      "level_1_explicit": {
+        "priority": 1,
+        "source": "Direct parameters in MCP request",
+        "extraction_method": "Direct key access from arguments",
+        "fields": ["session_id", "conversation_id", "agent_id", "metadata"],
+        "implementation": "Check arguments dict for explicit values"
+      },
+      
+      "level_2_mcp_metadata": {
+        "priority": 2,
+        "source": "MCP request metadata and headers",
+        "extraction_method": "Parse MCP protocol metadata",
+        "fields": ["client_session", "request_id", "correlation_id"],
+        "implementation": "Extract from MCP transport layer context"
+      },
+      
+      "level_3_orchestration": {
+        "priority": 3,
+        "source": "Orchestration service state",
+        "extraction_method": "Query orchestration context",
+        "fields": ["active_agent_id", "session_state", "workflow_id"],
+        "implementation": "Access orchestration_service.get_current_context()"
+      },
+      
+      "level_4_mind_graph": {
+        "priority": 4,
+        "source": "Mind Graph agent tracking",
+        "extraction_method": "Access MCPToolBase context state",
+        "fields": ["current_session_id", "current_conversation_id", "reasoning_chain_id"],
+        "implementation": "Use self.current_* attributes from base class"
+      },
+      
+      "level_5_database": {
+        "priority": 5,
+        "source": "Database state queries",
+        "extraction_method": "Query active sessions and conversations",
+        "fields": ["recent_session", "active_conversation", "last_thought"],
+        "implementation": "Query SQLite for recent activity patterns"
+      },
+      
+      "level_6_generation": {
+        "priority": 6,
+        "source": "Intelligent generation algorithms",
+        "extraction_method": "Generate using contextual patterns",
+        "fields": ["generated_session_id", "generated_conversation_id"],
+        "implementation": "Use timestamp + agent_id + context hash"
+      }
+    }
+  },
+
+  "conversation_id_extraction_algorithms": {
+    "primary_extraction": {
+      "algorithm": "Hierarchical Context Extraction",
+      "steps": [
+        {
+          "step": 1,
+          "action": "Check explicit conversation_id in arguments",
+          "fallback": "Continue to step 2"
+        },
+        {
+          "step": 2,
+          "action": "Extract from MCP request correlation headers",
+          "fallback": "Continue to step 3"
+        },
+        {
+          "step": 3,
+          "action": "Query Mind Graph for active conversation context",
+          "fallback": "Continue to step 4"
+        },
+        {
+          "step": 4,
+          "action": "Check database for recent conversation in session",
+          "fallback": "Generate new conversation_id"
+        }
+      ]
+    },
+    
+    "conversation_detection_patterns": {
+      "pattern_1_continuous": {
+        "name": "Continuous Conversation Detection",
+        "trigger": "Multiple tool calls within 5 minute window",
+        "detection": "Same session_id + temporal proximity",
+        "action": "Reuse existing conversation_id"
+      },
+      
+      "pattern_2_handoff": {
+        "name": "Agent Handoff Detection",
+        "trigger": "Tool call with handoff metadata",
+        "detection": "handoff_from_agent in metadata",
+        "action": "Continue conversation with new agent context"
+      },
+      
+      "pattern_3_chain": {
+        "name": "Reasoning Chain Detection",
+        "trigger": "Sequential thinking with previous_thought_id",
+        "detection": "Chain linkage in thought metadata",
+        "action": "Use conversation from chain context"
+      },
+      
+      "pattern_4_new": {
+        "name": "New Conversation Detection",
+        "trigger": "No recent activity or explicit reset",
+        "detection": "No matching patterns found",
+        "action": "Generate new conversation_id with context"
+      }
+    },
+    
+    "conversation_id_generation": {
+      "format": "conv_{timestamp}_{session_hash}_{sequence}",
+      "components": {
+        "timestamp": "Unix timestamp in base36 for compactness",
+        "session_hash": "First 8 chars of session_id hash",
+        "sequence": "Incrementing counter for uniqueness"
+      },
+      "example": "conv_lk3n4m2_a7b3c9d1_001",
+      "uniqueness_guarantee": "Combination ensures global uniqueness",
+      "traceability": "Format enables session correlation and time ordering"
+    }
+  },
+
+  "session_continuity_patterns": {
+    "pattern_1_chain_recovery": {
+      "name": "Broken Chain Recovery",
+      "scenario": "Previous thought_id missing in sequential reasoning",
+      "detection": "step_number > 1 but no previous_thought_id",
+      "recovery_algorithm": [
+        "Query database for last thought in session",
+        "Verify thought belongs to same conversation",
+        "Auto-link with recovered previous_thought_id",
+        "Log recovery action for audit"
+      ]
+    },
+    
+    "pattern_2_session_resume": {
+      "name": "Session Resumption",
+      "scenario": "Continuing work after interruption",
+      "detection": "Session_id exists but time gap detected",
+      "recovery_algorithm": [
+        "Load session state from database",
+        "Reconstruct conversation context",
+        "Resume with incremented step numbers",
+        "Preserve chain continuity"
+      ]
+    },
+    
+    "pattern_3_parallel_chains": {
+      "name": "Parallel Reasoning Chains",
+      "scenario": "Multiple concurrent reasoning chains in session",
+      "detection": "Same session_id with different chain_ids",
+      "management_algorithm": [
+        "Track chains independently via chain_id",
+        "Maintain separate step counters per chain",
+        "Enable chain merging when convergence detected",
+        "Preserve all chain histories"
+      ]
+    },
+    
+    "pattern_4_agent_collaboration": {
+      "name": "Multi-Agent Collaboration",
+      "scenario": "Multiple agents working on same problem",
+      "detection": "Different agent_ids in same conversation",
+      "coordination_algorithm": [
+        "Share conversation context across agents",
+        "Maintain agent-specific reasoning chains",
+        "Enable context handoff between agents",
+        "Track agent contributions separately"
+      ]
+    }
+  },
+
+  "implementation_classes": {
+    "SessionContext": {
+      "type": "dataclass",
+      "location": "/home/feanor/Projects/ltmc/ltms/integrations/sequential_thinking/session_context.py",
+      "fields": [
+        {"name": "session_id", "type": "Optional[str]", "description": "Unique session identifier"},
+        {"name": "conversation_id", "type": "Optional[str]", "description": "Conversation thread identifier"},
+        {"name": "agent_id", "type": "Optional[str]", "description": "Agent performing the action"},
+        {"name": "chain_id", "type": "Optional[str]", "description": "Reasoning chain identifier"},
+        {"name": "previous_thought_id", "type": "Optional[str]", "description": "Link to previous thought"},
+        {"name": "step_number", "type": "int", "description": "Step in reasoning sequence"},
+        {"name": "metadata", "type": "Dict[str, Any]", "description": "Additional context metadata"},
+        {"name": "extraction_sources", "type": "List[str]", "description": "Sources used for extraction"},
+        {"name": "generated_fields", "type": "List[str]", "description": "Fields that were auto-generated"},
+        {"name": "timestamp", "type": "datetime", "description": "Context creation timestamp"}
+      ]
+    },
+    
+    "SessionContextExtractor": {
+      "type": "class",
+      "methods": [
+        {
+          "name": "__init__",
+          "parameters": ["db_manager: DatabaseManager", "orchestration: Optional[OrchestrationService]"],
+          "description": "Initialize extractor with database and orchestration access"
+        },
+        {
+          "name": "extract_context",
+          "signature": "async def extract_context(arguments: Dict[str, Any], tool_name: str, mcp_metadata: Optional[Dict] = None) -> SessionContext",
+          "description": "Extract complete session context from available sources"
+        },
+        {
+          "name": "generate_session_id",
+          "signature": "def generate_session_id(agent_id: str, context_hash: str) -> str",
+          "description": "Generate unique session identifier"
+        },
+        {
+          "name": "generate_conversation_id",
+          "signature": "def generate_conversation_id(session_id: str, sequence: int) -> str",
+          "description": "Generate unique conversation identifier"
+        },
+        {
+          "name": "detect_conversation_pattern",
+          "signature": "async def detect_conversation_pattern(session_id: str, timestamp: datetime) -> Optional[str]",
+          "description": "Detect existing conversation pattern or need for new one"
+        },
+        {
+          "name": "recover_chain_context",
+          "signature": "async def recover_chain_context(session_id: str, step_number: int) -> Optional[Dict[str, Any]]",
+          "description": "Recover broken chain context from database"
+        },
+        {
+          "name": "validate_context",
+          "signature": "def validate_context(context: SessionContext) -> bool",
+          "description": "Validate extracted context for completeness"
+        }
+      ]
+    },
+    
+    "EnhancedSequentialMCPTools": {
+      "type": "class extension",
+      "new_methods": [
+        {
+          "name": "autonomous_thought_create",
+          "signature": "async def autonomous_thought_create(content: str, **kwargs) -> Dict[str, Any]",
+          "description": "Create thought with automatic context extraction"
+        },
+        {
+          "name": "_extract_session_context",
+          "signature": "async def _extract_session_context(kwargs: Dict[str, Any]) -> SessionContext",
+          "description": "Extract session context using SessionContextExtractor"
+        },
+        {
+          "name": "_ensure_chain_continuity",
+          "signature": "async def _ensure_chain_continuity(context: SessionContext) -> SessionContext",
+          "description": "Ensure reasoning chain continuity with auto-recovery"
+        },
+        {
+          "name": "_generate_metadata",
+          "signature": "def _generate_metadata(context: SessionContext, original_metadata: Optional[Dict]) -> Dict[str, Any]",
+          "description": "Generate complete metadata from context"
+        }
+      ]
+    }
+  },
+
+  "integration_specifications": {
+    "orchestration_integration": {
+      "integration_points": [
+        "Access orchestration_service for active agent context",
+        "Query session_state_service for session continuity",
+        "Use tool_cache_service for conversation correlation",
+        "Enable multi-agent coordination through shared context"
+      ],
+      "implementation_details": {
+        "orchestration_context_access": "self.orchestration.get_current_context()",
+        "session_state_query": "self.session_state_service.get_active_session()",
+        "cache_correlation": "self.tool_cache.get_conversation_context(session_id)",
+        "agent_coordination": "self.orchestration.coordinate_agents(conversation_id)"
+      }
+    },
+    
+    "mind_graph_integration": {
+      "integration_points": [
+        "Track session management decisions in Mind Graph",
+        "Record context extraction sources for traceability",
+        "Link autonomous actions to reasoning chains",
+        "Enable intelligence tracking across sessions"
+      ],
+      "implementation_details": {
+        "decision_tracking": "_track_mind_graph_change('session_context_extracted', details)",
+        "source_recording": "_track_reasoning('context_extraction', extraction_sources)",
+        "chain_linking": "_link_change_to_reason(change_id, reason_id, 'AUTONOMOUS')",
+        "intelligence_tracking": "Update Mind Graph with session intelligence patterns"
+      }
+    },
+    
+    "database_integration": {
+      "atomic_operations": [
+        "Session context queries within existing transactions",
+        "Conversation state updates with ACID guarantees",
+        "Chain recovery operations with consistency checks",
+        "Parallel access coordination across databases"
+      ],
+      "performance_requirements": {
+        "context_extraction": "< 50ms for complete extraction",
+        "session_query": "< 10ms for active session lookup",
+        "chain_recovery": "< 100ms for full chain reconstruction",
+        "generation": "< 5ms for ID generation"
+      }
+    }
+  },
+
+  "testing_strategy": {
+    "unit_tests": [
+      {
+        "test": "test_context_extraction_hierarchy",
+        "description": "Verify extraction follows priority hierarchy correctly"
+      },
+      {
+        "test": "test_conversation_id_generation",
+        "description": "Ensure generated IDs are unique and traceable"
+      },
+      {
+        "test": "test_chain_recovery",
+        "description": "Validate broken chain recovery algorithms"
+      },
+      {
+        "test": "test_session_continuity",
+        "description": "Test session resumption after interruption"
+      }
+    ],
+    
+    "integration_tests": [
+      {
+        "test": "test_autonomous_thought_creation",
+        "description": "End-to-end autonomous thought creation with context"
+      },
+      {
+        "test": "test_multi_agent_conversation",
+        "description": "Verify conversation continuity across agents"
+      },
+      {
+        "test": "test_parallel_chains",
+        "description": "Test parallel reasoning chain management"
+      },
+      {
+        "test": "test_orchestration_integration",
+        "description": "Validate orchestration service integration"
+      }
+    ],
+    
+    "performance_tests": [
+      {
+        "test": "test_extraction_performance",
+        "description": "Verify < 50ms extraction time under load"
+      },
+      {
+        "test": "test_concurrent_sessions",
+        "description": "Test concurrent session handling"
+      },
+      {
+        "test": "test_memory_usage",
+        "description": "Monitor memory usage with many active sessions"
+      }
+    ]
+  },
+
+  "deployment_configuration": {
+    "configuration_options": {
+      "autonomous_mode": {
+        "type": "boolean",
+        "default": true,
+        "description": "Enable autonomous context extraction"
+      },
+      "fallback_mode": {
+        "type": "string",
+        "options": ["error", "generate", "manual"],
+        "default": "generate",
+        "description": "Behavior when context extraction fails"
+      },
+      "extraction_timeout_ms": {
+        "type": "integer",
+        "default": 50,
+        "description": "Maximum time for context extraction"
+      },
+      "cache_ttl_seconds": {
+        "type": "integer",
+        "default": 300,
+        "description": "TTL for cached session contexts"
+      }
+    },
+    
+    "monitoring_metrics": [
+      "context_extraction_success_rate",
+      "conversation_continuity_rate",
+      "chain_recovery_frequency",
+      "average_extraction_time_ms",
+      "generated_vs_extracted_ratio"
+    ],
+    
+    "logging_strategy": {
+      "verbose_mode": "Log all extraction sources and decisions",
+      "normal_mode": "Log context generation and recovery actions",
+      "minimal_mode": "Log only errors and warnings"
+    }
+  },
+
+  "implementation_roadmap": {
+    "immediate_implementation": [
+      "Create SessionContext dataclass",
+      "Implement basic SessionContextExtractor",
+      "Add autonomous_thought_create method",
+      "Integrate with existing thought_create"
+    ],
+    
+    "phase_2_enhancements": [
+      "Add conversation pattern detection",
+      "Implement chain recovery algorithms",
+      "Enable multi-agent coordination",
+      "Add performance optimizations"
+    ],
+    
+    "phase_3_production": [
+      "Complete integration testing",
+      "Add monitoring and metrics",
+      "Deploy with configuration options",
+      "Document usage patterns"
+    ]
+  },
+
+  "success_criteria": {
+    "functional_requirements": [
+      "100% backward compatibility with explicit parameters",
+      "Autonomous extraction succeeds in > 95% of cases",
+      "Conversation continuity maintained across sessions",
+      "Chain recovery works for all broken chains"
+    ],
+    
+    "performance_requirements": [
+      "Context extraction < 50ms in 99% of cases",
+      "No memory leaks with long-running sessions",
+      "Concurrent session handling without deadlocks",
+      "Database operations within atomic transactions"
+    ],
+    
+    "quality_requirements": [
+      "Zero production failures from autonomous mode",
+      "Complete audit trail for all extractions",
+      "Graceful degradation when services unavailable",
+      "Clear error messages for debugging"
+    ]
+  }
+}

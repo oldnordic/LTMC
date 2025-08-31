@@ -98,6 +98,12 @@ class GraphTools(MCPToolBase):
                 return self._create_error_response('Neo4j graph store not available')
             
             properties = params.get('properties', {})
+            # Handle properties as JSON string from MCP interface
+            if isinstance(properties, str):
+                try:
+                    properties = json.loads(properties)
+                except (json.JSONDecodeError, TypeError):
+                    properties = {}
             weight = params.get('weight', 1.0)
             metadata = params.get('metadata', {})
             

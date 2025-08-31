@@ -143,61 +143,52 @@ class FAISSManager:
             return False
     
     def _generate_embedding(self, content: str) -> np.ndarray:
-        """Generate embedding vector for content."""
-        # In test mode, return fake embedding
+        """Generate semantic embedding vector for content using real transformer model."""
+        # In test mode, return deterministic fake embedding
         if self.test_mode:
             # Create deterministic fake embedding based on content hash
             hash_value = hash(content)
             np.random.seed(abs(hash_value) % (2**32))
             return np.random.random(self.dimension).astype('float32')
         
-        # For production, use keyword-based similarity embedding
-        # This creates embeddings where similar keywords result in similar vectors
+        # For production, use real semantic embeddings via EmbeddingService
         try:
-            # Convert content to lowercase and extract keywords
-            content_lower = content.lower()
+            # Import delayed to avoid circular imports and startup issues  
+            from ..services.embedding_service import get_embedding_service
             
-            # Define important keywords that should have strong similarity
-            keywords = [
-                'autonomous', 'development', 'task', 'urgent', 'kwecli', 'protocol', 'test',
-                'daemon', 'digital', 'body', 'memory', 'ltmc', 'bridge', 'system',
-                'conversation', 'filtering', 'faiss', 'vector', 'search', 'document'
-            ]
+            # Get singleton embedding service instance
+            embedding_service = get_embedding_service(test_mode=self.test_mode)
             
-            # Create embedding based on keyword presence and content characteristics
-            embedding = np.zeros(self.dimension, dtype='float32')
+            if not embedding_service.is_available():
+                logger.warning("EmbeddingService not available, falling back to zero vector")
+                return np.zeros(self.dimension, dtype='float32')
             
-            # Fill embedding based on keyword matching
-            for i, keyword in enumerate(keywords[:min(len(keywords), self.dimension//10)]):
-                if keyword in content_lower:
-                    # Strong signal for exact keyword match
-                    start_idx = i * 10
-                    end_idx = min(start_idx + 10, self.dimension)
-                    embedding[start_idx:end_idx] = 1.0
-                    
-            # Add content-based features
-            content_hash = abs(hash(content_lower)) % (2**16)
-            np.random.seed(content_hash)
+            # Generate real semantic embedding with caching and normalization
+            embedding = embedding_service.encode(
+                content, 
+                use_cache=True,  # Enable caching for performance
+                normalize=True   # Normalize for cosine similarity
+            )
             
-            # Fill remaining dimensions with hash-based values but biased by keyword presence
-            keyword_count = sum(1 for kw in keywords if kw in content_lower)
-            bias = 0.5 + (keyword_count * 0.1)  # More keywords = higher similarity potential
+            # Verify dimension consistency for FAISS compatibility
+            if len(embedding) != self.dimension:
+                logger.error(f"Embedding dimension mismatch: got {len(embedding)}, expected {self.dimension}")
+                return np.zeros(self.dimension, dtype='float32')
             
-            for i in range(len(keywords) * 10, self.dimension):
-                # Use biased random values
-                embedding[i] = np.random.random() * bias
-                
-            # Normalize the embedding
-            norm = np.linalg.norm(embedding)
-            if norm > 0:
-                embedding = embedding / norm
-                
+            # Ensure correct dtype for FAISS
+            embedding = embedding.astype('float32')
+            
+            logger.debug(f"Generated semantic embedding for {len(content)} chars content")
             return embedding
             
         except Exception as e:
-            logger.error(f"Failed to generate embedding: {e}")
-            # Return zero vector as fallback
-            return np.zeros(self.dimension, dtype='float32')
+            logger.error(f"Failed to generate semantic embedding: {e}")
+            # Return normalized zero vector as fallback to maintain system stability
+            fallback = np.zeros(self.dimension, dtype='float32')
+            # Add small random noise to prevent identical zero vectors
+            fallback += np.random.normal(0, 0.01, self.dimension).astype('float32')
+            fallback = fallback / np.linalg.norm(fallback)  # Normalize
+            return fallback
     
     async def store_document_vector(self, doc_id: str, content: str, 
                                    metadata: Dict[str, Any] = None) -> bool:

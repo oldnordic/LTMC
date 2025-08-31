@@ -53,7 +53,14 @@ class Neo4jGraphStore:
     
     def is_available(self) -> bool:
         """Check if Neo4j is available and connected."""
-        return self.driver is not None and NEO4J_AVAILABLE
+        if not (self.driver and NEO4J_AVAILABLE):
+            return False
+        try:
+            with self.driver.session() as session:
+                session.run("RETURN 1")
+            return True
+        except Exception:
+            return False
     
     def health_check(self) -> Dict[str, Any]:
         """Perform comprehensive health check of Neo4j connection.
@@ -230,6 +237,27 @@ class Neo4jGraphStore:
                 "success": False,
                 "error": str(e)
             }
+    
+    def create_document_relationship(
+        self, 
+        source_doc_id: str, 
+        target_doc_id: str, 
+        relationship_type: str,
+        properties: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """Create a relationship between two documents (alias for create_relationship).
+        
+        Args:
+            source_doc_id: Source document ID
+            target_doc_id: Target document ID
+            relationship_type: Type of relationship
+            properties: Optional relationship properties
+            
+        Returns:
+            Dictionary with success status
+        """
+        # This is an alias to create_relationship with the same signature
+        return self.create_relationship(source_doc_id, target_doc_id, relationship_type, properties)
     
     def query_relationships(
         self, 

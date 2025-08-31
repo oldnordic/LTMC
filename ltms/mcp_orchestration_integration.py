@@ -20,6 +20,15 @@ from ltms.services.tool_cache_service import get_tool_cache_service
 from ltms.services.chunk_buffer_service import get_chunk_buffer_service
 from ltms.services.session_state_service import get_session_state_service
 
+# Context compaction integration imports
+from ltms.context.compaction_hooks import (
+    ContextCompactionManager, get_compaction_manager,
+    claude_code_pre_compaction_hook, claude_code_post_compaction_hook
+)
+from ltms.context.restoration_schema import (
+    LeanContextSchema, ContextSchemaValidator
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -32,11 +41,13 @@ class OrchestrationIntegration:
         self.tool_cache_service = None
         self.chunk_buffer_service = None
         self.session_state_service = None
+        self.compaction_manager = None
         self._enabled = False
         self._agent_contexts: Dict[str, Dict[str, Any]] = {}
         self._health_status = {
             'orchestration_enabled': False,
             'services_available': {},
+            'context_compaction_enabled': False,
             'last_check': None
         }
     
@@ -78,6 +89,23 @@ class OrchestrationIntegration:
                 logger.warning(f"Session state service not available: {e}")
                 self._health_status['services_available']['session_state'] = False
             
+            # Initialize context compaction manager
+            try:
+                self.compaction_manager = await get_compaction_manager()
+                validation_report = await self.compaction_manager.validate_context_integrity()
+                if validation_report.get('overall_status') == 'healthy':
+                    self._health_status['context_compaction_enabled'] = True
+                    self._health_status['services_available']['context_compaction'] = True
+                    logger.info("Context compaction manager initialized and healthy")
+                else:
+                    self._health_status['context_compaction_enabled'] = False
+                    self._health_status['services_available']['context_compaction'] = False
+                    logger.warning(f"Context compaction manager degraded: {validation_report.get('overall_status')}")
+            except Exception as e:
+                logger.warning(f"Context compaction manager not available: {e}")
+                self._health_status['context_compaction_enabled'] = False
+                self._health_status['services_available']['context_compaction'] = False
+            
             self._enabled = True
             self._health_status['orchestration_enabled'] = True
             self._health_status['last_check'] = datetime.now(timezone.utc).isoformat()
@@ -88,6 +116,10 @@ class OrchestrationIntegration:
             self._enabled = False
             self._health_status['orchestration_enabled'] = False
             self._health_status['last_check'] = datetime.now(timezone.utc).isoformat()
+    
+    async def initialize_orchestration(self):
+        """Initialize orchestration with default FULL mode - wrapper for validation."""
+        await self.initialize(OrchestrationMode.FULL)
     
     def orchestrated_tool(
         self,
@@ -252,6 +284,175 @@ class OrchestrationIntegration:
             logger.error(f"Failed to create default agent: {e}")
             # Return a simple fallback ID
             return "fallback_agent"
+    
+    async def execute_pre_compaction_hook(self, 
+                                        current_context: Dict[str, Any],
+                                        active_todos: List[Dict[str, Any]],
+                                        active_file: Optional[str] = None,
+                                        current_goal: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Execute pre-compaction hook with orchestration context.
+        
+        This integrates context compaction with orchestration by including
+        orchestration state in the context capture.
+        
+        Args:
+            current_context: Full conversation context
+            active_todos: Current todo list state
+            active_file: Currently active file
+            current_goal: Current primary objective
+            
+        Returns:
+            Lean context for restoration with orchestration metadata
+        """
+        if not self.compaction_manager:
+            logger.warning("Context compaction not available - orchestration state not preserved")
+            return {
+                "status": "compaction_unavailable",
+                "fallback": True,
+                "message": "Context compaction manager not initialized"
+            }
+        
+        try:
+            # Enhance context with orchestration state
+            enhanced_context = current_context.copy()
+            
+            # Add orchestration metadata to context
+            orchestration_state = {
+                "orchestration_enabled": self._enabled,
+                "active_agents": list(self._agent_contexts.keys()),
+                "health_status": self._health_status,
+                "services_available": self._health_status.get('services_available', {})
+            }
+            
+            enhanced_context["orchestration_state"] = orchestration_state
+            
+            # Add agent context information
+            if self._agent_contexts:
+                enhanced_context["agent_contexts"] = {
+                    agent_id: {
+                        "session_id": context.get("session_id"),
+                        "capabilities": context.get("capabilities")
+                    }
+                    for agent_id, context in self._agent_contexts.items()
+                }
+            
+            # Execute pre-compaction hook with enhanced context
+            result = await self.compaction_manager.pre_compaction_hook(
+                current_context=enhanced_context,
+                active_todos=active_todos,
+                active_file=active_file,
+                current_goal=current_goal
+            )
+            
+            # Add orchestration metadata to the lean context
+            if isinstance(result, dict) and "immediate_context" in result:
+                if "orchestration_preservation" not in result:
+                    result["orchestration_preservation"] = {
+                        "orchestration_was_enabled": self._enabled,
+                        "preserved_agent_count": len(self._agent_contexts),
+                        "services_preserved": list(self._health_status.get('services_available', {}).keys())
+                    }
+            
+            logger.info("Pre-compaction hook executed with orchestration context preservation")
+            return result
+            
+        except Exception as e:
+            logger.error(f"Orchestrated pre-compaction hook failed: {e}")
+            return {
+                "status": "error",
+                "error": str(e),
+                "fallback_context": "Orchestrated context compaction failed, manual recovery required"
+            }
+    
+    async def execute_post_compaction_hook(self) -> Dict[str, Any]:
+        """
+        Execute post-compaction hook with orchestration restoration.
+        
+        This restores both the minimal context and orchestration state
+        after compaction events.
+        
+        Returns:
+            Restored context with orchestration state
+        """
+        if not self.compaction_manager:
+            logger.warning("Context compaction not available - cannot restore orchestration state")
+            return {"status": "compaction_unavailable"}
+        
+        try:
+            # Execute post-compaction restoration
+            restoration_result = await self.compaction_manager.post_compaction_hook()
+            
+            if restoration_result.get("status") == "error":
+                logger.error("Context restoration failed")
+                return restoration_result
+            
+            # Check if orchestration state was preserved
+            orchestration_preservation = restoration_result.get("orchestration_preservation")
+            if orchestration_preservation:
+                orchestration_was_enabled = orchestration_preservation.get("orchestration_was_enabled", False)
+                preserved_agent_count = orchestration_preservation.get("preserved_agent_count", 0)
+                
+                logger.info(f"Orchestration state restoration: enabled={orchestration_was_enabled}, agents={preserved_agent_count}")
+                
+                # If orchestration was previously enabled, attempt to restore basic state
+                if orchestration_was_enabled and not self._enabled:
+                    logger.info("Attempting to re-enable orchestration after compaction")
+                    try:
+                        # Re-initialize with basic mode (safe default)
+                        await self.initialize(OrchestrationMode.BASIC)
+                    except Exception as e:
+                        logger.warning(f"Failed to restore orchestration: {e}")
+            
+            logger.info("Post-compaction hook executed with orchestration restoration")
+            return restoration_result
+            
+        except Exception as e:
+            logger.error(f"Orchestrated post-compaction hook failed: {e}")
+            return {"status": "error", "error": str(e)}
+    
+    async def get_orchestrated_context_status(self) -> Dict[str, Any]:
+        """
+        Get comprehensive status of orchestration and context compaction.
+        
+        Returns:
+            Combined status report for both systems
+        """
+        status = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "orchestration": await self.get_health_status(),
+            "context_compaction": None
+        }
+        
+        if self.compaction_manager:
+            try:
+                compaction_status = await self.compaction_manager.validate_context_integrity()
+                status["context_compaction"] = compaction_status
+            except Exception as e:
+                status["context_compaction"] = {
+                    "status": "error",
+                    "error": str(e)
+                }
+        else:
+            status["context_compaction"] = {
+                "status": "unavailable",
+                "message": "Context compaction manager not initialized"
+            }
+        
+        # Combined health assessment
+        orchestration_healthy = status["orchestration"].get("orchestration_enabled", False)
+        compaction_healthy = (
+            status["context_compaction"] and 
+            status["context_compaction"].get("overall_status") == "healthy"
+        )
+        
+        status["overall_health"] = {
+            "orchestration_healthy": orchestration_healthy,
+            "compaction_healthy": compaction_healthy,
+            "integration_status": "healthy" if (orchestration_healthy and compaction_healthy) else "degraded"
+        }
+        
+        return status
 
 
 # Global integration instance

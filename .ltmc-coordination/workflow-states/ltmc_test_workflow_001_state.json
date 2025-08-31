@@ -1,0 +1,20 @@
+{
+  "workflow_id": "ltmc_test_workflow_001",
+  "description": "",
+  "created_at": "2025-08-30T12:56:46.518357+00:00",
+  "created_by": null,
+  "current_state": "initialized",
+  "states": [
+    {
+      "timestamp": "2025-08-30T12:56:46.518363+00:00",
+      "previous_state": null,
+      "new_state": "initialized",
+      "agent_id": null,
+      "metadata": {
+        "workflow_name": "ltmc_testing_workflow",
+        "workflow_description": "Testing coordination_action tool functionality as part of comprehensive LTMC tool validation",
+        "workflow_steps": "[\"initialize_coordination\", \"validate_tool_access\", \"test_agent_handoff\", \"finalize_results\"]"
+      }
+    }
+  ]
+}

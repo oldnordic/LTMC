@@ -479,6 +479,71 @@ class RedisManager:
                 "test_mode": self.test_mode
             }
     
+    async def get(self, key: str) -> Optional[str]:
+        """
+        Get value for a Redis key (simple get command).
+        Used by sequential thinking coordinator for session tracking.
+        
+        Args:
+            key: Redis key
+            
+        Returns:
+            Value stored at key, or None if key doesn't exist
+        """
+        if self.test_mode:
+            cached_item = self._test_cache.get(key)
+            if cached_item and isinstance(cached_item, dict):
+                return cached_item.get("value")
+            return cached_item  # For simple string values
+            
+        if not await self._ensure_connection():
+            return None
+            
+        try:
+            async with self._connection_manager.get_connection() as redis_client:
+                result = await redis_client.get(key)
+                logger.debug(f"Retrieved Redis key {key}: {'found' if result else 'not found'}")
+                return result
+                
+        except Exception as e:
+            logger.error(f"Failed to get Redis key {key}: {e}")
+            return None
+    
+    async def setex(self, key: str, ttl: int, value: str) -> bool:
+        """
+        Set key-value pair with expiration time (Redis setex command).
+        Used by sequential thinking coordinator for session tracking.
+        
+        Args:
+            key: Redis key
+            ttl: Time-to-live in seconds
+            value: Value to store
+            
+        Returns:
+            True if operation successful, False otherwise
+        """
+        if self.test_mode:
+            # Simple test mode implementation
+            self._test_cache[key] = {
+                "value": value,
+                "ttl": ttl,
+                "cached_at": datetime.now().isoformat()
+            }
+            return True
+            
+        if not await self._ensure_connection():
+            return False
+            
+        try:
+            async with self._connection_manager.get_connection() as redis_client:
+                result = await redis_client.setex(key, ttl, value)
+                logger.debug(f"Set Redis key {key} with TTL {ttl}s: {result}")
+                return bool(result)
+                
+        except Exception as e:
+            logger.error(f"Failed to set Redis key {key}: {e}")
+            return False
+    
     async def close(self):
         """Close Redis connection."""
         if not self.test_mode and self._connection_manager:

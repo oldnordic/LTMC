@@ -6,5 +6,29 @@
       "workflow_id": "project_proj_20250829_115816",
       "created_by": "system"
     }
+  },
+  {
+    "timestamp": "2025-08-29T23:16:35.032177+00:00",
+    "activity_type": "workflow_created",
+    "activity_data": {
+      "workflow_id": "project_proj_20250830_011635",
+      "created_by": "system"
+    }
+  },
+  {
+    "timestamp": "2025-08-29T23:16:59.319646+00:00",
+    "activity_type": "workflow_created",
+    "activity_data": {
+      "workflow_id": "sprint_sprint_20250830_011659",
+      "created_by": "system"
+    }
+  },
+  {
+    "timestamp": "2025-08-29T23:25:39.341652+00:00",
+    "activity_type": "workflow_created",
+    "activity_data": {
+      "workflow_id": "enhanced_sequential_integration",
+      "created_by": null
+    }
   }
 ]

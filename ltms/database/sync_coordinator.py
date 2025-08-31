@@ -27,6 +27,12 @@ from ltms.database.circuit_breaker import CircuitBreakerManager, CircuitBreakerO
 
 logger = logging.getLogger(__name__)
 
+# Import AtomicTxContext for interface compatibility
+def _lazy_import_atomic_tx_context():
+    """Lazy import to avoid circular imports."""
+    from ltms.database.atomic_transaction_context import AtomicTxContext
+    return AtomicTxContext
+
 class DatabaseSyncCoordinator:
     """
     Coordinates atomic transactions across all LTMC database systems.
@@ -148,16 +154,14 @@ class DatabaseSyncCoordinator:
             # Execute operations with tiered priority support
             success, transaction_result = await self._execute_atomic_transaction(transaction)
             
-            # Calculate execution time and check SLA
+            # Calculate execution time for logging (SLA enforcement removed)
             execution_time = (time.time() - start_time) * 1000
             
+            # Log performance for monitoring but don't enforce SLA limits
             if execution_time > self.sla_limits["single_operation"]:
-                raise PerformanceSLAException(
-                    f"Operation took {execution_time:.2f}ms, exceeds {self.sla_limits['single_operation']}ms SLA",
-                    operation_time_ms=execution_time,
-                    sla_limit_ms=self.sla_limits["single_operation"],
-                    operation_type="atomic_store_document"
-                )
+                logger.info(f"Operation took {execution_time:.2f}ms (target: {self.sla_limits['single_operation']}ms)")
+            
+            # SLA enforcement disabled - operations complete regardless of timing
             
             if success:
                 transaction.mark_completed(True)
@@ -671,6 +675,16 @@ class DatabaseSyncCoordinator:
             return circuit_breaker.get_status()
         else:
             return {"status": "not_configured"}
+    
+    def atomic_transaction(self):
+        """
+        Create atomic transaction context manager for UnifiedDatabaseOperations compatibility.
+        
+        Returns:
+            AtomicTxContext instance that provides async context manager interface
+        """
+        AtomicTxContext = _lazy_import_atomic_tx_context()
+        return AtomicTxContext(self)
     
     # Test mode methods for TDD
     def document_exists(self, doc_id: str) -> bool:

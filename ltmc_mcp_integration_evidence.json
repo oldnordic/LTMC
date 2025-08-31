@@ -1,0 +1,45 @@
+{
+  "validation_status": "PARTIAL",
+  "total_validation_time": 0.695,
+  "server_connection": "SUCCESS",
+  "tools_discovered": 14,
+  "tools_executed_successfully": 0,
+  "sla_compliance": {
+    "tools_list_under_500ms": true,
+    "tool_execution_under_2s": true
+  },
+  "evidence_count": 2,
+  "detailed_evidence": [
+    {
+      "test": "server_initialization",
+      "status": "SUCCESS",
+      "init_time_seconds": 0.691,
+      "server_name": "LTMC Server",
+      "message": "MCP server initialized successfully"
+    },
+    {
+      "test": "tools_discovery",
+      "status": "SUCCESS",
+      "response_time_seconds": 0.002,
+      "sla_met": true,
+      "tool_count": 14,
+      "tool_names": [
+        "memory_action",
+        "todo_action",
+        "chat_action",
+        "unix_action",
+        "pattern_action",
+        "blueprint_action",
+        "cache_action",
+        "graph_action",
+        "documentation_action",
+        "sync_action",
+        "config_action",
+        "coordination_action",
+        "sprint_action",
+        "sequential_thinking_action"
+      ],
+      "message": "Discovered 14 tools successfully"
+    }
+  ]
+}

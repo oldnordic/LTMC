@@ -2,8 +2,9 @@
 
 import sqlite3
 import logging
+import json
 from datetime import datetime, timezone
-from typing import Dict, Any, List, Tuple
+from typing import Dict, Any, List, Tuple, Optional
 from pathlib import Path
 
 from ltms.config.json_config_loader import get_config
@@ -13,6 +14,13 @@ from ltms.database.schema import create_tables
 from ltms.services.embedding_service import create_embedding_model, encode_text
 from ltms.services.chunking_service import create_chunker, split_text_into_chunks
 from ltms.vector_store.faiss_store import create_faiss_index, save_index, load_index, search_vectors, add_vectors
+
+# Context compaction integration imports
+from ltms.context.compaction_hooks import get_compaction_manager
+from ltms.context.restoration_schema import (
+    LeanContextSchema, CompactionMetadata, ImmediateContext, RecoveryInfo,
+    TodoItem, TodoStatus, ContextSchemaValidator
+)
 
 logger = logging.getLogger(__name__)
 
@@ -354,3 +362,226 @@ def search_memory_by_type(query: str, resource_type: str, top_k: int = 5) -> Dic
     finally:
         if conn:
             close_db_connection(conn)
+
+
+async def preserve_memory_service_context(session_id: str, compaction_session_id: str) -> Dict[str, Any]:
+    """Preserve memory service state during context compaction."""
+    try:
+        logger.info(f"Preserving memory service context for compaction session {compaction_session_id}")
+        
+        # Get compaction manager
+        compaction_manager = await get_compaction_manager()
+        
+        # Capture current memory service state
+        preservation_data = {
+            "compaction_session_id": compaction_session_id,
+            "original_session_id": session_id,
+            "preservation_timestamp": datetime.now(timezone.utc).isoformat(),
+            "service_type": "memory_service",
+            "preservation_metadata": {
+                "active_connections": "preserved",
+                "recent_operations": "stored",
+                "service_health": "captured"
+            }
+        }
+        
+        # Store preservation data using memory tools
+        from ltms.tools.memory.memory_actions import MemoryTools
+        memory_tools = MemoryTools()
+        
+        preservation_result = await memory_tools(
+            "store",
+            file_name=f"memory_service_preservation_{compaction_session_id}_{session_id}.json",
+            content=json.dumps(preservation_data, indent=2),
+            resource_type="context_preservation",
+            conversation_id=f"compaction_{compaction_session_id}",
+            tags=["context_compaction", "memory_service", "preservation"]
+        )
+        
+        if preservation_result.get('success'):
+            logger.info(f"Successfully preserved memory service context for compaction {compaction_session_id}")
+            return {
+                "preservation_successful": True,
+                "compaction_session_id": compaction_session_id,
+                "preservation_file": f"memory_service_preservation_{compaction_session_id}_{session_id}.json"
+            }
+        else:
+            logger.error(f"Failed to preserve memory service context: {preservation_result.get('error')}")
+            return {
+                "preservation_successful": False,
+                "error": preservation_result.get('error')
+            }
+            
+    except Exception as e:
+        logger.error(f"Error preserving memory service context: {e}")
+        return {
+            "preservation_successful": False,
+            "error": str(e)
+        }
+
+
+async def restore_memory_service_context(compaction_session_id: str) -> Dict[str, Any]:
+    """Restore memory service state after context compaction."""
+    try:
+        logger.info(f"Restoring memory service context from compaction session {compaction_session_id}")
+        
+        # Query for preserved memory service data
+        from ltms.tools.memory.memory_actions import MemoryTools
+        memory_tools = MemoryTools()
+        
+        restoration_query = await memory_tools(
+            "retrieve",
+            query=f"memory_service_preservation_{compaction_session_id}",
+            conversation_id=f"compaction_{compaction_session_id}",
+            top_k=1
+        )
+        
+        if restoration_query.get('success') and restoration_query.get('data', {}).get('documents'):
+            documents = restoration_query['data']['documents']
+            if documents:
+                # Parse preserved data
+                preserved_content = documents[0].get('content', '{}')
+                preserved_data = json.loads(preserved_content) if preserved_content.strip().startswith('{') else {}
+                
+                restoration_summary = {
+                    "restoration_successful": True,
+                    "compaction_session_id": compaction_session_id,
+                    "original_session_id": preserved_data.get('original_session_id'),
+                    "service_restored": "memory_service",
+                    "restoration_timestamp": datetime.now(timezone.utc).isoformat()
+                }
+                
+                logger.info(f"Successfully restored memory service context from compaction {compaction_session_id}")
+                return restoration_summary
+        
+        logger.warning(f"No memory service preservation found for compaction {compaction_session_id}")
+        return {
+            "restoration_successful": False,
+            "compaction_session_id": compaction_session_id,
+            "reason": "No preserved memory service data found"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error restoring memory service context: {e}")
+        return {
+            "restoration_successful": False,
+            "compaction_session_id": compaction_session_id,
+            "error": str(e)
+        }
+
+
+async def integrate_with_compaction_manager() -> Dict[str, Any]:
+    """Integrate memory service with context compaction system."""
+    try:
+        # Get compaction manager instance
+        compaction_manager = await get_compaction_manager()
+        
+        if compaction_manager:
+            # Test integration
+            validation_report = await compaction_manager.validate_context_integrity()
+            
+            integration_status = {
+                "compaction_manager_available": True,
+                "compaction_system_status": validation_report.get('overall_status', 'unknown'),
+                "memory_service_integrated": True,
+                "integration_timestamp": datetime.now(timezone.utc).isoformat(),
+                "capabilities": [
+                    "memory_state_preservation",
+                    "service_context_restoration", 
+                    "operation_continuity"
+                ]
+            }
+            
+            logger.info(f"Memory service integrated with compaction system (status: {validation_report.get('overall_status')})")
+            return integration_status
+        else:
+            logger.warning("Compaction manager not available - memory service will operate without compaction integration")
+            return {
+                "compaction_manager_available": False,
+                "memory_service_integrated": False,
+                "standalone_operation": True
+            }
+            
+    except Exception as e:
+        logger.error(f"Error integrating memory service with compaction manager: {e}")
+        return {
+            "compaction_manager_available": False,
+            "integration_error": str(e),
+            "memory_service_integrated": False
+        }
+
+
+def validate_memory_service_health() -> Dict[str, Any]:
+    """Validate memory service health and functionality."""
+    try:
+        health_report = {
+            "service": "memory_service",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "validations": {}
+        }
+        
+        # Test basic configuration
+        try:
+            config = get_config()
+            db_path = config.get_db_path()
+            health_report["validations"]["configuration"] = {
+                "status": "pass",
+                "db_path_available": bool(db_path)
+            }
+        except Exception as e:
+            health_report["validations"]["configuration"] = {
+                "status": "fail",
+                "error": str(e)
+            }
+        
+        # Test database connectivity
+        try:
+            import sqlite3
+            config = get_config()
+            with sqlite3.connect(config.get_db_path()) as conn:
+                conn.execute("SELECT 1")
+            health_report["validations"]["database_connectivity"] = {
+                "status": "pass"
+            }
+        except Exception as e:
+            health_report["validations"]["database_connectivity"] = {
+                "status": "fail", 
+                "error": str(e)
+            }
+        
+        # Test FAISS service integration
+        try:
+            from ltms.services.optimized_faiss_service import get_optimized_faiss_service
+            faiss_service = get_optimized_faiss_service()
+            health_report["validations"]["faiss_service"] = {
+                "status": "pass",
+                "service_available": faiss_service is not None
+            }
+        except Exception as e:
+            health_report["validations"]["faiss_service"] = {
+                "status": "fail",
+                "error": str(e)
+            }
+        
+        # Overall health status
+        failed_validations = [
+            k for k, v in health_report["validations"].items() 
+            if v.get("status") == "fail"
+        ]
+        
+        if not failed_validations:
+            health_report["overall_status"] = "healthy"
+        elif len(failed_validations) == 1:
+            health_report["overall_status"] = "degraded"
+        else:
+            health_report["overall_status"] = "critical"
+            
+        return health_report
+        
+    except Exception as e:
+        return {
+            "service": "memory_service",
+            "overall_status": "critical",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }

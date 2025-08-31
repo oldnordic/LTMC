@@ -183,21 +183,21 @@ class UnifiedDatabaseOperations:
         try:
             # 1. Try cache first if enabled
             if use_cache:
-                cached = await self.coordinator.redis.retrieve_cached_document(doc_id)
+                cached = await self.coordinator.redis_cache.retrieve_cached_document(doc_id)
                 if cached:
                     logger.debug(f"Retrieved {doc_id} from Redis cache")
                     document = cached
             
             # 2. Fallback to SQLite if not in cache
             if not document:
-                sqlite_doc = self.coordinator.sqlite.retrieve_document(doc_id)
+                sqlite_doc = self.coordinator.sqlite_manager.retrieve_document(doc_id)
                 if sqlite_doc:
                     logger.debug(f"Retrieved {doc_id} from SQLite")
                     document = sqlite_doc
                     
                     # Re-cache for future access
                     if use_cache:
-                        await self.coordinator.redis.cache_document(
+                        await self.coordinator.redis_cache.cache_document(
                             doc_id,
                             sqlite_doc["content"],
                             sqlite_doc.get("metadata", {})
@@ -205,13 +205,13 @@ class UnifiedDatabaseOperations:
             
             # 3. Enrich with graph relationships if requested
             if document and include_relationships:
-                neo4j_data = await self.coordinator.neo4j.retrieve_document_node(doc_id)
+                neo4j_data = await self.coordinator.neo4j_manager.retrieve_document_node(doc_id)
                 if neo4j_data:
                     document["relationships"] = neo4j_data.get("relationships", [])
             
             # 4. Add vector information if available
             if document:
-                faiss_info = await self.coordinator.faiss.retrieve_document_vector(doc_id)
+                faiss_info = await self.coordinator.faiss_store.retrieve_document_vector(doc_id)
                 if faiss_info:
                     document["vector_index"] = faiss_info.get("vector_index")
             
@@ -300,7 +300,7 @@ class UnifiedDatabaseOperations:
         
         try:
             # 1. Get similar vectors from FAISS
-            similar_docs = await self.coordinator.faiss.search_similar(query, k * 2)
+            similar_docs = await self.coordinator.faiss_store.search_similar(query, k * 2)
             
             # 2. Enrich results with metadata
             for doc_info in similar_docs:
@@ -416,17 +416,17 @@ class UnifiedDatabaseOperations:
         
         # Gather stats from each database
         stats["databases"]["sqlite"] = {
-            "document_count": self.coordinator.sqlite.count_documents()
+            "document_count": self.coordinator.sqlite_manager.count_documents()
         }
         
         stats["databases"]["redis"] = {
-            "cached_documents": await self.coordinator.redis.count_cached_documents()
+            "cached_documents": await self.coordinator.redis_cache.count_cached_documents()
         }
         
         stats["databases"]["neo4j"] = {
-            "node_count": await self.coordinator.neo4j.count_document_nodes()
+            "node_count": await self.coordinator.neo4j_manager.count_document_nodes()
         }
         
-        stats["databases"]["faiss"] = self.coordinator.faiss.get_health_status()
+        stats["databases"]["faiss"] = self.coordinator.faiss_store.get_health_status()
         
         return stats

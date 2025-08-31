@@ -1,0 +1,18 @@
+[
+  {
+    "timestamp": "2025-08-31T00:40:03.628616+00:00",
+    "activity_type": "workflow_created",
+    "activity_data": {
+      "workflow_id": "project_proj_20250831_024003",
+      "created_by": "system"
+    }
+  },
+  {
+    "timestamp": "2025-08-31T11:26:16.700743+00:00",
+    "activity_type": "workflow_created",
+    "activity_data": {
+      "workflow_id": "project_proj_20250831_132616",
+      "created_by": "system"
+    }
+  }
+]

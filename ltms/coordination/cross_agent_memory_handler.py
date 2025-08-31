@@ -16,6 +16,7 @@ LTMC Tools Used: memory_action, chat_action, todo_action, graph_action (ALL REAL
 """
 
 import json
+import logging
 import uuid
 import time
 import re
@@ -27,6 +28,15 @@ from ltms.tools.memory.memory_actions import memory_action
 from ltms.tools.memory.chat_actions import chat_action
 from ltms.tools.todos.todo_actions import todo_action
 from ltms.tools.graph.graph_actions import graph_action
+
+# Context compaction integration imports
+from ltms.context.compaction_hooks import get_compaction_manager
+from ltms.context.restoration_schema import (
+    LeanContextSchema, CompactionMetadata, ImmediateContext, RecoveryInfo,
+    TodoItem, TodoStatus, ContextSchemaValidator
+)
+
+logger = logging.getLogger(__name__)
 
 
 class CrossAgentMemoryHandler:
@@ -537,3 +547,233 @@ class CrossAgentMemoryHandler:
             "handler_id": self.handler_id,
             "session_id": self.session_id
         }
+    
+    async def capture_agent_coordination_state(self) -> Dict[str, Any]:
+        """Capture current agent coordination state for context compaction preservation."""
+        coordination_state = {
+            "handler_id": self.handler_id,
+            "session_id": self.session_id,
+            "task_id": self.task_id,
+            "capture_timestamp": datetime.now(timezone.utc).isoformat(),
+            "coordination_type": "cross_agent_memory_state"
+        }
+        
+        # Capture active agent interactions
+        try:
+            # Query memory for all cross-agent interactions in this session
+            interaction_result = memory_action(
+                action="retrieve",
+                query=f"cross_agent {self.session_id} agent_output",
+                conversation_id=self.session_id,
+                role="system"
+            )
+            
+            if interaction_result.get('success'):
+                coordination_state["active_interactions"] = len(interaction_result.get('documents', []))
+                coordination_state["has_agent_coordination"] = len(interaction_result.get('documents', [])) > 0
+            else:
+                coordination_state["active_interactions"] = 0
+                coordination_state["has_agent_coordination"] = False
+            
+            # Query for agent dependencies using graph
+            dependency_query = f"""
+            MATCH (a:Agent)-[r:REFERENCES]->(b:Agent)
+            WHERE a.session = '{self.session_id}' OR b.session = '{self.session_id}'
+            RETURN count(r) as dependency_count
+            """
+            
+            graph_result = graph_action(
+                action="query",
+                cypher_query=dependency_query,
+                conversation_id=self.session_id
+            )
+            
+            if graph_result.get('success'):
+                results = graph_result.get('results', [])
+                coordination_state["dependency_count"] = results[0].get('dependency_count', 0) if results else 0
+            else:
+                coordination_state["dependency_count"] = 0
+                
+            # Query for active handoffs
+            handoff_result = memory_action(
+                action="retrieve",
+                query=f"agent_handoff {self.session_id}",
+                conversation_id=self.session_id,
+                role="system"
+            )
+            
+            if handoff_result.get('success'):
+                coordination_state["active_handoffs"] = len(handoff_result.get('documents', []))
+            else:
+                coordination_state["active_handoffs"] = 0
+            
+            logger.debug(f"Captured agent coordination state for session {self.session_id}")
+            return coordination_state
+            
+        except Exception as e:
+            logger.error(f"Failed to capture agent coordination state: {e}")
+            return {
+                "handler_id": self.handler_id,
+                "session_id": self.session_id,
+                "error": str(e),
+                "coordination_captured": False
+            }
+    
+    async def preserve_cross_agent_context(self, compaction_session_id: str) -> bool:
+        """Preserve cross-agent coordination context during compaction event."""
+        try:
+            # Capture current coordination state
+            coordination_state = await self.capture_agent_coordination_state()
+            
+            # Store coordination state for post-compaction restoration
+            preservation_doc = {
+                "compaction_session_id": compaction_session_id,
+                "original_session_id": self.session_id,
+                "preservation_timestamp": datetime.now(timezone.utc).isoformat(),
+                "coordination_state": coordination_state,
+                "handler_metadata": {
+                    "handler_id": self.handler_id,
+                    "task_id": self.task_id,
+                    "preservation_type": "cross_agent_coordination"
+                }
+            }
+            
+            # Store using dynamic file naming following LTMC principles
+            preservation_file_name = f"cross_agent_coordination_preservation_{compaction_session_id}_{self.session_id}_{self.handler_id}.json"
+            
+            preservation_result = memory_action(
+                action="store",
+                file_name=preservation_file_name,
+                content=json.dumps(preservation_doc, indent=2),
+                tags=["context_compaction", "cross_agent_coordination", "preservation", compaction_session_id],
+                conversation_id=f"compaction_{compaction_session_id}",
+                role="system"
+            )
+            
+            if preservation_result.get('success'):
+                # Create todo for restoration tracking
+                todo_action(
+                    action="add",
+                    content=f"Cross-agent coordination preserved for compaction session {compaction_session_id}",
+                    tags=["context_compaction", "coordination_preservation", compaction_session_id]
+                )
+                
+                logger.info(f"Successfully preserved cross-agent coordination for compaction {compaction_session_id}")
+                return True
+            else:
+                logger.error(f"Failed to store cross-agent coordination preservation: {preservation_result.get('error')}")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error preserving cross-agent context: {e}")
+            return False
+    
+    async def restore_cross_agent_context(self, compaction_session_id: str) -> Dict[str, Any]:
+        """Restore cross-agent coordination context after compaction event."""
+        try:
+            # Query for preserved coordination state
+            restoration_query = memory_action(
+                action="retrieve",
+                query=f"cross_agent_coordination_preservation_{compaction_session_id}",
+                conversation_id=f"compaction_{compaction_session_id}",
+                role="system"
+            )
+            
+            if restoration_query.get('success') and restoration_query.get('documents'):
+                for doc in restoration_query['documents']:
+                    try:
+                        content = doc.get('content', '')
+                        if f'compaction_session_id": "{compaction_session_id}"' in content:
+                            # Parse preserved coordination data
+                            json_match = re.search(r'\{.*\}', content, re.DOTALL)
+                            if json_match:
+                                preserved_data = json.loads(json_match.group())
+                                coordination_state = preserved_data.get('coordination_state', {})
+                                
+                                # Log restoration
+                                chat_action(
+                                    action="log",
+                                    message=f"Cross-agent coordination restored from compaction {compaction_session_id}",
+                                    tags=["context_restoration", "cross_agent_coordination"],
+                                    conversation_id=self.session_id,
+                                    role="system"
+                                )
+                                
+                                # Mark preservation todo as completed
+                                todo_action(
+                                    action="add",
+                                    content=f"Cross-agent coordination restored from compaction session {compaction_session_id}",
+                                    tags=["context_restoration", "coordination_restored", compaction_session_id]
+                                )
+                                
+                                restoration_summary = {
+                                    "restoration_successful": True,
+                                    "compaction_session_id": compaction_session_id,
+                                    "original_session_id": preserved_data.get('original_session_id'),
+                                    "coordination_had_interactions": coordination_state.get('has_agent_coordination', False),
+                                    "active_interactions_count": coordination_state.get('active_interactions', 0),
+                                    "dependency_count": coordination_state.get('dependency_count', 0),
+                                    "active_handoffs_count": coordination_state.get('active_handoffs', 0),
+                                    "restoration_timestamp": datetime.now(timezone.utc).isoformat()
+                                }
+                                
+                                logger.info(f"Successfully restored cross-agent coordination from compaction {compaction_session_id}")
+                                return restoration_summary
+                    except Exception as e:
+                        logger.error(f"Error parsing preserved coordination data: {e}")
+                        continue
+            
+            logger.warning(f"No cross-agent coordination preservation found for compaction {compaction_session_id}")
+            return {
+                "restoration_successful": False,
+                "compaction_session_id": compaction_session_id,
+                "reason": "No preserved coordination data found"
+            }
+            
+        except Exception as e:
+            logger.error(f"Error restoring cross-agent context: {e}")
+            return {
+                "restoration_successful": False,
+                "compaction_session_id": compaction_session_id,
+                "error": str(e)
+            }
+    
+    async def integrate_with_compaction_manager(self) -> Dict[str, Any]:
+        """Integrate cross-agent memory handler with context compaction system."""
+        try:
+            # Get compaction manager instance
+            compaction_manager = await get_compaction_manager()
+            
+            if compaction_manager:
+                # Test integration by validating compaction system
+                validation_report = await compaction_manager.validate_context_integrity()
+                
+                integration_status = {
+                    "compaction_manager_available": True,
+                    "compaction_system_status": validation_report.get('overall_status', 'unknown'),
+                    "handler_integrated": True,
+                    "integration_timestamp": datetime.now(timezone.utc).isoformat(),
+                    "capabilities": [
+                        "cross_agent_state_preservation",
+                        "coordination_context_restoration",
+                        "agent_interaction_continuity"
+                    ]
+                }
+                
+                logger.info(f"Cross-agent memory handler integrated with compaction system (status: {validation_report.get('overall_status')})")
+                return integration_status
+            else:
+                logger.warning("Compaction manager not available - cross-agent coordination will work without compaction integration")
+                return {
+                    "compaction_manager_available": False,
+                    "handler_integrated": False,
+                    "standalone_operation": True
+                }
+                
+        except Exception as e:
+            logger.error(f"Error integrating with compaction manager: {e}")
+            return {
+                "compaction_manager_available": False,
+                "integration_error": str(e),
+                "handler_integrated": False
+            }
