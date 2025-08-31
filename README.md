@@ -76,7 +76,7 @@ Add to your Claude Code MCP configuration:
 ### 4. Verification
 ```bash
 # Test system health
-python -c "from ltms.tools.consolidated import memory_action; print(memory_action(action='status'))"
+python -c "from ltms.tools.memory.memory_actions import memory_action; print(memory_action(action='status'))"
 ```
 
 ## 📚 Documentation
@@ -91,13 +91,13 @@ python -c "from ltms.tools.consolidated import memory_action; print(memory_actio
 - 🔧 **[Agent Coordination](docs/guides/AGENT_COORDINATION_SYSTEM.md)** - Multi-agent workflows
 
 ### **Technical Documentation**
-- 🏗️ **[Technical Architecture](TECH_STACK.md)** - Deep technical dive
-- 🎼 **[Orchestration System](ORCHESTRATION.md)** - Agent coordination details
+- 🏗️ **[Technical Architecture](docs/TECH_STACK.md)** - Deep technical dive
+- 🎼 **[Orchestration System](docs/ORCHESTRATION.md)** - Agent coordination details
 - 📊 **[Current Status](STATUS.md)** - System health and metrics
-- 📋 **[Deployment Guide](DEPLOYMENT.md)** - Production deployment
+- 📋 **[Deployment Guide](docs/DEPLOYMENT.md)** - Production deployment
 
 ### **Project Documentation**
-- 🎯 **[Architecture Plan](PLAN.md)** - Consolidation achievement summary
+- 🎯 **[Architecture Plan](docs/PLAN.md)** - Consolidation achievement summary
 - 📂 **[Documentation Hub](docs/guides/README.md)** - Complete documentation index
 
 ## 🔧 The 11 Consolidated Tools
@@ -157,7 +157,7 @@ python -c "from ltms.tools.consolidated import memory_action; print(memory_actio
 ## 🤝 Contributing
 
 LTMC follows quality-over-speed principles. Please review:
-- [Technical Architecture](TECH_STACK.md) for system understanding
+- [Technical Architecture](docs/TECH_STACK.md) for system understanding
 - [Current Status](STATUS.md) for development priorities
 - Quality standards: No mocks/stubs, real implementations only
 
